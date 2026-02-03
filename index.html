@@ -331,6 +331,29 @@
                 <div style="font-weight:600; margin-bottom:6px;">Revisa estos pagos:</div>
                 <div id="err_payments_list" style="white-space:pre-wrap; line-height:1.4;"></div>
               </div>
+
+              <!-- ✅ Totales en vivo -->
+              <div class="summaryBox" id="liveTotalsBox" style="margin-top:12px;">
+                <div class="tag"><span class="tagDot"></span><span>Totales en vivo</span></div>
+
+                <div class="kv" style="grid-column: 1 / -1;">
+                  <div class="k">Tu abono hasta el momento es de</div>
+                  <div class="v" id="liveTotalPaid">$0.00</div>
+                </div>
+
+                <div class="summaryGrid">
+                  <div class="kv">
+                    <div class="k">Ticket</div>
+                    <div class="v" id="liveTicketTotal">$50,000.00</div>
+                  </div>
+                  <div class="kv">
+                    <div class="k">Restante pendiente</div>
+                    <div class="v" id="liveRemaining">$50,000.00</div>
+                  </div>
+                </div>
+
+                <div class="warning hidden" id="liveWarn"></div>
+              </div>
             </div>
           </div>
         </section>
@@ -423,6 +446,12 @@
     const summaryGrid = document.getElementById("summaryGrid");
     const validationBox = document.getElementById("validationBox");
 
+    // ✅ live totals
+    const liveTotalPaidEl = document.getElementById("liveTotalPaid");
+    const liveTicketTotalEl = document.getElementById("liveTicketTotal");
+    const liveRemainingEl = document.getElementById("liveRemaining");
+    const liveWarn = document.getElementById("liveWarn");
+
     const sendBtn = document.getElementById("sendBtn");
     const resetBtn = document.getElementById("resetBtn");
     const successBox = document.getElementById("successBox");
@@ -461,6 +490,9 @@
 
       const focusMap = {1:nombres, 2:email, 3:abonoInicial, 4:numPagos};
       if(focusMap[currentStep]) focusMap[currentStep].focus();
+
+      // ✅ refresca totales si entran al paso 4
+      if(currentStep === 4) updateLiveTotals();
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -490,11 +522,6 @@
 
       const dt = new Date(Date.UTC(y, mo - 1, d));
       return dt.getUTCFullYear() === y && (dt.getUTCMonth()+1) === mo && dt.getUTCDate() === d;
-    }
-
-    function isDateInRange(dateStr){
-      if(!isValidISODate(dateStr)) return false;
-      return (dateStr >= MIN_DATE) && (dateStr <= MAX_DATE);
     }
 
     function validateStep1(){
@@ -617,6 +644,15 @@
       return parts.length > 1 ? `${formatted}.${parts[1].slice(0,2)}` : formatted;
     }
 
+    function money(n){
+      const x = Number(n || 0);
+      return x.toLocaleString("es-MX", { style:"currency", currency:"MXN" });
+    }
+
+    function remainingIsZero(restante){
+      return Math.abs(Number(restante || 0)) <= REMAINING_TOL;
+    }
+
     abonoInicial.addEventListener("input", ()=>{
       const caret = abonoInicial.selectionStart;
       const before = abonoInicial.value;
@@ -624,6 +660,7 @@
       const delta = abonoInicial.value.length - before.length;
       try { abonoInicial.setSelectionRange(caret + delta, caret + delta); } catch(e){}
       show(err_abonoInicial, false);
+      updateLiveTotals(); // ✅
     });
 
     function buildPaymentRows(count){
@@ -657,11 +694,13 @@
           dateInput.classList.remove("badField");
           rowErr.classList.remove("show");
           show(err_payments, false);
+          updateLiveTotals(); // ✅
         });
         dateInput.addEventListener("change", ()=>{
           dateInput.classList.remove("badField");
           rowErr.classList.remove("show");
           show(err_payments, false);
+          updateLiveTotals(); // ✅
         });
 
         amt.addEventListener("input", () => {
@@ -673,6 +712,7 @@
           amt.classList.remove("badField");
           rowErr.classList.remove("show");
           show(err_payments, false);
+          updateLiveTotals(); // ✅
         });
 
         btn.addEventListener("click", ()=>{
@@ -680,10 +720,12 @@
           amt.value = "";
           clearRowValidation(row);
           show(err_payments, false);
+          updateLiveTotals(); // ✅
         });
 
         paymentsContainer.appendChild(row);
       }
+      updateLiveTotals(); // ✅
     }
 
     numPagos.addEventListener("input", () => {
@@ -695,6 +737,7 @@
         buildPaymentRows(n);
       } else {
         paymentsContainer.innerHTML = "";
+        updateLiveTotals(); // ✅
       }
     });
 
@@ -744,18 +787,34 @@
         },
         meta: {
           created_at_iso: new Date().toISOString(),
-          source: "formulario_plan_pagos_v5"
+          source: "formulario_plan_pagos_v6_live_totals"
         }
       };
     }
 
-    function money(n){
-      const x = Number(n || 0);
-      return x.toLocaleString("es-MX", { style:"currency", currency:"MXN" });
-    }
+    // ✅ contador en vivo (abono inicial + plan de pagos)
+    function updateLiveTotals(){
+      if(!liveTotalPaidEl || !liveRemainingEl || !liveTicketTotalEl) return;
 
-    function remainingIsZero(restante){
-      return Math.abs(Number(restante || 0)) <= REMAINING_TOL;
+      const data = collectData();
+
+      liveTicketTotalEl.textContent = money(TICKET_TOTAL);
+      liveTotalPaidEl.textContent = money(data.ticket.total_pagado);
+      liveRemainingEl.textContent = money(data.ticket.restante);
+
+      const restante = Number(data.ticket.restante || 0);
+
+      if(Math.abs(restante) <= REMAINING_TOL){
+        hide(liveWarn);
+        liveWarn.textContent = "";
+      } else {
+        unhide(liveWarn);
+        if(restante > 0){
+          liveWarn.textContent = `Aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`;
+        } else {
+          liveWarn.textContent = `Vas excedida por ${money(Math.abs(restante))}. Revisa montos.`;
+        }
+      }
     }
 
     function renderSummary(data){
@@ -832,7 +891,6 @@ Restante pendiente: ${money(data.ticket.restante)}
       if(currentStep === 2 && !validateStep2()) return;
       if(currentStep === 3 && !validateStep3()) return;
       if(currentStep === 4 && !validateStep4()) {
-        // ✅ si hay errores, opcional: scrollea al primer pago con error
         const firstBad = paymentsContainer.querySelector(".badField");
         if(firstBad) firstBad.scrollIntoView({behavior:"smooth", block:"center"});
         return;
@@ -881,7 +939,6 @@ Restante pendiente: ${money(data.ticket.restante)}
     });
 
     sendBtn.addEventListener("click", ()=>{
-      // ✅ validación final (incluye errores por pago)
       if(!validateStep4()){
         unhide(validationBox);
         validationBox.textContent = "Hey, hay algo raro aquí: revisa las fechas/montos marcados (Pago X). Deben ser válidos y dentro del rango.";
@@ -945,10 +1002,12 @@ Restante pendiente: ${money(data.ticket.restante)}
 
       nextBtn.style.display = "inline-flex";
       setStep(1);
+      updateLiveTotals();
       showToast("Reiniciado");
     });
 
     setStep(1);
+    updateLiveTotals();
   </script>
 </body>
 </html>
