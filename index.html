@@ -95,6 +95,12 @@
       box-shadow: 0 0 0 3px rgba(124,92,255,.12);
     }
 
+    /* ✅ marca visual de error por campo */
+    .badField{
+      border-color: rgba(255,77,109,.85) !important;
+      box-shadow: 0 0 0 3px rgba(255,77,109,.10) !important;
+    }
+
     .hint{ margin-top:-2px; color:var(--muted); font-size:12px; line-height:1.35; }
     .error{ color:var(--danger); font-size:12px; display:none; }
     .error.show{display:block}
@@ -121,10 +127,7 @@
     }
     button:hover{ border-color: rgba(124,92,255,.6); background: rgba(124,92,255,.08); }
     button:active{transform: translateY(1px)}
-    button:disabled{
-      opacity:.55;
-      cursor:not-allowed;
-    }
+    button:disabled{ opacity:.55; cursor:not-allowed; }
     .primary{
       border-color: rgba(124,92,255,.65);
       background: linear-gradient(90deg, rgba(124,92,255,.28), rgba(124,92,255,.12));
@@ -143,9 +146,18 @@
       border-radius:14px;
       background: rgba(255,255,255,.02);
     }
-    @media (max-width:520px){
-      .payRow{grid-template-columns: 1fr;}
+    @media (max-width:520px){ .payRow{grid-template-columns: 1fr;} }
+
+    /* ✅ mensajes de error por fila */
+    .rowError{
+      grid-column: 1 / -1;
+      display:none;
+      color: var(--danger);
+      font-size:12px;
+      line-height:1.35;
+      margin-top:2px;
     }
+    .rowError.show{ display:block; }
 
     .tag{ display:inline-flex; align-items:center; gap:8px; color:var(--muted); font-size:12px; }
     .tagDot{
@@ -285,7 +297,7 @@
           </div>
         </section>
 
-        <!-- STEP 3: Abono inicial -->
+        <!-- STEP 3 -->
         <section class="step" data-step="3">
           <div class="grid">
             <div class="field">
@@ -313,8 +325,11 @@
 
             <div class="field">
               <div id="paymentsContainer" class="payments"></div>
+
+              <!-- ✅ error general con lista -->
               <div class="error" id="err_payments">
-                Completa todas las fechas y montos (montos &gt; 0). Fechas válidas: hoy a 30/11/2026.
+                <div style="font-weight:600; margin-bottom:6px;">Revisa estos pagos:</div>
+                <div id="err_payments_list" style="white-space:pre-wrap; line-height:1.4;"></div>
               </div>
             </div>
           </div>
@@ -338,7 +353,6 @@
               <button class="small danger" id="resetBtn" type="button">Reiniciar</button>
             </div>
 
-            <!-- Submit invisible -->
             <iframe name="hiddenFrame" class="hidden" id="hiddenFrame"></iframe>
             <form id="postForm" class="hidden" method="POST" target="hiddenFrame">
               <input type="hidden" name="payload" id="payloadField" />
@@ -367,7 +381,6 @@
     const TICKET_TOTAL = 50000;
     const MAX_DATE = "2026-11-30"; // última fecha permitida
 
-    // Fecha mínima = hoy (en formato YYYY-MM-DD)
     function todayISO(){
       const d = new Date();
       const yyyy = d.getFullYear();
@@ -376,8 +389,6 @@
       return `${yyyy}-${mm}-${dd}`;
     }
     const MIN_DATE = todayISO();
-
-    // Tolerancia para evitar broncas por decimales
     const REMAINING_TOL = 0.01;
 
     const steps = Array.from(document.querySelectorAll(".step"));
@@ -407,6 +418,7 @@
     const err_abonoInicial = document.getElementById("err_abonoInicial");
     const err_numPagos = document.getElementById("err_numPagos");
     const err_payments = document.getElementById("err_payments");
+    const err_payments_list = document.getElementById("err_payments_list");
 
     const summaryGrid = document.getElementById("summaryGrid");
     const validationBox = document.getElementById("validationBox");
@@ -463,6 +475,28 @@
       return Number.isFinite(n) ? n : NaN;
     }
 
+    // ✅ Valida que una fecha ISO (YYYY-MM-DD) exista realmente (adiós 31/02)
+    function isValidISODate(dateStr){
+      if(!dateStr || typeof dateStr !== "string") return false;
+      const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if(!m) return false;
+
+      const y = Number(m[1]);
+      const mo = Number(m[2]);
+      const d = Number(m[3]);
+      if(!Number.isInteger(y) || !Number.isInteger(mo) || !Number.isInteger(d)) return false;
+      if(mo < 1 || mo > 12) return false;
+      if(d < 1 || d > 31) return false;
+
+      const dt = new Date(Date.UTC(y, mo - 1, d));
+      return dt.getUTCFullYear() === y && (dt.getUTCMonth()+1) === mo && dt.getUTCDate() === d;
+    }
+
+    function isDateInRange(dateStr){
+      if(!isValidISODate(dateStr)) return false;
+      return (dateStr >= MIN_DATE) && (dateStr <= MAX_DATE);
+    }
+
     function validateStep1(){
       const okN = nombres.value.trim().length > 0;
       const okA = apellidos.value.trim().length > 0;
@@ -488,9 +522,80 @@
       return ok;
     }
 
-    function isDateInRange(dateStr){
-      if(!dateStr) return false;
-      return (dateStr >= MIN_DATE) && (dateStr <= MAX_DATE);
+    // ✅ limpia visuales de errores por fila
+    function clearRowValidation(row){
+      const d = row.querySelector("input[type='date']");
+      const a = row.querySelector("input[data-role='amount']");
+      const re = row.querySelector(".rowError");
+
+      d.classList.remove("badField");
+      a.classList.remove("badField");
+      re.classList.remove("show");
+      re.textContent = "";
+    }
+
+    // ✅ valida fila específica y devuelve lista de errores para esa fila
+    function validatePaymentRow(row, idx){
+      const dateInput = row.querySelector("input[type='date']");
+      const amtInput  = row.querySelector("input[data-role='amount']");
+      const rowErr    = row.querySelector(".rowError");
+
+      clearRowValidation(row);
+
+      const errors = [];
+
+      const dateVal = dateInput.value;
+      if(!dateVal){
+        errors.push(`Pago ${idx}: Falta la fecha.`);
+        dateInput.classList.add("badField");
+      } else if(!isValidISODate(dateVal)){
+        errors.push(`Pago ${idx}: Fecha inválida (${dateVal}).`);
+        dateInput.classList.add("badField");
+      } else if(!(dateVal >= MIN_DATE && dateVal <= MAX_DATE)){
+        errors.push(`Pago ${idx}: Fecha fuera de rango (${dateVal}). Debe ser ${MIN_DATE} a ${MAX_DATE}.`);
+        dateInput.classList.add("badField");
+      }
+
+      const amount = Number((amtInput.value || "").replace(/,/g,''));
+      if(!(amount > 0)){
+        errors.push(`Pago ${idx}: Monto inválido. Debe ser mayor a 0.`);
+        amtInput.classList.add("badField");
+      }
+
+      if(errors.length){
+        rowErr.textContent = errors.join("\n");
+        rowErr.classList.add("show");
+      }
+
+      return errors;
+    }
+
+    // ✅ valida todos los pagos y arma lista general + marca filas
+    function validatePaymentsDetailed(){
+      const n = Number(numPagos.value);
+      const rows = Array.from(paymentsContainer.querySelectorAll(".payRow"));
+
+      // limpia todo
+      err_payments_list.textContent = "";
+      show(err_payments, false);
+      rows.forEach(r => clearRowValidation(r));
+
+      if(rows.length !== n) {
+        return { ok:false, errors:[`Cantidad de filas (${rows.length}) no coincide con número de pagos (${n}).`] };
+      }
+
+      const allErrors = [];
+      for(let i=0;i<rows.length;i++){
+        const rowErrors = validatePaymentRow(rows[i], i+1);
+        allErrors.push(...rowErrors);
+      }
+
+      const ok = allErrors.length === 0;
+      if(!ok){
+        err_payments_list.textContent = allErrors.join("\n");
+        show(err_payments, true);
+      }
+      return { ok, errors: allErrors };
     }
 
     function validateStep4(){
@@ -499,20 +604,8 @@
       show(err_numPagos, !okN);
       if(!okN) return false;
 
-      const rows = Array.from(paymentsContainer.querySelectorAll(".payRow"));
-      if(rows.length !== n) return false;
-
-      let allOk = true;
-      for(const row of rows){
-        const d = row.querySelector("input[type='date']");
-        const a = row.querySelector("input[data-role='amount']");
-        const amount = Number((a.value || "").replace(/,/g,''));
-        if(!d.value) allOk = false;
-        if(!isDateInRange(d.value)) allOk = false;
-        if(!(amount > 0)) allOk = false;
-      }
-      show(err_payments, !allOk);
-      return allOk;
+      const result = validatePaymentsDetailed();
+      return result.ok;
     }
 
     function formatCurrencyInput(value){
@@ -524,7 +617,6 @@
       return parts.length > 1 ? `${formatted}.${parts[1].slice(0,2)}` : formatted;
     }
 
-    // Formateo del abono inicial
     abonoInicial.addEventListener("input", ()=>{
       const caret = abonoInicial.selectionStart;
       const before = abonoInicial.value;
@@ -551,25 +643,26 @@
             <div class="hint">Número (sin $). Se formatea automático.</div>
           </div>
           <button type="button" class="small" title="Limpiar este pago">Limpiar</button>
+          <div class="rowError"></div>
         `;
 
         const dateInput = row.querySelector("input[type='date']");
-        dateInput.min = MIN_DATE;
-        dateInput.max = MAX_DATE;
-
-        if(MIN_DATE > MAX_DATE){
-          dateInput.disabled = true;
-        }
-
-        dateInput.addEventListener("change", ()=>{
-          show(err_payments, false);
-          if(dateInput.value && !isDateInRange(dateInput.value)){
-            dateInput.value = "";
-          }
-        });
-
         const amt = row.querySelector("input[data-role='amount']");
         const btn = row.querySelector("button");
+        const rowErr = row.querySelector(".rowError");
+
+        // ✅ NO ponemos min/max (evita bug al teclear 2026 en algunos browsers)
+        // Validación SOLO en Next/Enviar, pero limpiamos señal visual al editar.
+        dateInput.addEventListener("input", ()=>{
+          dateInput.classList.remove("badField");
+          rowErr.classList.remove("show");
+          show(err_payments, false);
+        });
+        dateInput.addEventListener("change", ()=>{
+          dateInput.classList.remove("badField");
+          rowErr.classList.remove("show");
+          show(err_payments, false);
+        });
 
         amt.addEventListener("input", () => {
           const caret = amt.selectionStart;
@@ -577,12 +670,15 @@
           amt.value = formatCurrencyInput(amt.value);
           const delta = amt.value.length - before.length;
           try { amt.setSelectionRange(caret + delta, caret + delta); } catch(e){}
+          amt.classList.remove("badField");
+          rowErr.classList.remove("show");
           show(err_payments, false);
         });
 
         btn.addEventListener("click", ()=>{
           dateInput.value = "";
           amt.value = "";
+          clearRowValidation(row);
           show(err_payments, false);
         });
 
@@ -594,6 +690,7 @@
       const n = Number(numPagos.value);
       show(err_numPagos, false);
       show(err_payments, false);
+      err_payments_list.textContent = "";
       if(Number.isInteger(n) && n >= 1 && n <= 30){
         buildPaymentRows(n);
       } else {
@@ -647,7 +744,7 @@
         },
         meta: {
           created_at_iso: new Date().toISOString(),
-          source: "formulario_plan_pagos_v3"
+          source: "formulario_plan_pagos_v5"
         }
       };
     }
@@ -669,7 +766,6 @@
       validationBox.textContent = "";
       failBox.style.display = "none";
 
-      // ✅ por default bloqueamos y luego habilitamos si todo cuadra
       sendBtn.disabled = true;
 
       const fullName = `${data.contacto.nombres} ${data.contacto.apellidos}`.trim();
@@ -691,7 +787,6 @@
         summaryGrid.appendChild(el);
       }
 
-      // Lista de pagos
       const payList = document.createElement("div");
       payList.className = "kv";
       payList.style.gridColumn = "1 / -1";
@@ -699,7 +794,6 @@
       payList.innerHTML = `<div class="k">Plan de pagos</div><div class="v" style="white-space:pre-wrap; line-height:1.5;">${lines.join("\n")}</div>`;
       summaryGrid.appendChild(payList);
 
-      // ✅ Totales con el texto como lo pediste
       const totals = document.createElement("div");
       totals.className = "kv";
       totals.style.gridColumn = "1 / -1";
@@ -713,7 +807,6 @@ Restante pendiente: ${money(data.ticket.restante)}
       `;
       summaryGrid.appendChild(totals);
 
-      // ✅ Validación y bloqueo de envío si no cuadra
       const restante = Number(data.ticket.restante || 0);
 
       if (!remainingIsZero(restante)) {
@@ -725,10 +818,10 @@ Restante pendiente: ${money(data.ticket.restante)}
           validationBox.textContent =
             `Hey, hay algo raro aquí: tu abono + tu plan de pagos exceden el total del ticket por ${money(Math.abs(restante))}. Revisa montos/fechas.`;
         }
-        sendBtn.disabled = true; // 🔒 NO se puede enviar
+        sendBtn.disabled = true;
       } else {
         hide(validationBox);
-        sendBtn.disabled = false; // ✅ ahora sí
+        sendBtn.disabled = false;
       }
     }
 
@@ -738,7 +831,12 @@ Restante pendiente: ${money(data.ticket.restante)}
       if(currentStep === 1 && !validateStep1()) return;
       if(currentStep === 2 && !validateStep2()) return;
       if(currentStep === 3 && !validateStep3()) return;
-      if(currentStep === 4 && !validateStep4()) return;
+      if(currentStep === 4 && !validateStep4()) {
+        // ✅ si hay errores, opcional: scrollea al primer pago con error
+        const firstBad = paymentsContainer.querySelector(".badField");
+        if(firstBad) firstBad.scrollIntoView({behavior:"smooth", block:"center"});
+        return;
+      }
 
       if(currentStep < totalSteps){
         if(currentStep === 4){
@@ -772,7 +870,6 @@ Restante pendiente: ${money(data.ticket.restante)}
       show(err_telefono, false);
     });
 
-    // ACK via iframe load
     let awaitingAck = false;
     hiddenFrame.addEventListener("load", () => {
       if(!awaitingAck) return;
@@ -784,7 +881,16 @@ Restante pendiente: ${money(data.ticket.restante)}
     });
 
     sendBtn.addEventListener("click", ()=>{
-      // 🔒 Si por cualquier razón llega aquí con restante != 0, no mandamos
+      // ✅ validación final (incluye errores por pago)
+      if(!validateStep4()){
+        unhide(validationBox);
+        validationBox.textContent = "Hey, hay algo raro aquí: revisa las fechas/montos marcados (Pago X). Deben ser válidos y dentro del rango.";
+        sendBtn.disabled = true;
+        const firstBad = paymentsContainer.querySelector(".badField");
+        if(firstBad) firstBad.scrollIntoView({behavior:"smooth", block:"center"});
+        return;
+      }
+
       const dataCheck = collectData();
       if(!remainingIsZero(dataCheck.ticket.restante)){
         unhide(validationBox);
@@ -793,18 +899,11 @@ Restante pendiente: ${money(data.ticket.restante)}
         return;
       }
 
-      // Validación extra de rango
-      if(MIN_DATE > MAX_DATE){
-        alert(`La fecha mínima (${MIN_DATE}) es mayor que la máxima (${MAX_DATE}). No se puede capturar pagos en este rango.`);
-        return;
-      }
-
       const payload = JSON.stringify(dataCheck);
 
       postForm.action = WEB_APP_URL;
       payloadField.value = payload;
 
-      // UI states
       failBox.style.display = "none";
       hide(successBox);
       unhide(sendingBox);
@@ -817,7 +916,6 @@ Restante pendiente: ${money(data.ticket.restante)}
           awaitingAck = false;
           hide(sendingBox);
           failBox.style.display = "block";
-          // Re-habilitar solo si sigue cuadrando
           const re = collectData();
           sendBtn.disabled = !remainingIsZero(re.ticket.restante);
         }
@@ -843,13 +941,13 @@ Restante pendiente: ${money(data.ticket.restante)}
       sendBtn.disabled = false;
 
       [err_nombres,err_apellidos,err_email,err_telefono,err_abonoInicial,err_numPagos,err_payments].forEach(e=>show(e,false));
+      err_payments_list.textContent = "";
 
       nextBtn.style.display = "inline-flex";
       setStep(1);
       showToast("Reiniciado");
     });
 
-    // Init
     setStep(1);
   </script>
 </body>
