@@ -1,0 +1,856 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Formulario | Plan de Pagos</title>
+  <style>
+    :root{
+      --bg:#0b0c10;
+      --card:#11131a;
+      --text:#e9ecf1;
+      --muted:#aab2c0;
+      --line:#202433;
+      --accent:#7c5cff;
+      --danger:#ff4d6d;
+      --ok:#37d67a;
+      --warn:#ffcc00;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 700px at 20% -10%, rgba(124,92,255,.35), transparent 55%),
+                  radial-gradient(900px 600px at 90% 0%, rgba(55,214,122,.18), transparent 50%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+    .wrap{ width:min(920px, 100%); display:grid; grid-template-columns: 1fr; gap:14px; }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow:hidden;
+      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+    }
+    .header{
+      padding:18px 18px 14px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      gap:14px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .title{ display:flex; flex-direction:column; gap:6px; }
+    .title h1{ margin:0; font-size:18px; letter-spacing:.2px; font-weight:650; }
+    .title p{ margin:0; color:var(--muted); font-size:13px; line-height:1.35; }
+    .progress{ display:flex; align-items:center; gap:10px; min-width:220px; justify-content:flex-end; flex:1; }
+    .bar{
+      width:160px; height:8px;
+      background:#0f1118;
+      border:1px solid var(--line);
+      border-radius:999px;
+      overflow:hidden;
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, var(--accent), rgba(124,92,255,.55));
+      transition: width .25s ease;
+    }
+    .stepLabel{ color:var(--muted); font-size:12px; white-space:nowrap; }
+
+    .content{ padding:18px; }
+    .step{ display:none; animation: fade .18s ease; }
+    .step.active{display:block}
+    @keyframes fade{ from{opacity:.5; transform: translateY(2px)} to{opacity:1; transform: translateY(0)} }
+
+    .grid{ display:grid; grid-template-columns: repeat(12, 1fr); gap:12px; }
+    .field{ grid-column: span 12; display:flex; flex-direction:column; gap:8px; }
+    @media (min-width:720px){
+      .field.half{grid-column: span 6;}
+      .field.third{grid-column: span 4;}
+      .field.twoThird{grid-column: span 8;}
+    }
+
+    label{ font-size:13px; color:#d7dbe5; }
+    input, select{
+      background:#0f1118;
+      color:var(--text);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px 12px;
+      outline:none;
+      font-size:14px;
+    }
+    input::placeholder{color:#7f889a}
+    input:focus, select:focus{
+      border-color: rgba(124,92,255,.7);
+      box-shadow: 0 0 0 3px rgba(124,92,255,.12);
+    }
+
+    .hint{ margin-top:-2px; color:var(--muted); font-size:12px; line-height:1.35; }
+    .error{ color:var(--danger); font-size:12px; display:none; }
+    .error.show{display:block}
+
+    .footer{
+      padding:14px 18px;
+      border-top:1px solid var(--line);
+      display:flex;
+      gap:10px;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .btns{ display:flex; gap:10px; flex-wrap:wrap; }
+    button{
+      border:1px solid var(--line);
+      background:#0f1118;
+      color:var(--text);
+      border-radius:999px;
+      padding:10px 14px;
+      font-size:13px;
+      cursor:pointer;
+      transition: transform .06s ease, border-color .2s ease, background .2s ease, opacity .2s ease;
+    }
+    button:hover{ border-color: rgba(124,92,255,.6); background: rgba(124,92,255,.08); }
+    button:active{transform: translateY(1px)}
+    button:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+    .primary{
+      border-color: rgba(124,92,255,.65);
+      background: linear-gradient(90deg, rgba(124,92,255,.28), rgba(124,92,255,.12));
+    }
+    .danger{ border-color: rgba(255,77,109,.6); background: rgba(255,77,109,.08); }
+    .small{ padding:8px 12px; font-size:12px; }
+
+    .payments{ display:flex; flex-direction:column; gap:10px; margin-top:6px; }
+    .payRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap:10px;
+      align-items:end;
+      padding:12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background: rgba(255,255,255,.02);
+    }
+    @media (max-width:520px){
+      .payRow{grid-template-columns: 1fr;}
+    }
+
+    .tag{ display:inline-flex; align-items:center; gap:8px; color:var(--muted); font-size:12px; }
+    .tagDot{
+      width:8px;height:8px;border-radius:999px;background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124,92,255,.12);
+    }
+
+    .summaryBox{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      background: rgba(255,255,255,.02);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .summaryGrid{ display:grid; grid-template-columns: 1fr; gap:10px; }
+    @media (min-width:720px){ .summaryGrid{grid-template-columns: 1fr 1fr;} }
+    .kv{
+      border:1px solid var(--line);
+      background:#0f1118;
+      border-radius:12px;
+      padding:12px;
+    }
+    .kv .k{color:var(--muted); font-size:12px; margin-bottom:6px;}
+    .kv .v{font-size:14px; word-break:break-word;}
+
+    .toast{
+      position:fixed;
+      bottom:18px;
+      left:50%;
+      transform:translateX(-50%);
+      background:#0f1118;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:10px 14px;
+      color:var(--text);
+      font-size:12px;
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .2s ease, transform .2s ease;
+      box-shadow: 0 14px 40px rgba(0,0,0,.35);
+    }
+    .toast.show{ opacity:1; transform:translateX(-50%) translateY(-2px); }
+
+    .success{
+      border:1px solid rgba(55,214,122,.35);
+      background: rgba(55,214,122,.06);
+      border-radius:14px;
+      padding:14px;
+      color:#dff7ea;
+    }
+    .sending{
+      border:1px solid rgba(124,92,255,.35);
+      background: rgba(124,92,255,.06);
+      border-radius:14px;
+      padding:14px;
+      color:#e9ecff;
+    }
+    .warning{
+      border:1px solid rgba(255,204,0,.35);
+      background: rgba(255,204,0,.06);
+      border-radius:14px;
+      padding:14px;
+      color:#fff3c4;
+    }
+    .hidden{ display:none !important; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="header">
+        <div class="title">
+          <h1>Formulario · Plan de Pagos</h1>
+          <p>Captura de datos + calendarización de pagos. Multi-paso con Back/Next.</p>
+        </div>
+        <div class="progress">
+          <div class="stepLabel" id="stepLabel">Paso 1 de 5</div>
+          <div class="bar" aria-hidden="true"><div id="barFill"></div></div>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- STEP 1 -->
+        <section class="step active" data-step="1">
+          <div class="grid">
+            <div class="field half">
+              <label for="nombres">Nombres</label>
+              <input id="nombres" type="text" placeholder="Ej. Iliana Vanessa" autocomplete="given-name" />
+              <div class="error" id="err_nombres">Escribe tus nombres.</div>
+            </div>
+
+            <div class="field half">
+              <label for="apellidos">Apellidos</label>
+              <input id="apellidos" type="text" placeholder="Ej. Enciso Bolaños" autocomplete="family-name" />
+              <div class="error" id="err_apellidos">Escribe tus apellidos.</div>
+            </div>
+
+            <div class="field">
+              <div class="tag"><span class="tagDot"></span><span>Esto va por páginas (Back / Next).</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 2 -->
+        <section class="step" data-step="2">
+          <div class="grid">
+            <div class="field twoThird">
+              <label for="email">Correo electrónico</label>
+              <input id="email" type="email" placeholder="tucorreo@dominio.com" autocomplete="email" />
+              <div class="hint">Se usará para confirmaciones o seguimiento.</div>
+              <div class="error" id="err_email">Escribe un correo válido.</div>
+            </div>
+
+            <div class="field third">
+              <label for="lada">Lada (país)</label>
+              <select id="lada" autocomplete="tel-country-code">
+                <option value="+52" selected>+52 (MX)</option>
+                <option value="+1">+1 (US/CA)</option>
+                <option value="+34">+34 (ES)</option>
+                <option value="+57">+57 (CO)</option>
+                <option value="+54">+54 (AR)</option>
+                <option value="+56">+56 (CL)</option>
+                <option value="+51">+51 (PE)</option>
+              </select>
+              <div class="hint">Puedes ampliar esta lista.</div>
+            </div>
+
+            <div class="field">
+              <label for="telefono">Número de teléfono</label>
+              <input id="telefono" type="tel" placeholder="Ej. 3312345678" autocomplete="tel-national" inputmode="numeric" />
+              <div class="hint">Solo números (sin espacios). Validación simple (10–15 dígitos).</div>
+              <div class="error" id="err_telefono">Escribe un teléfono válido (10–15 dígitos).</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 3: Abono inicial -->
+        <section class="step" data-step="3">
+          <div class="grid">
+            <div class="field">
+              <label for="abonoInicial">¿De cuánto fue tu abono inicial?</label>
+              <input id="abonoInicial" inputmode="decimal" placeholder="Ej. 10,000" />
+              <div class="hint">Número (sin $). Se formatea automático.</div>
+              <div class="error" id="err_abonoInicial">Escribe un monto válido (&gt;= 0).</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 4 -->
+        <section class="step" data-step="4">
+          <div class="grid">
+            <div class="field">
+              <label for="numPagos">¿Cuántos pagos vas a querer que sean?</label>
+              <input id="numPagos" type="number" min="1" max="30" step="1" placeholder="Ej. 3" inputmode="numeric" />
+              <div class="hint">Al poner un número, se generan los campos de fecha + monto.</div>
+              <div class="error" id="err_numPagos">Indica un número de pagos (1–30).</div>
+            </div>
+
+            <div class="field">
+              <div class="tag"><span class="tagDot"></span><span>Vamos a empezar con tu plan de pagos.</span></div>
+            </div>
+
+            <div class="field">
+              <div id="paymentsContainer" class="payments"></div>
+              <div class="error" id="err_payments">
+                Completa todas las fechas y montos (montos &gt; 0). Fechas válidas: hoy a 30/11/2026.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 5 -->
+        <section class="step" data-step="5">
+          <div class="summaryBox">
+            <div class="tag"><span class="tagDot"></span><span>Resumen final (listo).</span></div>
+
+            <div class="summaryGrid" id="summaryGrid"></div>
+
+            <div class="warning hidden" id="validationBox"></div>
+
+            <div class="sending hidden" id="sendingBox">Enviando…</div>
+            <div class="success hidden" id="successBox">Listo ✅ Se registró tu plan de pagos.</div>
+            <div class="error" id="failBox" style="display:none;">No se pudo enviar. Revisa tu conexión e intenta otra vez.</div>
+
+            <div class="btns">
+              <button class="small primary" id="sendBtn" type="button">Enviar</button>
+              <button class="small danger" id="resetBtn" type="button">Reiniciar</button>
+            </div>
+
+            <!-- Submit invisible -->
+            <iframe name="hiddenFrame" class="hidden" id="hiddenFrame"></iframe>
+            <form id="postForm" class="hidden" method="POST" target="hiddenFrame">
+              <input type="hidden" name="payload" id="payloadField" />
+            </form>
+          </div>
+        </section>
+      </div>
+
+      <div class="footer">
+        <div class="hint" id="footerHint">Tip: Enter también avanza cuando es válido.</div>
+        <div class="btns">
+          <button id="backBtn" type="button">Back</button>
+          <button id="nextBtn" class="primary" type="button">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Enviado ✅</div>
+
+  <script>
+    // ✅ URL del Apps Script Web App
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzPnXt2ybkixu9FgPa2S9AAx_ac5DZi-uJ_dUz14BIAczRgK0_my25m7NrgY5-DhdqoZQ/exec";
+
+    // Reglas de negocio
+    const TICKET_TOTAL = 50000;
+    const MAX_DATE = "2026-11-30"; // última fecha permitida
+
+    // Fecha mínima = hoy (en formato YYYY-MM-DD)
+    function todayISO(){
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,"0");
+      const dd = String(d.getDate()).padStart(2,"0");
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    const MIN_DATE = todayISO();
+
+    // Tolerancia para evitar broncas por decimales
+    const REMAINING_TOL = 0.01;
+
+    const steps = Array.from(document.querySelectorAll(".step"));
+    let currentStep = 1;
+
+    const stepLabel = document.getElementById("stepLabel");
+    const barFill = document.getElementById("barFill");
+    const backBtn = document.getElementById("backBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const footerHint = document.getElementById("footerHint");
+
+    const nombres = document.getElementById("nombres");
+    const apellidos = document.getElementById("apellidos");
+    const email = document.getElementById("email");
+    const lada = document.getElementById("lada");
+    const telefono = document.getElementById("telefono");
+
+    const abonoInicial = document.getElementById("abonoInicial");
+
+    const numPagos = document.getElementById("numPagos");
+    const paymentsContainer = document.getElementById("paymentsContainer");
+
+    const err_nombres = document.getElementById("err_nombres");
+    const err_apellidos = document.getElementById("err_apellidos");
+    const err_email = document.getElementById("err_email");
+    const err_telefono = document.getElementById("err_telefono");
+    const err_abonoInicial = document.getElementById("err_abonoInicial");
+    const err_numPagos = document.getElementById("err_numPagos");
+    const err_payments = document.getElementById("err_payments");
+
+    const summaryGrid = document.getElementById("summaryGrid");
+    const validationBox = document.getElementById("validationBox");
+
+    const sendBtn = document.getElementById("sendBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const successBox = document.getElementById("successBox");
+    const sendingBox = document.getElementById("sendingBox");
+    const failBox = document.getElementById("failBox");
+
+    const toast = document.getElementById("toast");
+
+    const postForm = document.getElementById("postForm");
+    const payloadField = document.getElementById("payloadField");
+    const hiddenFrame = document.getElementById("hiddenFrame");
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(()=>toast.classList.remove("show"), 1100);
+    }
+
+    function setStep(n){
+      currentStep = n;
+      steps.forEach(s => s.classList.toggle("active", Number(s.dataset.step) === currentStep));
+
+      const total = steps.length;
+      stepLabel.textContent = `Paso ${currentStep} de ${total}`;
+      barFill.style.width = `${Math.round((currentStep-1)/(total-1)*100)}%`;
+
+      backBtn.disabled = currentStep === 1;
+
+      if(currentStep === total){
+        nextBtn.style.display = "none";
+        footerHint.textContent = "Revisa el resumen y presiona Enviar.";
+      } else {
+        nextBtn.style.display = "inline-flex";
+        footerHint.textContent = "Tip: Enter también avanza cuando es válido.";
+      }
+
+      const focusMap = {1:nombres, 2:email, 3:abonoInicial, 4:numPagos};
+      if(focusMap[currentStep]) focusMap[currentStep].focus();
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    function show(el, yes){ el.classList.toggle("show", !!yes); }
+    function hide(el){ el.classList.add("hidden"); }
+    function unhide(el){ el.classList.remove("hidden"); }
+
+    function parseAmount(str){
+      const cleaned = (str || "").toString().replace(/,/g,'').trim();
+      if(cleaned === "") return NaN;
+      const n = Number(cleaned);
+      return Number.isFinite(n) ? n : NaN;
+    }
+
+    function validateStep1(){
+      const okN = nombres.value.trim().length > 0;
+      const okA = apellidos.value.trim().length > 0;
+      show(err_nombres, !okN);
+      show(err_apellidos, !okA);
+      return okN && okA;
+    }
+
+    function validateStep2(){
+      const okE = emailRegex.test(email.value.trim());
+      const digits = telefono.value.replace(/\D/g,'');
+      const okT = digits.length >= 10 && digits.length <= 15;
+      show(err_email, !okE);
+      show(err_telefono, !okT);
+      return okE && okT;
+    }
+
+    function validateStep3(){
+      const val = abonoInicial.value.trim();
+      const n = val === "" ? 0 : parseAmount(val);
+      const ok = Number.isFinite(n) && n >= 0;
+      show(err_abonoInicial, !ok);
+      return ok;
+    }
+
+    function isDateInRange(dateStr){
+      if(!dateStr) return false;
+      return (dateStr >= MIN_DATE) && (dateStr <= MAX_DATE);
+    }
+
+    function validateStep4(){
+      const n = Number(numPagos.value);
+      const okN = Number.isInteger(n) && n >= 1 && n <= 30;
+      show(err_numPagos, !okN);
+      if(!okN) return false;
+
+      const rows = Array.from(paymentsContainer.querySelectorAll(".payRow"));
+      if(rows.length !== n) return false;
+
+      let allOk = true;
+      for(const row of rows){
+        const d = row.querySelector("input[type='date']");
+        const a = row.querySelector("input[data-role='amount']");
+        const amount = Number((a.value || "").replace(/,/g,''));
+        if(!d.value) allOk = false;
+        if(!isDateInRange(d.value)) allOk = false;
+        if(!(amount > 0)) allOk = false;
+      }
+      show(err_payments, !allOk);
+      return allOk;
+    }
+
+    function formatCurrencyInput(value){
+      const cleaned = (value || "").toString().replace(/[^\d.]/g,'');
+      if(cleaned === "") return "";
+      const parts = cleaned.split(".");
+      const intPart = parts[0].replace(/^0+(?=\d)/, "");
+      const formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      return parts.length > 1 ? `${formatted}.${parts[1].slice(0,2)}` : formatted;
+    }
+
+    // Formateo del abono inicial
+    abonoInicial.addEventListener("input", ()=>{
+      const caret = abonoInicial.selectionStart;
+      const before = abonoInicial.value;
+      abonoInicial.value = formatCurrencyInput(abonoInicial.value);
+      const delta = abonoInicial.value.length - before.length;
+      try { abonoInicial.setSelectionRange(caret + delta, caret + delta); } catch(e){}
+      show(err_abonoInicial, false);
+    });
+
+    function buildPaymentRows(count){
+      paymentsContainer.innerHTML = "";
+      for(let i=1;i<=count;i++){
+        const row = document.createElement("div");
+        row.className = "payRow";
+        row.innerHTML = `
+          <div class="field" style="margin:0;">
+            <label>Fecha a abonar · Pago ${i}</label>
+            <input type="date" />
+            <div class="hint">Rango permitido: ${MIN_DATE} a ${MAX_DATE}</div>
+          </div>
+          <div class="field" style="margin:0;">
+            <label>Monto a abonar</label>
+            <input data-role="amount" inputmode="decimal" placeholder="Ej. 2,000" />
+            <div class="hint">Número (sin $). Se formatea automático.</div>
+          </div>
+          <button type="button" class="small" title="Limpiar este pago">Limpiar</button>
+        `;
+
+        const dateInput = row.querySelector("input[type='date']");
+        dateInput.min = MIN_DATE;
+        dateInput.max = MAX_DATE;
+
+        if(MIN_DATE > MAX_DATE){
+          dateInput.disabled = true;
+        }
+
+        dateInput.addEventListener("change", ()=>{
+          show(err_payments, false);
+          if(dateInput.value && !isDateInRange(dateInput.value)){
+            dateInput.value = "";
+          }
+        });
+
+        const amt = row.querySelector("input[data-role='amount']");
+        const btn = row.querySelector("button");
+
+        amt.addEventListener("input", () => {
+          const caret = amt.selectionStart;
+          const before = amt.value;
+          amt.value = formatCurrencyInput(amt.value);
+          const delta = amt.value.length - before.length;
+          try { amt.setSelectionRange(caret + delta, caret + delta); } catch(e){}
+          show(err_payments, false);
+        });
+
+        btn.addEventListener("click", ()=>{
+          dateInput.value = "";
+          amt.value = "";
+          show(err_payments, false);
+        });
+
+        paymentsContainer.appendChild(row);
+      }
+    }
+
+    numPagos.addEventListener("input", () => {
+      const n = Number(numPagos.value);
+      show(err_numPagos, false);
+      show(err_payments, false);
+      if(Number.isInteger(n) && n >= 1 && n <= 30){
+        buildPaymentRows(n);
+      } else {
+        paymentsContainer.innerHTML = "";
+      }
+    });
+
+    function collectData(){
+      const n = Number(numPagos.value);
+
+      const abonoVal = abonoInicial.value.trim();
+      const abono = abonoVal === "" ? 0 : (parseAmount(abonoVal) || 0);
+
+      const rows = Array.from(paymentsContainer.querySelectorAll(".payRow"));
+      const pagos = rows.map((row, idx) => {
+        const fecha = row.querySelector("input[type='date']").value;
+        const montoStr = row.querySelector("input[data-role='amount']").value || "";
+        const monto = Number(montoStr.replace(/,/g,'')) || 0;
+        return { num: idx+1, fecha, monto };
+      });
+
+      const totalPlan = pagos.reduce((acc,p)=>acc + (p.monto || 0), 0);
+      const totalPagado = abono + totalPlan;
+      const restante = TICKET_TOTAL - totalPagado;
+
+      return {
+        contacto: {
+          nombres: nombres.value.trim(),
+          apellidos: apellidos.value.trim(),
+          email: email.value.trim(),
+          telefono: {
+            lada: lada.value,
+            numero: telefono.value.replace(/\D/g,'')
+          }
+        },
+        ticket: {
+          total: TICKET_TOTAL,
+          abono_inicial: abono,
+          total_plan_pagos: totalPlan,
+          total_pagado: totalPagado,
+          restante: restante
+        },
+        plan_pagos: {
+          cantidad_pagos: n,
+          pagos,
+          total_programado: totalPlan
+        },
+        reglas: {
+          min_fecha: MIN_DATE,
+          max_fecha: MAX_DATE
+        },
+        meta: {
+          created_at_iso: new Date().toISOString(),
+          source: "formulario_plan_pagos_v3"
+        }
+      };
+    }
+
+    function money(n){
+      const x = Number(n || 0);
+      return x.toLocaleString("es-MX", { style:"currency", currency:"MXN" });
+    }
+
+    function remainingIsZero(restante){
+      return Math.abs(Number(restante || 0)) <= REMAINING_TOL;
+    }
+
+    function renderSummary(data){
+      summaryGrid.innerHTML = "";
+      hide(successBox);
+      hide(sendingBox);
+      hide(validationBox);
+      validationBox.textContent = "";
+      failBox.style.display = "none";
+
+      // ✅ por default bloqueamos y luego habilitamos si todo cuadra
+      sendBtn.disabled = true;
+
+      const fullName = `${data.contacto.nombres} ${data.contacto.apellidos}`.trim();
+      const phone = `${data.contacto.telefono.lada} ${data.contacto.telefono.numero}`.trim();
+
+      const blocks = [
+        { k:"Nombre completo", v: fullName || "-" },
+        { k:"Correo", v: data.contacto.email || "-" },
+        { k:"Teléfono", v: phone || "-" },
+        { k:"Abono inicial", v: money(data.ticket.abono_inicial) },
+        { k:"Cantidad de pagos", v: String(data.plan_pagos.cantidad_pagos || 0) },
+        { k:"Total plan de pagos", v: money(data.ticket.total_plan_pagos) },
+      ];
+
+      for(const b of blocks){
+        const el = document.createElement("div");
+        el.className = "kv";
+        el.innerHTML = `<div class="k">${b.k}</div><div class="v">${b.v}</div>`;
+        summaryGrid.appendChild(el);
+      }
+
+      // Lista de pagos
+      const payList = document.createElement("div");
+      payList.className = "kv";
+      payList.style.gridColumn = "1 / -1";
+      const lines = data.plan_pagos.pagos.map(p => `Pago ${p.num}: ${p.fecha || "(sin fecha)"} · ${money(p.monto)}`);
+      payList.innerHTML = `<div class="k">Plan de pagos</div><div class="v" style="white-space:pre-wrap; line-height:1.5;">${lines.join("\n")}</div>`;
+      summaryGrid.appendChild(payList);
+
+      // ✅ Totales con el texto como lo pediste
+      const totals = document.createElement("div");
+      totals.className = "kv";
+      totals.style.gridColumn = "1 / -1";
+      totals.innerHTML = `
+        <div class="k">Totales</div>
+        <div class="v" style="white-space:pre-wrap; line-height:1.6;">
+El total de tu ticket es 50,000 pesos
+Incluyendo tu abono y tu plan de pagos, el total pagado es ${money(data.ticket.total_pagado)}
+Restante pendiente: ${money(data.ticket.restante)}
+        </div>
+      `;
+      summaryGrid.appendChild(totals);
+
+      // ✅ Validación y bloqueo de envío si no cuadra
+      const restante = Number(data.ticket.restante || 0);
+
+      if (!remainingIsZero(restante)) {
+        unhide(validationBox);
+        if (restante > 0) {
+          validationBox.textContent =
+            `Hey, hay algo raro aquí: con tu abono + tu plan de pagos aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}. Revisa montos/fechas.`;
+        } else {
+          validationBox.textContent =
+            `Hey, hay algo raro aquí: tu abono + tu plan de pagos exceden el total del ticket por ${money(Math.abs(restante))}. Revisa montos/fechas.`;
+        }
+        sendBtn.disabled = true; // 🔒 NO se puede enviar
+      } else {
+        hide(validationBox);
+        sendBtn.disabled = false; // ✅ ahora sí
+      }
+    }
+
+    function goNext(){
+      const totalSteps = steps.length;
+
+      if(currentStep === 1 && !validateStep1()) return;
+      if(currentStep === 2 && !validateStep2()) return;
+      if(currentStep === 3 && !validateStep3()) return;
+      if(currentStep === 4 && !validateStep4()) return;
+
+      if(currentStep < totalSteps){
+        if(currentStep === 4){
+          const data = collectData();
+          renderSummary(data);
+        }
+        setStep(currentStep + 1);
+      }
+    }
+
+    function goBack(){
+      if(currentStep > 1) setStep(currentStep - 1);
+    }
+
+    nextBtn.addEventListener("click", goNext);
+    backBtn.addEventListener("click", goBack);
+
+    document.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter"){
+        const activeStep = steps.find(s => s.classList.contains("active"));
+        const stepNum = activeStep ? Number(activeStep.dataset.step) : 1;
+        if(stepNum < steps.length){
+          e.preventDefault();
+          goNext();
+        }
+      }
+    });
+
+    telefono.addEventListener("input", ()=>{
+      telefono.value = telefono.value.replace(/[^\d]/g,'');
+      show(err_telefono, false);
+    });
+
+    // ACK via iframe load
+    let awaitingAck = false;
+    hiddenFrame.addEventListener("load", () => {
+      if(!awaitingAck) return;
+      awaitingAck = false;
+      hide(sendingBox);
+      unhide(successBox);
+      showToast("Enviado ✅");
+      sendBtn.disabled = true;
+    });
+
+    sendBtn.addEventListener("click", ()=>{
+      // 🔒 Si por cualquier razón llega aquí con restante != 0, no mandamos
+      const dataCheck = collectData();
+      if(!remainingIsZero(dataCheck.ticket.restante)){
+        unhide(validationBox);
+        validationBox.textContent = "Hey, hay algo raro aquí: el restante pendiente debe ser 0 para poder enviar. Revisa montos.";
+        sendBtn.disabled = true;
+        return;
+      }
+
+      // Validación extra de rango
+      if(MIN_DATE > MAX_DATE){
+        alert(`La fecha mínima (${MIN_DATE}) es mayor que la máxima (${MAX_DATE}). No se puede capturar pagos en este rango.`);
+        return;
+      }
+
+      const payload = JSON.stringify(dataCheck);
+
+      postForm.action = WEB_APP_URL;
+      payloadField.value = payload;
+
+      // UI states
+      failBox.style.display = "none";
+      hide(successBox);
+      unhide(sendingBox);
+      sendBtn.disabled = true;
+
+      awaitingAck = true;
+
+      setTimeout(() => {
+        if(awaitingAck){
+          awaitingAck = false;
+          hide(sendingBox);
+          failBox.style.display = "block";
+          // Re-habilitar solo si sigue cuadrando
+          const re = collectData();
+          sendBtn.disabled = !remainingIsZero(re.ticket.restante);
+        }
+      }, 9000);
+
+      postForm.submit();
+    });
+
+    resetBtn.addEventListener("click", ()=>{
+      nombres.value = "";
+      apellidos.value = "";
+      email.value = "";
+      telefono.value = "";
+      lada.value = "+52";
+      abonoInicial.value = "";
+      numPagos.value = "";
+      paymentsContainer.innerHTML = "";
+      summaryGrid.innerHTML = "";
+      hide(successBox);
+      hide(sendingBox);
+      hide(validationBox);
+      failBox.style.display = "none";
+      sendBtn.disabled = false;
+
+      [err_nombres,err_apellidos,err_email,err_telefono,err_abonoInicial,err_numPagos,err_payments].forEach(e=>show(e,false));
+
+      nextBtn.style.display = "inline-flex";
+      setStep(1);
+      showToast("Reiniciado");
+    });
+
+    // Init
+    setStep(1);
+  </script>
+</body>
+</html>
