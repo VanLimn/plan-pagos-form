@@ -581,6 +581,21 @@
       re.textContent = "";
     }
 
+    // ✅ agrega (sin duplicar) texto de error a la fila
+    function appendRowError(row, text){
+      const rowErr = row.querySelector(".rowError");
+      const current = (rowErr.textContent || "").trim();
+      if(current){
+        // evita repetir la misma línea
+        if(!current.split("\n").includes(text)){
+          rowErr.textContent = current + "\n" + text;
+        }
+      } else {
+        rowErr.textContent = text;
+      }
+      rowErr.classList.add("show");
+    }
+
     // ✅ valida fila específica y devuelve lista de errores para esa fila
     function validatePaymentRow(row, idx){
       const dateInput = row.querySelector("input[type='date']");
@@ -617,7 +632,7 @@
       return errors;
     }
 
-    // ✅ valida todos los pagos y arma lista general + marca filas
+    // ✅ valida todos los pagos + (NUEVO) fechas únicas
     function validatePaymentsDetailed(){
       const n = Number(numPagos.value);
       const rows = Array.from(paymentsContainer.querySelectorAll(".payRow"));
@@ -632,9 +647,39 @@
       }
 
       const allErrors = [];
+
+      // 1) validaciones individuales (fecha válida / rango / monto)
       for(let i=0;i<rows.length;i++){
         const rowErrors = validatePaymentRow(rows[i], i+1);
         allErrors.push(...rowErrors);
+      }
+
+      // 2) ✅ NUEVO: fechas NO repetidas (solo checa las que sí existen y son ISO válidas)
+      //    Si hay repetidas, marca en rojo las filas involucradas y agrega mensaje por fila.
+      const dateMap = new Map(); // fechaISO -> [indices]
+      for(let i=0;i<rows.length;i++){
+        const dateInput = rows[i].querySelector("input[type='date']");
+        const dateVal = (dateInput.value || "").trim();
+        if(dateVal && isValidISODate(dateVal)){
+          if(!dateMap.has(dateVal)) dateMap.set(dateVal, []);
+          dateMap.get(dateVal).push(i);
+        }
+      }
+
+      for(const [dateVal, idxs] of dateMap.entries()){
+        if(idxs.length > 1){
+          const pagosHuman = idxs.map(i => i+1).join(", ");
+          // error general
+          allErrors.push(`Fechas repetidas: La fecha ${dateVal} está repetida en los pagos: ${pagosHuman}. Deben ser todas diferentes.`);
+
+          // marca cada fila involucrada
+          for(const i of idxs){
+            const row = rows[i];
+            const dateInput = row.querySelector("input[type='date']");
+            dateInput.classList.add("badField");
+            appendRowError(row, `Fecha repetida: ${dateVal}. Este pago no puede compartir fecha con otro.`);
+          }
+        }
       }
 
       const ok = allErrors.length === 0;
@@ -961,7 +1006,7 @@ Restante pendiente: ${money(data.ticket.restante)}
     sendBtn.addEventListener("click", ()=>{
       if(!validateStep4()){
         unhide(validationBox);
-        validationBox.textContent = "Hey, hay algo raro aquí: revisa las fechas/montos marcados (Pago X). Deben ser válidos y dentro del rango.";
+        validationBox.textContent = "Hey, hay algo raro aquí: revisa las fechas/montos marcados (Pago X). Deben ser válidos, dentro del rango, y NO pueden repetirse entre pagos.";
         sendBtn.disabled = true;
         const firstBad = paymentsContainer.querySelector(".badField");
         if(firstBad) firstBad.scrollIntoView({behavior:"smooth", block:"center"});
