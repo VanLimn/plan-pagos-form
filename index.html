@@ -114,7 +114,6 @@
       box-shadow: 0 0 0 3px rgba(124,92,255,.12);
     }
 
-    /* ✅ marca visual de error por campo */
     .badField{
       border-color: rgba(255,77,109,.85) !important;
       box-shadow: 0 0 0 3px rgba(255,77,109,.10) !important;
@@ -143,17 +142,30 @@
       font-size:13px;
       cursor:pointer;
       transition: transform .06s ease, border-color .2s ease, background .2s ease, opacity .2s ease;
+      font-weight:600;
     }
     button:hover{ border-color: rgba(124,92,255,.6); background: rgba(124,92,255,.08); }
     button:active{transform: translateY(1px)}
     button:disabled{ opacity:.55; cursor:not-allowed; }
+
     .primary{
-      border-color: rgba(124,92,255,.75);
-      background: linear-gradient(90deg, rgba(124,92,255,.55), rgba(124,92,255,.18));
-      font-weight: 800; /* ✅ más visible */
-      color: #ffffff;   /* ✅ contraste */
+      border-color: rgba(124,92,255,.65);
+      background: linear-gradient(90deg, rgba(124,92,255,.28), rgba(124,92,255,.12));
+      font-weight:700;
     }
-    .danger{ border-color: rgba(255,77,109,.6); background: rgba(255,77,109,.08); }
+
+    /* ✅ BOTÓN NEGRO (más visible) */
+    .primaryBlack{
+      background:#0b0c10 !important;
+      border-color:#0b0c10 !important;
+      color:#ffffff !important;
+      font-weight:800 !important;
+    }
+    .primaryBlack:hover{
+      background:#12141a !important;
+      border-color:#12141a !important;
+    }
+
     .small{ padding:8px 12px; font-size:12px; }
 
     .payments{ display:flex; flex-direction:column; gap:10px; margin-top:6px; }
@@ -169,7 +181,6 @@
     }
     @media (max-width:520px){ .payRow{grid-template-columns: 1fr;} }
 
-    /* ✅ mensajes de error por fila */
     .rowError{
       grid-column: 1 / -1;
       display:none;
@@ -247,132 +258,148 @@
     }
     .hidden{ display:none !important; }
 
-    /* ✅ ACUERDO (Step 6) */
+    /* =========================
+       ✅ ACUERDO (alineado)
+       ========================= */
     .agreementWrap{
       background:#ffffff;
       color:#0b0c10;
-      border-radius:14px;
-      padding:18px;
-      border:1px solid rgba(0,0,0,.08);
+      border-radius:18px;
+      padding:28px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.06);
     }
-    .agreementTop{
+
+    /* ✅ Header alineado (título con logo) */
+    .agreementHeader{
       display:flex;
       justify-content:space-between;
       align-items:flex-start;
-      gap:12px;
-      flex-wrap:wrap;
+      gap:18px;
+      margin-bottom:18px;
+    }
+    .agreementLeft{
+      max-width: 62%;
     }
     .agreementTitle{
+      margin:0;
+      font-size:52px;
+      line-height:0.98;
       font-weight:900;
-      letter-spacing:.2px;
-      line-height:1.05;
-      font-size:34px;
-      margin:2px 0 8px 0;
-      text-transform:uppercase;
+      letter-spacing:-0.5px;
     }
     .agreementSub{
-      font-size:22px;
-      margin:0;
-      color:#0b0c10;
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
+      margin:12px 0 0;
+      font-size:34px;
+      line-height:1.05;
+      font-weight:700;
+      letter-spacing:-0.2px;
     }
-    .agreementSub .pipe{ opacity:.45; }
-    .agreementLogo{
-      display:flex;
-      justify-content:flex-end;
-      align-items:flex-start;
-      min-width:120px;
+    .agreementSub span{
+      font-weight:500;
     }
-    .agreementLogo img{
-      width:170px;
+    .brandLogo{
+      width:220px;
       height:auto;
-      display:block;
+      object-fit:contain;
+      margin-top:6px; /* micro ajuste para alinear visualmente */
     }
+
+    @media (max-width:720px){
+      .agreementHeader{ flex-direction:column; align-items:flex-start; }
+      .agreementLeft{ max-width:100%; }
+      .brandLogo{ width:200px; margin-top:0; }
+      .agreementTitle{ font-size:42px; }
+      .agreementSub{ font-size:28px; }
+    }
+
     .agreementSectionTitle{
-      margin:18px 0 8px;
+      margin:22px 0 10px;
+      font-size:20px;
       font-weight:800;
-      font-size:14px;
-      color:#0b0c10;
     }
-    .checkRow{
+
+    .checkList{
       display:flex;
-      gap:10px;
+      flex-direction:column;
+      gap:14px;
+      margin-top:10px;
+    }
+    .checkItem{
+      display:grid;
+      grid-template-columns: 30px 1fr;
+      gap:12px;
       align-items:flex-start;
-      margin:10px 0;
-      font-size:14px;
+      font-size:18px;
       line-height:1.35;
     }
     .box{
-      width:22px;height:22px;
-      border:2px solid #0b0c10;
+      width:26px;height:26px;
+      border:3px solid #0b0c10;
       display:flex;
       align-items:center;
       justify-content:center;
-      flex: 0 0 auto;
-      margin-top:1px;
-    }
-    .box:before{
-      content:"✓";
       font-weight:900;
-      font-size:16px;
+      border-radius:3px;
+      margin-top:2px;
+    }
+    .box::after{
+      content:"✓";
+      font-size:20px;
       line-height:1;
     }
-    .bold{ font-weight:800; }
-    .agreementPayments{
-      margin-top:8px;
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
+    .planBlock{
+      margin:16px 0 6px;
+      font-size:18px;
+      line-height:1.45;
     }
-    @media (min-width:720px){
-      .agreementPayments{ grid-template-columns: 1fr 1fr; }
-    }
-    .payBullets{
-      margin:0;
-      padding-left:18px;
-      color:#0b0c10;
-      font-size:14px;
+    .planBlock b{ font-weight:900; }
+    .bullets{
+      margin:10px 0 0 18px;
+      padding:0;
+      font-size:20px;
       line-height:1.6;
     }
-    .signatureBlock{
-      margin-top:18px;
-    }
-    .sigLabel{
-      font-size:22px;
+    .bullets li{ margin:4px 0; }
+
+    .signTitle{
+      margin:26px 0 10px;
+      font-size:28px;
       font-weight:900;
-      margin:0 0 10px 0;
       line-height:1.15;
     }
-    .sigTip{
-      margin:8px 0 0 0;
-      color:#4b5563;
-      font-size:14px;
-      line-height:1.35;
-    }
-    .sigError{
-      margin:10px 0 0 0;
-      color:#b91c1c;
-      font-size:16px;
-      line-height:1.25;
-      display:none;
-    }
-    .sigError.show{ display:block; }
-    .sigInput{
-      border:2px solid rgba(255,77,109,.45);
-      border-radius:16px;
-      padding:14px 14px;
+    .signTip{
+      margin:0;
       font-size:18px;
-      outline:none;
-      width:100%;
-      background:#fff;
-      color:#0b0c10;
+      color:#2c2f37;
     }
-    .sigInput.badField{
-      border-color: rgba(255,77,109,.85) !important;
-      box-shadow: 0 0 0 3px rgba(255,77,109,.10) !important;
+    .signWarn{
+      margin-top:10px;
+      font-size:18px;
+      color:#b00020;
+      font-weight:700;
+      white-space:pre-wrap;
+    }
+    .signRow{
+      margin-top:14px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .signInput{
+      width:100%;
+      padding:16px 16px;
+      border-radius:16px;
+      border:2px solid rgba(124,92,255,.45);
+      outline:none;
+      font-size:22px;
+    }
+    .signInput:focus{
+      border-color: rgba(124,92,255,.9);
+      box-shadow: 0 0 0 6px rgba(124,92,255,.12);
+    }
+    .signInput.badField{
+      border-color: rgba(255,77,109,.9) !important;
+      box-shadow: 0 0 0 6px rgba(255,77,109,.12) !important;
     }
   </style>
 </head>
@@ -439,8 +466,8 @@
 
             <div class="field">
               <label for="telefono">Número de teléfono</label>
-              <input id="telefono" type="tel" placeholder="Ej. 3312345678" autocomplete="tel-national" inputmode="numeric" maxlength="10" />
-              <div class="hint">Solo números (sin espacios). Debe ser exactamente de 10 dígitos.</div>
+              <input id="telefono" type="tel" placeholder="Ej. 3312345678" autocomplete="tel-national" inputmode="numeric" />
+              <div class="hint">Solo números (sin espacios). Debe ser exactamente 10 dígitos.</div>
               <div class="error" id="err_telefono">Escribe un teléfono válido (10 dígitos).</div>
             </div>
           </div>
@@ -464,7 +491,7 @@
             <div class="field">
               <label for="numPagos">¿Cuántos pagos vas a querer que sean?</label>
               <input id="numPagos" type="number" min="1" max="50" step="1" placeholder="Ej. 3" inputmode="numeric" />
-              <div class="hint">Mínimo 1, máximo 50. Al poner un número, se generan los campos de fecha + monto.</div>
+              <div class="hint">Al poner un número, se generan los campos de fecha + monto.</div>
               <div class="error" id="err_numPagos">Indica un número de pagos (1–50).</div>
             </div>
 
@@ -475,13 +502,11 @@
             <div class="field">
               <div id="paymentsContainer" class="payments"></div>
 
-              <!-- ✅ error general con lista -->
               <div class="error" id="err_payments">
                 <div style="font-weight:600; margin-bottom:6px;">Revisa estos pagos:</div>
                 <div id="err_payments_list" style="white-space:pre-wrap; line-height:1.4;"></div>
               </div>
 
-              <!-- ✅ Totales en vivo -->
               <div class="summaryBox" id="liveTotalsBox" style="margin-top:12px;">
                 <div class="tag"><span class="tagDot"></span><span>Totales en vivo</span></div>
 
@@ -507,94 +532,88 @@
           </div>
         </section>
 
-        <!-- STEP 5 (Resumen) -->
+        <!-- STEP 5: RESUMEN -->
         <section class="step" data-step="5">
           <div class="summaryBox">
             <div class="tag">
               <span class="tagDot"></span>
-              <span>Resumen final (listo) <span style="opacity:.55;">|</span> Por favor, revisa que todos tus datos estén correctos. Número de teléfono principalmente. Una vez con eso, envíalo.</span>
+              <span>Resumen final (listo) | Por favor, revisa que todos tus datos estén correctos. Número de teléfono principalmente.</span>
             </div>
 
             <div class="summaryGrid" id="summaryGrid"></div>
 
             <div class="warning hidden" id="validationBox"></div>
+
+            <div class="hint">Siguiente: leer el acuerdo, firmar tu nombre y enviar.</div>
           </div>
         </section>
 
-        <!-- STEP 6 (Acuerdo + firma + enviar) -->
+        <!-- STEP 6: ACUERDO + FIRMA + ENVIAR -->
         <section class="step" data-step="6">
           <div class="agreementWrap">
-            <div class="agreementTop">
-              <div>
-                <div class="agreementTitle">ACUERDO DE<br>PARTICIPACIÓN</div>
-                <p class="agreementSub"><span class="bold">&gt; circle x ab</span> <span class="pipe">|</span> <span>Febrero 2026</span></p>
+            <div class="agreementHeader">
+              <div class="agreementLeft">
+                <h2 class="agreementTitle">ACUERDO DE<br/>FINANCIAMIENTO</h2>
+                <div class="agreementSub">&gt; <b>circle x ab</b> <span>| Febrero 2026</span></div>
               </div>
-              <div class="agreementLogo" aria-label="logo">
-                <!-- ✅ Pon tu logo en el repo como: xab-university.png -->
-                <img src="xab-university.png" alt="x ab university" />
-              </div>
+
+              <!-- ✅ Logo correcto -->
+              <img class="brandLogo" src="xab-university.png" alt="x ab university" />
             </div>
 
             <div class="agreementSectionTitle">Estoy de acuerdo con que la empresa</div>
-
-            <div class="checkRow"><span class="box"></span><span>use mi <span class="bold">imagen</span> en fotos y videos promocionales en el futuro;</span></div>
-            <div class="checkRow"><span class="box"></span><span>no es responsable de <span class="bold">robo/extravío</span> de mis pertenencias;</span></div>
-            <div class="checkRow"><span class="box"></span><span>me expulse de las instalaciones si mi <span class="bold">conducta</span> altera negativamente el evento.</span></div>
-            <div class="checkRow"><span class="box"></span><span>daré los créditos debidos al compartir públicamente <span class="bold">contenido</span> del evento.</span></div>
-
-            <div class="agreementSectionTitle">Estoy de acuerdo también con que</div>
-
-            <div class="checkRow"><span class="box"></span><span>no hay <span class="bold">reembolsos/cancelaciones/devoluciones</span> del apartado y/o pagos realizados.</span></div>
-            <div class="checkRow"><span class="box"></span><span>la fecha límite para <span class="bold">cambios de workshop</span> es un mes antes del evento.</span></div>
-            <div class="checkRow">
-              <span class="box"></span>
-              <span>
-                mantendré las <span class="bold">fechas de pago acordadas</span> para conservar el precio especial; de no hacerlo,
-                el monto total se ajustará al precio público.
-              </span>
+            <div class="checkList">
+              <div class="checkItem"><div class="box"></div><div>use mi <b>imagen</b> en fotos y videos promocionales en el futuro;</div></div>
+              <div class="checkItem"><div class="box"></div><div>no es responsable de <b>robo/extravío</b> de mis pertenencias;</div></div>
+              <div class="checkItem"><div class="box"></div><div>me expulse de las instalaciones si mi <b>conducta</b> altera negativamente el evento.</div></div>
+              <div class="checkItem"><div class="box"></div><div>daré los créditos debidos al compartir públicamente <b>contenido</b> del evento.</div></div>
             </div>
 
-            <!-- ✅ Plan de pagos dinámico -->
-            <div class="agreementPayments" style="margin-top:8px;">
-              <ul class="payBullets" id="agreementPaysCol1"></ul>
-              <ul class="payBullets" id="agreementPaysCol2"></ul>
+            <div class="agreementSectionTitle">Estoy de acuerdo también con que</div>
+            <div class="checkList">
+              <div class="checkItem"><div class="box"></div><div>no hay <b>reembolsos/cancelaciones/devoluciones</b> del apartado y/o pagos realizados.</div></div>
+              <div class="checkItem"><div class="box"></div><div>la fecha límite para <b>cambios de workshop</b> es un mes antes del evento.</div></div>
+              <div class="checkItem"><div class="box"></div><div>mantendré las <b>fechas de pago acordadas</b> para conservar el precio especial; de no hacerlo, el monto total se ajustará al precio público.</div></div>
+            </div>
+
+            <!-- ✅ MI PLAN DE PAGO -->
+            <div class="planBlock" id="agreementPlanBlock">
+              <b>Mi plan de pago:</b>
+              <ul class="bullets" id="agreementPlanList"></ul>
             </div>
 
             <div class="agreementSectionTitle">Estoy de acuerdo con que para ingresar a las instalaciones</div>
-
-            <div class="checkRow"><span class="box"></span><span>presento en recepción mi identificación oficial vigente con fotografía.</span></div>
-            <div class="checkRow"><span class="box"></span><span>muestro en recepción foto y texto de presentación que compartí en el WhatsApp del evento.</span></div>
-            <div class="checkRow"><span class="box"></span><span>debo tener firmado este MOU.</span></div>
-            <div class="checkRow"><span class="box"></span><span>estoy de acuerdo con escuchar y leer toda la información e indicaciones del workshop que se envíen por WhatsApp.</span></div>
-
-            <!-- ✅ Firma -->
-            <div class="signatureBlock">
-              <p class="sigLabel">Pon aquí tu nombre completo, idéntico a tu INE para confirmar de enterado de todas las de este acuerdo.</p>
-
-              <input id="signatureName" class="sigInput" type="text" placeholder="Ej. Vanessa Enciso" />
-
-              <p class="sigTip">Tip: Debe coincidir con el nombre que capturaste en el formulario (para evitar errores).</p>
-
-              <p class="sigError" id="sigError">
-                Tu firma debe coincidir con el nombre capturado en el formulario: "<span id="sigExpected"></span>"
-              </p>
-
-              <!-- ✅ Enviar -->
-              <div class="btns" style="margin-top:12px;">
-                <button class="primary" id="sendBtn" type="button">Enviar</button>
-              </div>
-
-              <div class="sending hidden" id="sendingBox" style="margin-top:12px;">Enviando…</div>
-              <div class="success hidden" id="successBox" style="margin-top:12px;">Listo ✅ Se registró tu plan de pagos.</div>
-              <div class="error" id="failBox" style="display:none; margin-top:10px;">No se pudo enviar. Revisa tu conexión e intenta otra vez.</div>
-
-              <iframe name="hiddenFrame" class="hidden" id="hiddenFrame"></iframe>
-              <form id="postForm" class="hidden" method="POST" target="hiddenFrame">
-                <input type="hidden" name="payload" id="payloadField" />
-              </form>
+            <div class="checkList">
+              <div class="checkItem"><div class="box"></div><div>presento en recepción mi identificación oficial vigente con fotografía.</div></div>
+              <div class="checkItem"><div class="box"></div><div>muestro en recepción foto y texto de presentación que compartí en el WhatsApp del evento.</div></div>
+              <div class="checkItem"><div class="box"></div><div>debo tener firmado este MOU.</div></div>
+              <div class="checkItem"><div class="box"></div><div>estoy de acuerdo con escuchar y leer toda la información e indicaciones del workshop que se envíen por WhatsApp.</div></div>
             </div>
+
+            <!-- ✅ FIRMA -->
+            <div class="signTitle">Pon aquí tu nombre completo, idéntico a tu INE para confirmar de enterado el acuerdo de financiamiento.</div>
+
+            <div class="signRow">
+              <input id="signatureName" class="signInput" type="text" placeholder="Escribe tu nombre completo" />
+              <p class="signTip">Tip: Debe coincidir con el nombre que capturaste en el formulario (para evitar errores).</p>
+              <div id="signatureWarn" class="signWarn hidden"></div>
+            </div>
+
+            <div style="margin-top:18px; display:flex; gap:12px; flex-wrap:wrap;">
+              <button class="small primaryBlack" id="sendBtn" type="button">Enviar</button>
+            </div>
+
+            <div class="sending hidden" id="sendingBox" style="margin-top:14px;">Enviando…</div>
+            <div class="success hidden" id="successBox" style="margin-top:14px;">Listo ✅ Se registró tu plan de pagos.</div>
+            <div class="error" id="failBox" style="display:none; margin-top:12px;">No se pudo enviar. Revisa tu conexión e intenta otra vez.</div>
+
+            <iframe name="hiddenFrame" class="hidden" id="hiddenFrame"></iframe>
+            <form id="postForm" class="hidden" method="POST" target="hiddenFrame">
+              <input type="hidden" name="payload" id="payloadField" />
+            </form>
           </div>
         </section>
+
       </div>
 
       <div class="footer">
@@ -665,12 +684,10 @@
     const liveRemainingEl = document.getElementById("liveRemaining");
     const liveWarn = document.getElementById("liveWarn");
 
-    // ✅ step 6 (agreement)
-    const agreementPaysCol1 = document.getElementById("agreementPaysCol1");
-    const agreementPaysCol2 = document.getElementById("agreementPaysCol2");
+    // ✅ Step 6
+    const agreementPlanList = document.getElementById("agreementPlanList");
     const signatureName = document.getElementById("signatureName");
-    const sigError = document.getElementById("sigError");
-    const sigExpected = document.getElementById("sigExpected");
+    const signatureWarn = document.getElementById("signatureWarn");
 
     const sendBtn = document.getElementById("sendBtn");
     const successBox = document.getElementById("successBox");
@@ -699,7 +716,6 @@
 
       backBtn.disabled = currentStep === 1;
 
-      // ✅ En el último paso ya no hay Next (solo Enviar)
       if(currentStep === total){
         nextBtn.style.display = "none";
         footerHint.textContent = "Lee el acuerdo, firma tu nombre y presiona Enviar.";
@@ -708,7 +724,7 @@
         footerHint.textContent = "Tip: Enter también avanza cuando es válido.";
       }
 
-      const focusMap = {1:nombres, 2:email, 3:abonoInicial, 4:numPagos, 5:null, 6:signatureName};
+      const focusMap = {1:nombres, 2:email, 3:abonoInicial, 4:numPagos, 6:signatureName};
       if(focusMap[currentStep]) focusMap[currentStep].focus();
 
       if(currentStep === 4) updateLiveTotals();
@@ -726,15 +742,6 @@
       return Number.isFinite(n) ? n : NaN;
     }
 
-    function normalizeName(s){
-      return (s || "")
-        .toString()
-        .trim()
-        .replace(/\s+/g, " ")
-        .toLowerCase();
-    }
-
-    // ✅ Valida que una fecha ISO (YYYY-MM-DD) exista realmente (adiós 31/02)
     function isValidISODate(dateStr){
       if(!dateStr || typeof dateStr !== "string") return false;
       const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -762,7 +769,7 @@
     function validateStep2(){
       const okE = emailRegex.test(email.value.trim());
       const digits = telefono.value.replace(/\D/g,'');
-      const okT = digits.length === 10; // ✅ exacto 10
+      const okT = digits.length === 10; // ✅ EXACTAMENTE 10
       show(err_email, !okE);
       show(err_telefono, !okT);
       return okE && okT;
@@ -776,7 +783,6 @@
       return ok;
     }
 
-    // ✅ limpia visuales de errores por fila
     function clearRowValidation(row){
       const d = row.querySelector("input[type='date']");
       const a = row.querySelector("input[data-role='amount']");
@@ -788,7 +794,6 @@
       re.textContent = "";
     }
 
-    // ✅ agrega (sin duplicar) texto de error a la fila
     function appendRowError(row, text){
       const rowErr = row.querySelector(".rowError");
       const current = (rowErr.textContent || "").trim();
@@ -802,7 +807,6 @@
       rowErr.classList.add("show");
     }
 
-    // ✅ valida fila específica y devuelve lista de errores para esa fila
     function validatePaymentRow(row, idx){
       const dateInput = row.querySelector("input[type='date']");
       const amtInput  = row.querySelector("input[data-role='amount']");
@@ -838,12 +842,11 @@
       return errors;
     }
 
-    // ✅ valida todos los pagos + fechas únicas + orden cronológico (no puede retroceder)
+    // ✅ valida pagos: individuales + fechas únicas + ORDEN cronológico (no puede bajar)
     function validatePaymentsDetailed(){
       const n = Number(numPagos.value);
       const rows = Array.from(paymentsContainer.querySelectorAll(".payRow"));
 
-      // limpia todo
       err_payments_list.textContent = "";
       show(err_payments, false);
       rows.forEach(r => clearRowValidation(r));
@@ -861,7 +864,7 @@
       }
 
       // 2) fechas NO repetidas
-      const dateMap = new Map(); // fechaISO -> [indices]
+      const dateMap = new Map();
       for(let i=0;i<rows.length;i++){
         const dateInput = rows[i].querySelector("input[type='date']");
         const dateVal = (dateInput.value || "").trim();
@@ -870,7 +873,6 @@
           dateMap.get(dateVal).push(i);
         }
       }
-
       for(const [dateVal, idxs] of dateMap.entries()){
         if(idxs.length > 1){
           const pagosHuman = idxs.map(i => i+1).join(", ");
@@ -884,22 +886,19 @@
         }
       }
 
-      // 3) ✅ orden cronológico: cada pago debe ser >= al anterior (no puede retroceder)
+      // 3) ✅ ORDEN CRONOLÓGICO (cada pago >= anterior)
       let prev = null;
       for(let i=0;i<rows.length;i++){
-        const row = rows[i];
-        const dateInput = row.querySelector("input[type='date']");
+        const dateInput = rows[i].querySelector("input[type='date']");
         const dateVal = (dateInput.value || "").trim();
         if(dateVal && isValidISODate(dateVal)){
           if(prev && dateVal < prev){
-            const msg = `Orden de fechas: El Pago ${i+1} (${dateVal}) no puede ser antes que el Pago ${i} (${prev}).`;
-            allErrors.push(msg);
+            allErrors.push(`Orden inválido: Pago ${i+1} (${dateVal}) no puede ser antes que el pago anterior (${prev}).`);
             dateInput.classList.add("badField");
-            appendRowError(row, `No puede ser antes que la fecha anterior (${prev}).`);
+            appendRowError(rows[i], `Orden inválido: esta fecha no puede ser antes que la del pago anterior (${prev}).`);
+          } else {
+            prev = dateVal;
           }
-          prev = dateVal;
-        } else {
-          // si no hay fecha válida, no actualizamos prev
         }
       }
 
@@ -958,7 +957,7 @@
           <div class="field" style="margin:0;">
             <label>Fecha a abonar · Pago ${i}</label>
             <input type="date" />
-            <div class="hint">Rango permitido: ${MIN_DATE} a ${MAX_DATE}. (No se permiten fechas repetidas ni fuera de orden.)</div>
+            <div class="hint">Rango permitido: ${MIN_DATE} a ${MAX_DATE}</div>
           </div>
           <div class="field" style="margin:0;">
             <label>Monto a abonar</label>
@@ -1071,12 +1070,11 @@
         },
         meta: {
           created_at_iso: new Date().toISOString(),
-          source: "formulario_plan_pagos_v7_summary_plus_agreement"
+          source: "formulario_plan_pagos_v7_agreement_step"
         }
       };
     }
 
-    // ✅ contador en vivo (abono inicial + plan de pagos)
     function updateLiveTotals(){
       if(!liveTotalPaidEl || !liveRemainingEl || !liveTicketTotalEl) return;
 
@@ -1148,85 +1146,69 @@ Restante pendiente: ${money(data.ticket.restante)}
       const restante = Number(data.ticket.restante || 0);
       if (!remainingIsZero(restante)) {
         unhide(validationBox);
-        if (restante > 0) {
-          validationBox.textContent =
-            `Hey, hay algo raro aquí: con tu abono + tu plan de pagos aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}. Revisa montos/fechas.`;
-        } else {
-          validationBox.textContent =
-            `Hey, hay algo raro aquí: tu abono + tu plan de pagos exceden el total del ticket por ${money(Math.abs(restante))}. Revisa montos/fechas.`;
-        }
-      } else {
-        hide(validationBox);
+        validationBox.textContent =
+          (restante > 0)
+          ? `Hey, hay algo raro aquí: con tu abono + tu plan de pagos aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}. Revisa montos/fechas.`
+          : `Hey, hay algo raro aquí: tu abono + tu plan de pagos exceden el total del ticket por ${money(Math.abs(restante))}. Revisa montos/fechas.`;
       }
     }
 
-    function renderAgreementFromData(data){
-      // plan de pagos en 2 columnas (como el ejemplo)
-      agreementPaysCol1.innerHTML = "";
-      agreementPaysCol2.innerHTML = "";
+    function normalizeName(s){
+      return (s || "")
+        .trim()
+        .replace(/\s+/g, " ")
+        .toLowerCase();
+    }
 
-      const items = data.plan_pagos.pagos.map(p => {
-        const fecha = p.fecha || "(sin fecha)";
-        const monto = money(p.monto);
-        return `${fecha} | ${monto.toLowerCase().includes("mxn") ? monto : monto.replace("MXN", "mxn")}`;
-      });
-
-      const mid = Math.ceil(items.length / 2);
-      const col1 = items.slice(0, mid);
-      const col2 = items.slice(mid);
-
-      for(const t of col1){
+    function renderAgreement(data){
+      // Plan de pagos en el acuerdo
+      agreementPlanList.innerHTML = "";
+      for(const p of data.plan_pagos.pagos){
         const li = document.createElement("li");
-        li.textContent = t;
-        agreementPaysCol1.appendChild(li);
-      }
-      for(const t of col2){
-        const li = document.createElement("li");
-        li.textContent = t;
-        agreementPaysCol2.appendChild(li);
+        li.textContent = `${p.fecha || "(sin fecha)"} | ${money(p.monto)}`;
+        agreementPlanList.appendChild(li);
       }
 
-      // firma esperada
-      const expected = `${data.contacto.nombres} ${data.contacto.apellidos}`.trim();
-      sigExpected.textContent = expected || "-";
-
-      // reset estado firma
+      // reset firma visual
       signatureName.value = "";
       signatureName.classList.remove("badField");
-      sigError.classList.remove("show");
+      hide(signatureWarn);
+      signatureWarn.textContent = "";
 
-      // botón enviar bloqueado hasta que firma coincida
-      sendBtn.disabled = true;
-      hide(successBox);
-      hide(sendingBox);
-      failBox.style.display = "none";
+      // habilita o deshabilita envío (se hace en validateAgreementReady)
+      validateAgreementReady();
     }
 
-    function validateSignatureAgainstCaptured(){
+    function validateAgreementReady(){
       const data = collectData();
-      const expected = `${data.contacto.nombres} ${data.contacto.apellidos}`.trim();
 
-      const ok =
-        expected.length > 0 &&
-        normalizeName(signatureName.value) === normalizeName(expected);
+      // Requerimos que Step4 sea válido y restante = 0
+      const okPayments = validateStep4();
+      const okRestante = remainingIsZero(data.ticket.restante);
 
-      if(ok){
+      // Firma debe coincidir con nombres+apellidos
+      const expected = normalizeName(`${data.contacto.nombres} ${data.contacto.apellidos}`);
+      const typed = normalizeName(signatureName.value);
+
+      const okSig = typed.length > 0 && typed === expected;
+
+      if(signatureName.value.trim().length === 0){
         signatureName.classList.remove("badField");
-        sigError.classList.remove("show");
-      } else {
+        hide(signatureWarn);
+        signatureWarn.textContent = "";
+      } else if(!okSig){
         signatureName.classList.add("badField");
-        sigError.classList.add("show");
+        unhide(signatureWarn);
+        signatureWarn.textContent = `Tu firma debe coincidir con el nombre capturado en el formulario:\n"${(data.contacto.nombres + " " + data.contacto.apellidos).trim()}"`;
+      } else {
+        signatureName.classList.remove("badField");
+        hide(signatureWarn);
+        signatureWarn.textContent = "";
       }
 
-      // ✅ enviar solo si:
-      // - firma coincide
-      // - step4 válido
-      // - restante == 0
-      const step4ok = validateStep4();
-      const remainingOk = remainingIsZero(collectData().ticket.restante);
-      sendBtn.disabled = !(ok && step4ok && remainingOk);
-
-      return ok;
+      // Si el resumen no cuadra, no se envía
+      sendBtn.disabled = !(okPayments && okRestante && okSig);
+      return sendBtn.disabled === false;
     }
 
     function goNext(){
@@ -1247,9 +1229,8 @@ Restante pendiente: ${money(data.ticket.restante)}
           renderSummary(data);
         }
         if(currentStep === 5){
-          // antes de ir al acuerdo, lo llenamos
           const data = collectData();
-          renderAgreementFromData(data);
+          renderAgreement(data);
         }
         setStep(currentStep + 1);
       }
@@ -1273,17 +1254,16 @@ Restante pendiente: ${money(data.ticket.restante)}
       }
     });
 
-    // ✅ teléfono: solo dígitos + máx 10
+    // ✅ Teléfono: solo dígitos y máximo 10
     telefono.addEventListener("input", ()=>{
-      let digits = telefono.value.replace(/[^\d]/g,'');
-      if(digits.length > 10) digits = digits.slice(0,10);
+      const digits = telefono.value.replace(/[^\d]/g,'').slice(0,10);
       telefono.value = digits;
       show(err_telefono, false);
     });
 
-    // firma en vivo
+    // ✅ Firma: revalidar en vivo
     signatureName.addEventListener("input", ()=>{
-      validateSignatureAgainstCaptured();
+      validateAgreementReady();
     });
 
     let awaitingAck = false;
@@ -1297,34 +1277,15 @@ Restante pendiente: ${money(data.ticket.restante)}
     });
 
     sendBtn.addEventListener("click", ()=>{
-      // 1) valida pagos
-      if(!validateStep4()){
-        showToast("Revisa pagos (fechas/montos).");
+      // revalida TODO antes de enviar
+      if(!validateAgreementReady()){
         const firstBad = paymentsContainer.querySelector(".badField");
         if(firstBad) firstBad.scrollIntoView({behavior:"smooth", block:"center"});
         return;
       }
 
-      // 2) valida restante
       const dataCheck = collectData();
-      if(!remainingIsZero(dataCheck.ticket.restante)){
-        showToast("El restante debe ser 0.");
-        return;
-      }
-
-      // 3) valida firma
-      if(!validateSignatureAgainstCaptured()){
-        showToast("Firma no coincide.");
-        return;
-      }
-
-      const payload = JSON.stringify({
-        ...dataCheck,
-        firma: {
-          nombre_firma: signatureName.value.trim(),
-          expected_nombre: `${dataCheck.contacto.nombres} ${dataCheck.contacto.apellidos}`.trim()
-        }
-      });
+      const payload = JSON.stringify(dataCheck);
 
       postForm.action = WEB_APP_URL;
       payloadField.value = payload;
@@ -1341,9 +1302,7 @@ Restante pendiente: ${money(data.ticket.restante)}
           awaitingAck = false;
           hide(sendingBox);
           failBox.style.display = "block";
-          // si falla, vuelve a habilitar si todo sigue bien
-          const ok = validateSignatureAgainstCaptured();
-          sendBtn.disabled = !ok;
+          validateAgreementReady();
         }
       }, 9000);
 
