@@ -5,22 +5,20 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Acuerdo de Financiamiento</title>
 
-  <!-- ✅ Link preview (Open Graph / WhatsApp / Facebook) -->
+  <!-- ✅ Link preview -->
   <meta property="og:title" content="Acuerdo de Financiamiento" />
-  <meta property="og:description" content="Captura tus abonos, programa tus pagos y confirma de enterado." />
+  <meta property="og:description" content="Captura tus abonos y programa los pagos que mejor te queden." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://vanlimn.github.io/plan-pagos-form/" />
   <meta property="og:image" content="https://vanlimn.github.io/plan-pagos-form/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
 
-  <!-- ✅ Twitter card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Acuerdo de Financiamiento" />
-  <meta name="twitter:description" content="Captura tus abonos, programa tus pagos y confirma de enterado." />
+  <meta name="twitter:description" content="Captura tus abonos y programa los pagos que mejor te queden." />
   <meta name="twitter:image" content="https://vanlimn.github.io/plan-pagos-form/og-image.png" />
 
-  <!-- ✅ Favicon -->
   <link rel="icon" href="og-image.png" type="image/png" />
 
   <style>
@@ -34,13 +32,8 @@
       --danger:#ff4d6d;
       --ok:#37d67a;
       --warn:#ffcc00;
-
-      --paper:#ffffff;
-      --paperText:#0b0c10;
     }
-
     *{box-sizing:border-box}
-
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
@@ -54,9 +47,7 @@
       justify-content:center;
       padding:20px;
     }
-
-    .wrap{ width:min(980px, 100%); display:grid; grid-template-columns: 1fr; gap:14px; }
-
+    .wrap{ width:min(920px, 100%); display:grid; grid-template-columns: 1fr; gap:14px; }
     .card{
       background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
       border: 1px solid var(--line);
@@ -64,7 +55,6 @@
       overflow:hidden;
       box-shadow: 0 18px 60px rgba(0,0,0,.35);
     }
-
     .header{
       padding:18px 18px 14px;
       border-bottom:1px solid var(--line);
@@ -122,7 +112,6 @@
       border-color: rgba(124,92,255,.7);
       box-shadow: 0 0 0 3px rgba(124,92,255,.12);
     }
-
     .badField{
       border-color: rgba(255,77,109,.85) !important;
       box-shadow: 0 0 0 3px rgba(255,77,109,.10) !important;
@@ -141,9 +130,7 @@
       align-items:center;
       flex-wrap:wrap;
     }
-
     .btns{ display:flex; gap:10px; flex-wrap:wrap; }
-
     button{
       border:1px solid var(--line);
       background:#0f1118;
@@ -153,6 +140,7 @@
       font-size:13px;
       cursor:pointer;
       transition: transform .06s ease, border-color .2s ease, background .2s ease, opacity .2s ease;
+      font-weight:600;
     }
     button:hover{ border-color: rgba(124,92,255,.6); background: rgba(124,92,255,.08); }
     button:active{transform: translateY(1px)}
@@ -162,16 +150,17 @@
       border-color: rgba(124,92,255,.65);
       background: linear-gradient(90deg, rgba(124,92,255,.28), rgba(124,92,255,.12));
     }
+    .small{ padding:8px 12px; font-size:12px; }
 
-    .small{ padding:10px 16px; font-size:13px; }
+    /* Enviar NEGRO (visible) */
     .sendBlack{
       background:#000 !important;
-      color:#fff !important;
       border-color:#000 !important;
+      color:#fff !important;
       font-weight:800 !important;
-      letter-spacing:.2px;
+      padding:12px 18px !important;
     }
-    .sendBlack:hover{ background:#0c0c0c !important; border-color:#0c0c0c !important; }
+    .sendBlack:hover{ background:#111 !important; border-color:#111 !important; }
 
     .payments{ display:flex; flex-direction:column; gap:10px; margin-top:6px; }
     .payRow{
@@ -262,151 +251,135 @@
       border-radius:14px;
       padding:14px;
       color:#fff3c4;
-      white-space:pre-wrap;
-      line-height:1.45;
     }
     .hidden{ display:none !important; }
 
-    /* ==========================
-       ✅ Paso 6: Documento (Acuerdo)
-       ========================== */
-    .paper{
-      background: var(--paper);
-      color: var(--paperText);
-      border-radius: 16px;
-      padding: 26px;
-      border: 1px solid rgba(0,0,0,.08);
+    /* --- Acuerdo (capturable para PDF) --- */
+    .agreementPage{
+      background:#fff;
+      color:#0b0c10;
+      border-radius:16px;
+      padding:22px;
     }
-    .paperTop{
+
+    .agreementHeader{
       display:flex;
+      align-items:flex-start;
       justify-content:space-between;
-      align-items:flex-start;
-      gap:22px;
+      gap:16px;
     }
-    .paperTitle{
+    .agreementLeft{
+      max-width:68%;
+    }
+    .agreementTitle{
+      font-size:46px;
+      line-height:1;
+      margin:0 0 10px 0;
       font-weight:900;
-      font-size:54px;
-      line-height:0.95;
       letter-spacing:-.5px;
-      margin:0;
-      text-transform:uppercase;
     }
-    .paperSub{
-      margin:10px 0 0;
-      font-size:34px;
+    .agreementSub{
+      font-size:30px;
+      margin:0;
       font-weight:700;
-      display:flex;
-      gap:14px;
-      align-items:baseline;
-      flex-wrap:wrap;
     }
-    .paperSub .thin{ font-weight:500; }
-    .logoBox{
-      display:flex;
-      align-items:flex-start;
-      justify-content:flex-end;
-      min-width:240px;
+    .agreementSub span{
+      font-weight:500;
     }
-    .logoBox img{
-      max-width: 240px;
+    .agreementLogo{
+      width:200px;
       height:auto;
-      display:block;
+      object-fit:contain;
+      margin-top:6px;
     }
 
-    .paperSectionTitle{
-      margin:24px 0 10px;
-      font-size:22px;
-      font-weight:900;
+    .agreementBody{
+      margin-top:18px;
+      font-size:18px;
+      line-height:1.4;
     }
-
+    .secTitle{
+      margin:18px 0 10px;
+      font-weight:800;
+      font-size:20px;
+    }
     .checkList{
-      margin:0;
-      padding:0;
-      list-style:none;
       display:flex;
       flex-direction:column;
-      gap:14px;
-      font-size:20px;
-      line-height:1.35;
+      gap:10px;
+      margin:10px 0;
     }
     .checkItem{
-      display:flex;
-      gap:14px;
+      display:grid;
+      grid-template-columns: 28px 1fr;
+      gap:12px;
       align-items:flex-start;
     }
-    .box{
-      width:32px;
-      height:32px;
-      border:3px solid #000;
+    .boxCheck{
+      width:24px;
+      height:24px;
+      border:3px solid #0b0c10;
       display:flex;
       align-items:center;
       justify-content:center;
-      flex:0 0 auto;
-      margin-top:1px;
-    }
-    .box span{
       font-weight:900;
-      font-size:22px;
-      transform:translateY(-1px);
+      font-size:18px;
+      line-height:1;
     }
-
-    /* ✅ “Mi plan de pago” y lista: indent para librar checkboxes */
     .planBlock{
-      margin:16px 0 6px;
-      font-size:18px;
-      line-height:1.45;
-      padding-left: 42px; /* ajusta 32-50 si quieres */
+      margin-top:10px;
+      padding-left:40px; /* ✅ lo “centra” un poco para librar las casillas */
     }
-    .planBlock b{ font-weight:900; }
-    .bullets{
-      margin:10px 0 0 0;
-      padding-left: 22px;
+    .planBlock strong{
+      display:block;
+      margin-bottom:8px;
       font-size:20px;
-      line-height:1.6;
     }
-    .bullets li{ margin:4px 0; }
-
-    .signTitle{
-      margin:26px 0 10px;
-      font-size:28px;
-      font-weight:900;
-      line-height:1.2;
+    .planList{
+      margin:0;
+      padding-left:22px;
+      font-size:18px;
+      line-height:1.5;
     }
-    .signInput{
-      width:100%;
-      padding:16px 16px;
-      border-radius:16px;
-      border:2px solid rgba(124,92,255,.45);
-      outline:none;
-      font-size:22px;
-
-      /* ✅ claro normal */
-      background:#ffffff;
+    .signArea{
+      margin-top:18px;
+      padding-top:14px;
+      border-top:2px solid rgba(0,0,0,.12);
+    }
+    .signArea label{
       color:#0b0c10;
+      font-weight:900;
+      font-size:22px;
+      margin-bottom:10px;
     }
-    .signInput:focus{
-      border-color: rgba(124,92,255,.85);
-      box-shadow: 0 0 0 4px rgba(124,92,255,.18);
-    }
-    .signInput::placeholder{ color:#6b7280; }
-
     .signTip{
-      margin-top:10px;
       color:#4b5563;
-      font-size:18px;
-      line-height:1.35;
+      font-size:16px;
+      margin-top:8px;
     }
-
-    .signErr{
-      margin-top:10px;
-      color:#b42318;
-      font-size:18px;
+    .signError{
+      color:#b91c1c;
+      font-size:16px;
+      margin-top:8px;
       font-weight:700;
       display:none;
       white-space:pre-wrap;
-      line-height:1.35;
     }
-    .signErr.show{ display:block; }
+    .signError.show{ display:block; }
+
+    /* ✅ input firma en claro (no negro) */
+    .signInput{
+      background:#ffffff !important;
+      color:#0b0c10 !important;
+      border:2px solid rgba(124,92,255,.55) !important;
+      border-radius:999px !important;
+      padding:14px 16px !important;
+      font-size:18px !important;
+    }
+    .signInput:focus{
+      border-color: rgba(124,92,255,.85) !important;
+      box-shadow: 0 0 0 4px rgba(124,92,255,.18) !important;
+    }
   </style>
 </head>
 
@@ -416,7 +389,7 @@
       <div class="header">
         <div class="title">
           <h1>Formulario · Plan de Pagos</h1>
-          <p>Captura de datos + calendarización + confirmación de enterado.</p>
+          <p>Captura de datos + calendarización de pagos. Multi-paso con Back/Next.</p>
         </div>
         <div class="progress">
           <div class="stepLabel" id="stepLabel">Paso 1 de 6</div>
@@ -425,21 +398,20 @@
       </div>
 
       <div class="content">
+
         <!-- STEP 1 -->
         <section class="step active" data-step="1">
           <div class="grid">
             <div class="field half">
               <label for="nombres">Nombres</label>
-              <input id="nombres" type="text" placeholder="Ej. Luis" autocomplete="given-name" />
+              <input id="nombres" type="text" placeholder="Ej. Iliana Vanessa" autocomplete="given-name" />
               <div class="error" id="err_nombres">Escribe tus nombres.</div>
             </div>
-
             <div class="field half">
               <label for="apellidos">Apellidos</label>
-              <input id="apellidos" type="text" placeholder="Ej. Cerón" autocomplete="family-name" />
+              <input id="apellidos" type="text" placeholder="Ej. Enciso Bolaños" autocomplete="family-name" />
               <div class="error" id="err_apellidos">Escribe tus apellidos.</div>
             </div>
-
             <div class="field">
               <div class="tag"><span class="tagDot"></span><span>Esto va por páginas (Back / Next).</span></div>
             </div>
@@ -473,7 +445,7 @@
             <div class="field">
               <label for="telefono">Número de teléfono</label>
               <input id="telefono" type="tel" placeholder="Ej. 3312345678" autocomplete="tel-national" inputmode="numeric" />
-              <div class="hint">Solo números. Máximo 10 dígitos.</div>
+              <div class="hint">Solo números (máximo 10 dígitos).</div>
               <div class="error" id="err_telefono">Escribe un teléfono válido (10 dígitos).</div>
             </div>
           </div>
@@ -497,7 +469,7 @@
             <div class="field">
               <label for="numPagos">¿Cuántos pagos vas a querer que sean?</label>
               <input id="numPagos" type="number" min="1" max="50" step="1" placeholder="Ej. 3" inputmode="numeric" />
-              <div class="hint">Mínimo 1, máximo 50. Se generan los campos de fecha + monto.</div>
+              <div class="hint">Mínimo 1 / Máximo 50. Se generan los campos de fecha + monto.</div>
               <div class="error" id="err_numPagos">Indica un número de pagos (1–50).</div>
             </div>
 
@@ -538,85 +510,81 @@
           </div>
         </section>
 
-        <!-- STEP 5 -->
+        <!-- STEP 5 (Resumen) -->
         <section class="step" data-step="5">
           <div class="summaryBox">
-            <div class="tag"><span class="tagDot"></span><span>Resumen final (listo) | Por favor, revisa que todos tus datos estén correctos. Número de teléfono principalmente.</span></div>
+            <div class="tag">
+              <span class="tagDot"></span>
+              <span>Resumen final (listo) | Por favor, revisa que todos tus datos estén correctos. Número de teléfono principalmente.</span>
+            </div>
+
             <div class="summaryGrid" id="summaryGrid"></div>
+
             <div class="warning hidden" id="validationBox"></div>
           </div>
         </section>
 
-        <!-- STEP 6: Acuerdo + Firma -->
+        <!-- STEP 6 (Acuerdo + Firma + Enviar) -->
         <section class="step" data-step="6">
-          <div class="paper">
-            <div class="paperTop">
-              <div>
-                <h2 class="paperTitle">ACUERDO DE<br>FINANCIAMIENTO</h2>
-                <div class="paperSub">
-                  <span>&gt; <span style="font-weight:900;">circle x ab</span></span>
-                  <span class="thin">|</span>
-                  <span class="thin">Febrero 2026</span>
+          <div class="summaryBox">
+            <div class="tag"><span class="tagDot"></span><span>Acuerdo de Financiamiento (firma requerida)</span></div>
+
+            <!-- ✅ Capturable para PDF -->
+            <div class="agreementPage" id="agreementCapture">
+              <div class="agreementHeader">
+                <div class="agreementLeft">
+                  <h2 class="agreementTitle">ACUERDO DE<br/>FINANCIAMIENTO</h2>
+                  <p class="agreementSub">&gt; <span style="font-weight:900;">circle x ab</span> <span> | Febrero 2026</span></p>
                 </div>
+                <img class="agreementLogo" src="xab-university.png" alt="x ab university" />
               </div>
 
-              <div class="logoBox" aria-label="Logo">
-                <!-- ✅ Cambia el nombre del archivo si lo guardas con otro -->
-                <img src="xab-university.png" alt="x ab university" />
+              <div class="agreementBody">
+                <div class="secTitle">Estoy de acuerdo con que la empresa</div>
+                <div class="checkList">
+                  <div class="checkItem"><div class="boxCheck">✓</div><div>use mi <strong>imagen</strong> en fotos y videos promocionales en el futuro;</div></div>
+                  <div class="checkItem"><div class="boxCheck">✓</div><div>no es responsable de <strong>robo/extravío</strong> de mis pertenencias;</div></div>
+                  <div class="checkItem"><div class="boxCheck">✓</div><div>me expulse de las instalaciones si mi <strong>conducta</strong> altera negativamente el evento.</div></div>
+                  <div class="checkItem"><div class="boxCheck">✓</div><div>daré los créditos debidos al compartir públicamente <strong>contenido</strong> del evento.</div></div>
+                </div>
+
+                <div class="secTitle">Estoy de acuerdo también con que</div>
+                <div class="checkList">
+                  <div class="checkItem"><div class="boxCheck">✓</div><div>no hay <strong>reembolsos/cancelaciones/devoluciones</strong> del apartado y/o pagos realizados.</div></div>
+                  <div class="checkItem"><div class="boxCheck">✓</div><div>la fecha límite para <strong>cambios de workshop</strong> es un mes antes del evento.</div></div>
+                  <div class="checkItem"><div class="boxCheck">✓</div><div>mantendré las <strong>fechas de pago acordadas</strong> para conservar el precio especial; de no hacerlo, el monto total se ajustará al precio público.</div></div>
+                </div>
+
+                <!-- ✅ Mi plan de pago (más centrado para librar checks) -->
+                <div class="planBlock">
+                  <strong>Mi plan de pago:</strong>
+                  <ul class="planList" id="agreementPlanList"></ul>
+                </div>
+
+                <div class="secTitle">Estoy de acuerdo con que para ingresar a las instalaciones</div>
+                <div class="checkList">
+                  <div class="checkItem"><div class="boxCheck">✓</div><div>presento en recepción mi identificación oficial vigente con fotografía.</div></div>
+                  <div class="checkItem"><div class="boxCheck">✓</div><div>muestro en recepción foto y texto de presentación que compartí en el WhatsApp del evento.</div></div>
+                  <div class="checkItem"><div class="boxCheck">✓</div><div>debo tener firmado este MOU.</div></div>
+                  <div class="checkItem"><div class="boxCheck">✓</div><div>estoy de acuerdo con escuchar y leer toda la información e indicaciones del workshop que se envíen por WhatsApp.</div></div>
+                </div>
+
+                <div class="signArea">
+                  <label for="signatureName">Pon aquí tu nombre completo, idéntico a tu INE para confirmar de enterado el acuerdo de financiamiento.</label>
+                  <input id="signatureName" class="signInput" type="text" placeholder="Ej. Iliana Vanessa Enciso Bolaños" />
+                  <div class="signTip">Tip: Debe coincidir con el nombre que capturaste en el formulario (para evitar errores).</div>
+                  <div class="signError" id="signatureError"></div>
+                </div>
               </div>
             </div>
 
-            <div class="paperSectionTitle" style="margin-top:34px;">Estoy de acuerdo con que la empresa</div>
-            <ul class="checkList">
-              <li class="checkItem"><div class="box"><span>✓</span></div><div>use mi <b>imagen</b> en fotos y videos promocionales en el futuro;</div></li>
-              <li class="checkItem"><div class="box"><span>✓</span></div><div>no es responsable de <b>robo/extravío</b> de mis pertenencias;</div></li>
-              <li class="checkItem"><div class="box"><span>✓</span></div><div>me expulse de las instalaciones si mi <b>conducta</b> altera negativamente el evento.</div></li>
-              <li class="checkItem"><div class="box"><span>✓</span></div><div>daré los créditos debidos al compartir públicamente <b>contenido</b> del evento.</div></li>
-            </ul>
+            <div class="sending hidden" id="sendingBox">Enviando…</div>
+            <div class="success hidden" id="successBox">Listo ✅ Se registró tu plan de pagos y tu acuerdo firmado.</div>
+            <div class="error" id="failBox" style="display:none;">No se pudo enviar. Revisa tu conexión e intenta otra vez.</div>
 
-            <div class="paperSectionTitle">Estoy de acuerdo también con que</div>
-            <ul class="checkList">
-              <li class="checkItem"><div class="box"><span>✓</span></div><div>no hay <b>reembolsos/cancelaciones/devoluciones</b> del apartado y/o pagos realizados.</div></li>
-              <li class="checkItem"><div class="box"><span>✓</span></div><div>la fecha límite para <b>cambios de workshop</b> es un mes antes del evento.</div></li>
-              <li class="checkItem" style="align-items:flex-start;">
-                <div class="box"><span>✓</span></div>
-                <div>
-                  mantendré las <b>fechas de pago acordadas</b> para conservar el precio especial; de no hacerlo, el monto total se ajustará al precio público.
-
-                  <!-- ✅ Aquí va tu plan -->
-                  <div class="planBlock">
-                    <b>Mi plan de pago:</b>
-                    <ul class="bullets" id="planBullets"></ul>
-                  </div>
-                </div>
-              </li>
-            </ul>
-
-            <div class="paperSectionTitle">Estoy de acuerdo con que para ingresar a las instalaciones</div>
-            <ul class="checkList">
-              <li class="checkItem"><div class="box"><span>✓</span></div><div>presento en recepción mi identificación oficial vigente con fotografía.</div></li>
-              <li class="checkItem"><div class="box"><span>✓</span></div><div>muestro en recepción foto y texto de presentación que compartí en el WhatsApp del evento.</div></li>
-              <li class="checkItem"><div class="box"><span>✓</span></div><div>debo tener firmado este MOU.</div></li>
-              <li class="checkItem"><div class="box"><span>✓</span></div><div>estoy de acuerdo con escuchar y leer toda la información e indicaciones del workshop que se envíen por WhatsApp.</div></li>
-            </ul>
-
-            <div class="signTitle">
-              Pon aquí tu nombre completo idéntico a tu INE para confirmar de enterado el acuerdo de financiamiento.
+            <div class="btns">
+              <button class="sendBlack" id="sendBtn" type="button">Enviar</button>
             </div>
-            <input id="signatureName" class="signInput" type="text" placeholder="Escribe tu nombre completo" />
-
-            <div class="signTip">
-              Tip: Debe coincidir con el nombre que capturaste en el formulario (para evitar errores).
-            </div>
-            <div class="signErr" id="signErr"></div>
-
-            <div style="margin-top:16px; display:flex; gap:12px; flex-wrap:wrap;">
-              <button id="sendBtn" class="small sendBlack" type="button">Enviar</button>
-            </div>
-
-            <div class="sending hidden" id="sendingBox" style="margin-top:12px;">Enviando…</div>
-            <div class="success hidden" id="successBox" style="margin-top:12px;">Listo ✅ Se registró tu plan de pagos.</div>
-            <div class="error" id="failBox" style="display:none; margin-top:12px;">No se pudo enviar. Revisa tu conexión e intenta otra vez.</div>
 
             <iframe name="hiddenFrame" class="hidden" id="hiddenFrame"></iframe>
             <form id="postForm" class="hidden" method="POST" target="hiddenFrame">
@@ -638,14 +606,17 @@
 
   <div class="toast" id="toast">Enviado ✅</div>
 
+  <!-- ✅ PDF deps -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
   <script>
-    // ✅ URL del Apps Script Web App
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzPnXt2ybkixu9FgPa2S9AAx_ac5DZi-uJ_dUz14BIAczRgK0_my25m7NrgY5-DhdqoZQ/exec";
+    // ✅ URL del Apps Script Web App (PÉGALA AQUÍ)
+    const WEB_APP_URL = "PEGA_AQUI_TU_WEB_APP_URL";
 
     // Reglas de negocio
     const TICKET_TOTAL = 50000;
     const MAX_DATE = "2026-11-30";
-    const REMAINING_TOL = 0.01;
 
     function todayISO(){
       const d = new Date();
@@ -655,6 +626,7 @@
       return `${yyyy}-${mm}-${dd}`;
     }
     const MIN_DATE = todayISO();
+    const REMAINING_TOL = 0.01;
 
     const steps = Array.from(document.querySelectorAll(".step"));
     let currentStep = 1;
@@ -670,7 +642,6 @@
     const email = document.getElementById("email");
     const lada = document.getElementById("lada");
     const telefono = document.getElementById("telefono");
-
     const abonoInicial = document.getElementById("abonoInicial");
 
     const numPagos = document.getElementById("numPagos");
@@ -693,10 +664,9 @@
     const liveRemainingEl = document.getElementById("liveRemaining");
     const liveWarn = document.getElementById("liveWarn");
 
-    // Paso 6
-    const planBullets = document.getElementById("planBullets");
+    const agreementPlanList = document.getElementById("agreementPlanList");
     const signatureName = document.getElementById("signatureName");
-    const signErr = document.getElementById("signErr");
+    const signatureError = document.getElementById("signatureError");
 
     const sendBtn = document.getElementById("sendBtn");
     const successBox = document.getElementById("successBox");
@@ -711,7 +681,7 @@
     function showToast(msg){
       toast.textContent = msg;
       toast.classList.add("show");
-      setTimeout(()=>toast.classList.remove("show"), 1100);
+      setTimeout(()=>toast.classList.remove("show"), 1200);
     }
 
     function setStep(n){
@@ -732,15 +702,13 @@
         footerHint.textContent = "Tip: Enter también avanza cuando es válido.";
       }
 
-      const focusMap = {1:nombres, 2:email, 3:abonoInicial, 4:numPagos, 5:null, 6:signatureName};
+      const focusMap = {1:nombres, 2:email, 3:abonoInicial, 4:numPagos};
       if(focusMap[currentStep]) focusMap[currentStep].focus();
 
       if(currentStep === 4) updateLiveTotals();
       if(currentStep === 6) {
-        // prepara el plan de pagos dentro del acuerdo
-        const data = collectData();
-        renderAgreementPlan(data);
-        validateSignatureLive(); // arranca validación visual
+        fillAgreementPlan();
+        validateSignatureLive();
       }
     }
 
@@ -764,12 +732,18 @@
       const y = Number(m[1]);
       const mo = Number(m[2]);
       const d = Number(m[3]);
-      if(!Number.isInteger(y) || !Number.isInteger(mo) || !Number.isInteger(d)) return false;
       if(mo < 1 || mo > 12) return false;
       if(d < 1 || d > 31) return false;
 
       const dt = new Date(Date.UTC(y, mo - 1, d));
       return dt.getUTCFullYear() === y && (dt.getUTCMonth()+1) === mo && dt.getUTCDate() === d;
+    }
+
+    function normalizeName(s){
+      return (s || "")
+        .trim()
+        .replace(/\s+/g, " ")
+        .toLowerCase();
     }
 
     function validateStep1(){
@@ -782,10 +756,8 @@
 
     function validateStep2(){
       const okE = emailRegex.test(email.value.trim());
-
       const digits = telefono.value.replace(/\D/g,'');
-      const okT = digits.length === 10;
-
+      const okT = digits.length === 10; // ✅ exacto 10
       show(err_email, !okE);
       show(err_telefono, !okT);
       return okE && okT;
@@ -857,6 +829,7 @@
       return errors;
     }
 
+    // ✅ valida todos los pagos + fechas únicas + orden cronológico (no puede ser menor que el anterior)
     function validatePaymentsDetailed(){
       const n = Number(numPagos.value);
       const rows = Array.from(paymentsContainer.querySelectorAll(".payRow"));
@@ -871,14 +844,14 @@
 
       const allErrors = [];
 
-      // 1) validaciones individuales
+      // 1) validaciones por fila
       for(let i=0;i<rows.length;i++){
         const rowErrors = validatePaymentRow(rows[i], i+1);
         allErrors.push(...rowErrors);
       }
 
       // 2) fechas únicas
-      const dateMap = new Map();
+      const dateMap = new Map(); // fechaISO -> [indices]
       for(let i=0;i<rows.length;i++){
         const dateInput = rows[i].querySelector("input[type='date']");
         const dateVal = (dateInput.value || "").trim();
@@ -901,20 +874,16 @@
         }
       }
 
-      // 3) orden cronológico (no puede ir para atrás)
-      //    regla: pago i >= pago i-1 (solo si ambos existen y son ISO válidos)
-      let prevDate = null;
-      for(let i=0;i<rows.length;i++){
-        const row = rows[i];
-        const dateInput = row.querySelector("input[type='date']");
-        const dateVal = (dateInput.value || "").trim();
-        if(dateVal && isValidISODate(dateVal)){
-          if(prevDate && dateVal < prevDate){
-            allErrors.push(`Orden inválido: El Pago ${i+1} (${dateVal}) no puede ser anterior al Pago ${i} (${prevDate}).`);
-            dateInput.classList.add("badField");
-            appendRowError(row, `Orden inválido: esta fecha no puede ser anterior a la del pago anterior (${prevDate}).`);
-          } else {
-            prevDate = dateVal;
+      // 3) orden cronológico: pago i no puede ser menor que pago i-1
+      for(let i=1;i<rows.length;i++){
+        const prev = rows[i-1].querySelector("input[type='date']").value;
+        const curr = rows[i].querySelector("input[type='date']").value;
+        if(prev && curr && isValidISODate(prev) && isValidISODate(curr)){
+          if(curr < prev){
+            allErrors.push(`Orden inválido: El pago ${i+1} (${curr}) no puede ser antes que el pago ${i} (${prev}).`);
+            const row = rows[i];
+            row.querySelector("input[type='date']").classList.add("badField");
+            appendRowError(row, `La fecha no puede ser antes que la del pago anterior (${prev}).`);
           }
         }
       }
@@ -974,7 +943,7 @@
           <div class="field" style="margin:0;">
             <label>Fecha a abonar · Pago ${i}</label>
             <input type="date" />
-            <div class="hint">Rango permitido: ${MIN_DATE} a ${MAX_DATE}</div>
+            <div class="hint">Rango permitido: ${MIN_DATE} a ${MAX_DATE} (y en orden)</div>
           </div>
           <div class="field" style="margin:0;">
             <label>Monto a abonar</label>
@@ -1085,19 +1054,14 @@
           min_fecha: MIN_DATE,
           max_fecha: MAX_DATE
         },
-        firma: {
-          nombre_firma: signatureName ? signatureName.value.trim() : ""
-        },
         meta: {
           created_at_iso: new Date().toISOString(),
-          source: "formulario_plan_pagos_v7_agreement"
+          source: "formulario_plan_pagos_v_final_pdf"
         }
       };
     }
 
     function updateLiveTotals(){
-      if(!liveTotalPaidEl || !liveRemainingEl || !liveTicketTotalEl) return;
-
       const data = collectData();
       liveTicketTotalEl.textContent = money(TICKET_TOTAL);
       liveTotalPaidEl.textContent = money(data.ticket.total_pagado);
@@ -1109,11 +1073,9 @@
         liveWarn.textContent = "";
       } else {
         unhide(liveWarn);
-        if(restante > 0){
-          liveWarn.textContent = `Aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`;
-        } else {
-          liveWarn.textContent = `Vas excedida por ${money(Math.abs(restante))}. Revisa montos.`;
-        }
+        liveWarn.textContent = (restante > 0)
+          ? `Aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`
+          : `Vas excedida por ${money(Math.abs(restante))}. Revisa montos.`;
       }
     }
 
@@ -1164,58 +1126,42 @@ Restante pendiente: ${money(data.ticket.restante)}
       const restante = Number(data.ticket.restante || 0);
       if (!remainingIsZero(restante)) {
         unhide(validationBox);
-        validationBox.textContent =
-          (restante > 0)
-            ? `Hey, hay algo raro aquí: con tu abono + tu plan de pagos aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}. Revisa montos/fechas.`
-            : `Hey, hay algo raro aquí: tu abono + tu plan de pagos exceden el total del ticket por ${money(Math.abs(restante))}. Revisa montos/fechas.`;
+        validationBox.textContent = (restante > 0)
+          ? `Hey, hay algo raro aquí: con tu abono + tu plan de pagos aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}. Revisa montos/fechas.`
+          : `Hey, hay algo raro aquí: tu abono + tu plan de pagos exceden el total del ticket por ${money(Math.abs(restante))}. Revisa montos/fechas.`;
       } else {
         hide(validationBox);
       }
     }
 
-    function renderAgreementPlan(data){
-      if(!planBullets) return;
-      planBullets.innerHTML = "";
-
-      const pagos = (data.plan_pagos && data.plan_pagos.pagos) ? data.plan_pagos.pagos : [];
-      for(const p of pagos){
+    function fillAgreementPlan(){
+      const data = collectData();
+      agreementPlanList.innerHTML = "";
+      const items = data.plan_pagos.pagos.map(p => {
         const li = document.createElement("li");
         li.textContent = `${p.fecha || "(sin fecha)"} | ${money(p.monto)}`;
-        planBullets.appendChild(li);
-      }
-    }
-
-    function normalizeName(str){
-      return (str || "")
-        .trim()
-        .replace(/\s+/g, " ")
-        .toLowerCase();
+        return li;
+      });
+      items.forEach(li => agreementPlanList.appendChild(li));
     }
 
     function validateSignatureLive(){
-      if(!signatureName) return true;
-      const expected = `${nombres.value.trim()} ${apellidos.value.trim()}`.trim();
+      const data = collectData();
+      const fullName = `${data.contacto.nombres} ${data.contacto.apellidos}`.trim();
 
-      const got = signatureName.value.trim();
+      const typed = normalizeName(signatureName.value);
+      const expected = normalizeName(fullName);
 
-      // default
-      signErr.classList.remove("show");
-      signErr.textContent = "";
-      signatureName.classList.remove("badField");
+      const ok = typed.length > 0 && typed === expected;
 
-      if(!got){
-        // no forzamos error hasta que intenten enviar
-        return false;
+      signatureError.classList.toggle("show", !ok);
+      if(!ok){
+        signatureError.textContent =
+          `Tu firma debe coincidir con el nombre capturado en el formulario:\n"${fullName || "-"}"`;
+      } else {
+        signatureError.textContent = "";
       }
-
-      if(normalizeName(got) !== normalizeName(expected)){
-        signatureName.classList.add("badField");
-        signErr.textContent = `Tu firma debe coincidir con el nombre capturado en el formulario:\n"${expected}"`;
-        signErr.classList.add("show");
-        return false;
-      }
-
-      return true;
+      return ok;
     }
 
     function goNext(){
@@ -1230,11 +1176,14 @@ Restante pendiente: ${money(data.ticket.restante)}
         return;
       }
 
-      // en paso 5 no se envía, solo se pasa al acuerdo
       if(currentStep < totalSteps){
         if(currentStep === 4){
           const data = collectData();
           renderSummary(data);
+        }
+        if(currentStep === 5){
+          // antes de ir al acuerdo, rellena el plan
+          fillAgreementPlan();
         }
         setStep(currentStep + 1);
       }
@@ -1258,17 +1207,54 @@ Restante pendiente: ${money(data.ticket.restante)}
       }
     });
 
-    // ✅ Teléfono: solo dígitos y máximo 10
+    // ✅ teléfono: solo dígitos y máximo 10
     telefono.addEventListener("input", ()=>{
       telefono.value = telefono.value.replace(/[^\d]/g,'').slice(0,10);
       show(err_telefono, false);
     });
 
-    // Firma: validación live
-    if(signatureName){
-      signatureName.addEventListener("input", ()=> {
-        validateSignatureLive();
+    // firma: validar en vivo
+    signatureName.addEventListener("input", ()=>{
+      validateSignatureLive();
+    });
+
+    // ✅ PDF generator
+    async function generateAgreementPDFBase64(){
+      const el = document.getElementById("agreementCapture");
+      const scale = 2;
+
+      const canvas = await html2canvas(el, {
+        scale,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        scrollX: 0,
+        scrollY: -window.scrollY
       });
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF("p", "pt", "a4");
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+
+      const imgW = pageW;
+      const imgH = (canvas.height * imgW) / canvas.width;
+
+      let y = 0;
+      let remaining = imgH;
+
+      while (remaining > 0) {
+        pdf.addImage(imgData, "JPEG", 0, y, imgW, imgH);
+        remaining -= pageH;
+        if (remaining > 0) {
+          pdf.addPage();
+          y -= pageH;
+        }
+      }
+
+      const dataUri = pdf.output("datauristring");
+      return dataUri.split(",")[1];
     }
 
     let awaitingAck = false;
@@ -1281,8 +1267,9 @@ Restante pendiente: ${money(data.ticket.restante)}
       sendBtn.disabled = true;
     });
 
-    sendBtn.addEventListener("click", ()=>{
-      // antes de enviar: pagos OK
+    // ✅ Enviar: valida todo + firma + genera PDF + manda payload
+    sendBtn.addEventListener("click", async ()=>{
+      // Revalida pagos por seguridad
       if(!validateStep4()){
         showToast("Revisa fechas/montos");
         const firstBad = paymentsContainer.querySelector(".badField");
@@ -1291,45 +1278,65 @@ Restante pendiente: ${money(data.ticket.restante)}
       }
 
       const dataCheck = collectData();
+
+      // restante debe ser 0
       if(!remainingIsZero(dataCheck.ticket.restante)){
-        showToast("Restante debe ser $0");
+        showToast("Restante debe ser 0");
         return;
       }
 
       // firma debe coincidir
-      const sigOk = validateSignatureLive();
-      if(!sigOk){
-        signErr.classList.add("show");
+      if(!validateSignatureLive()){
+        showToast("Firma no coincide");
         signatureName.scrollIntoView({behavior:"smooth", block:"center"});
         return;
       }
 
-      // guardar firma en payload final
-      const payloadObj = collectData();
-      payloadObj.firma.nombre_firma = signatureName.value.trim();
+      try{
+        failBox.style.display = "none";
+        hide(successBox);
+        unhide(sendingBox);
+        sendingBox.textContent = "Generando PDF…";
+        sendBtn.disabled = true;
 
-      const payload = JSON.stringify(payloadObj);
+        // genera PDF del acuerdo ya llenado
+        const pdfBase64 = await generateAgreementPDFBase64();
 
-      postForm.action = WEB_APP_URL;
-      payloadField.value = payload;
+        const fullName = `${dataCheck.contacto.nombres} ${dataCheck.contacto.apellidos}`.trim();
+        const safeName = fullName.replace(/[^\w\s\-]/g, "").replace(/\s+/g, "_");
+        const pdfFileName = `Acuerdo_Financiamiento_${safeName}_${new Date().toISOString().slice(0,10)}.pdf`;
 
-      failBox.style.display = "none";
-      hide(successBox);
-      unhide(sendingBox);
-      sendBtn.disabled = true;
+        dataCheck.evidencia = {
+          pdf_base64: pdfBase64,
+          pdf_filename: pdfFileName
+        };
 
-      awaitingAck = true;
+        sendingBox.textContent = "Enviando…";
 
-      setTimeout(() => {
-        if(awaitingAck){
-          awaitingAck = false;
-          hide(sendingBox);
-          failBox.style.display = "block";
-          sendBtn.disabled = false;
-        }
-      }, 9000);
+        const payload = JSON.stringify(dataCheck);
+        postForm.action = WEB_APP_URL;
+        payloadField.value = payload;
 
-      postForm.submit();
+        awaitingAck = true;
+
+        setTimeout(() => {
+          if(awaitingAck){
+            awaitingAck = false;
+            hide(sendingBox);
+            failBox.style.display = "block";
+            sendBtn.disabled = false;
+          }
+        }, 12000);
+
+        postForm.submit();
+
+      } catch(err){
+        console.error(err);
+        hide(sendingBox);
+        failBox.style.display = "block";
+        failBox.textContent = "No se pudo generar/enviar el PDF. Intenta otra vez.";
+        sendBtn.disabled = false;
+      }
     });
 
     // init
