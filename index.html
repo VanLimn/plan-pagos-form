@@ -668,14 +668,14 @@
               <div class="hint">Firma el acuerdo y presiona Enviar.</div>
             </div>
 
-            <!-- ✅ Hidden form post -->
+            <!-- ✅ Hidden form post (fallback) -->
             <iframe name="hiddenFrame" class="hidden" id="hiddenFrame"></iframe>
             <form id="postForm" class="hidden" method="POST" target="hiddenFrame">
               <input type="hidden" name="payload" id="payloadField" />
             </form>
           </div>
 
-          <!-- ✅ PDF interno oculto (se manda en payload para Apps Script si lo quieres) -->
+          <!-- ✅ PDF interno oculto (se manda en payload para Apps Script) -->
           <div id="pdfAgreementTemplate">
             <h2>ACUERDO DE<br/>FINANCIAMIENTO</h2>
             <div class="sub">&gt; brand lab x ab | Febrero 2026</div>
@@ -732,8 +732,8 @@
   <div class="toast" id="toast">Enviado ✅</div>
 
   <script>
-    // ✅ URL del Apps Script Web App (tuya)
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyQv4R9jR2xSl5ekK7ogrQkTarSZDu6C0aNyLbQHZBpFFX7A6dYC_TZTmh3OOmr7cJ1ig/exec";
+    // ✅ URL del Apps Script Web App (TUYA - ACTUALIZADA)
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwvDdRhxSndEEK3_uPIPi70SR7OalT8T6Si-wMirpdNbEGSUiFKBtgRDmloT8OPZb6EZQ/exec";
 
     // Reglas
     const TICKET_TOTAL = 50000;
@@ -847,9 +847,6 @@
       const total = steps.length;
       stepLabel.textContent = `Paso ${currentStep} de ${total}`;
       barFill.style.width = `${Math.round((currentStep-1)/(total-1)*100)}%`;
-
-      // ✅ si ya enviaron, back ya no navega: sigue habilitado, pero reinicia
-      // (lo manejamos en goBack)
 
       backBtn.disabled = currentStep === 1;
 
@@ -1278,6 +1275,43 @@ Restante pendiente: ${money(data.ticket.restante)}
       return true;
     }
 
+    // ✅ (EXTRA) envío robusto: intenta FETCH y si falla usa FORM/IFRAME
+    async function submitToWebApp(payloadStr){
+      // 1) Intento con fetch (preferido)
+      try{
+        const body = new URLSearchParams();
+        body.set("payload", payloadStr);
+
+        const res = await fetch(WEB_APP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+          body
+        });
+
+        let txt = "";
+        try{ txt = await res.text(); }catch(e){}
+
+        if(!res.ok){
+          throw new Error(`HTTP ${res.status} ${res.statusText} :: ${txt.slice(0,200)}`);
+        }
+        return { ok:true, via:"fetch", responseText: txt };
+
+      }catch(err){
+        // 2) Fallback al método original (form + iframe)
+        try{
+          postForm.action = WEB_APP_URL;
+          payloadField.value = payloadStr;
+
+          awaitingAck = true;
+          postForm.submit();
+
+          return { ok:true, via:"form", responseText: "" };
+        }catch(err2){
+          return { ok:false, via:"none", error: String(err2 || err) };
+        }
+      }
+    }
+
     // ✅ (EXTRA) Reinicio duro del formulario
     function resetFormHard(){
       // inputs básicos
@@ -1426,7 +1460,7 @@ Restante pendiente: ${money(data.ticket.restante)}
       setTimeout(()=>setStep(10), 700);
     });
 
-    sendBtn.addEventListener("click", ()=>{
+    sendBtn.addEventListener("click", async ()=>{
       if(!validateStep1() || !validateStep2() || !validateStep3()){
         setStep(3);
         return;
@@ -1448,17 +1482,20 @@ Restante pendiente: ${money(data.ticket.restante)}
 
       const payload = JSON.stringify({
         ...data,
+        // ✅ extra para que siempre quede claro a qué Sheet debe caer (aunque el script lo ignore no pasa nada)
+        target_sheet: {
+          url: "https://docs.google.com/spreadsheets/d/1v-z87VzlcBtrYMdNFmEYmtjoHFg5W1YlRZtzBaJszRw/edit?usp=sharing",
+          id: "1v-z87VzlcBtrYMdNFmEYmtjoHFg5W1YlRZtzBaJszRw"
+        },
         pdf_html: document.getElementById("pdfAgreementTemplate").outerHTML
       });
-
-      postForm.action = WEB_APP_URL;
-      payloadField.value = payload;
 
       failBox.style.display = "none";
       hide(successBox);
       unhide(sendingBox);
       sendBtn.disabled = true;
 
+      // ✅ timeout visual igual que ya tenías
       awaitingAck = true;
       setTimeout(() => {
         if(awaitingAck){
@@ -1469,7 +1506,30 @@ Restante pendiente: ${money(data.ticket.restante)}
         }
       }, 9000);
 
-      postForm.submit();
+      // ✅ envío robusto (fetch → fallback form/iframe)
+      const result = await submitToWebApp(payload);
+
+      if(!result.ok){
+        awaitingAck = false;
+        hide(sendingBox);
+        failBox.style.display = "block";
+        sendBtn.disabled = false;
+        console.error("No se pudo enviar:", result);
+        return;
+      }
+
+      // Si fue por fetch, probablemente NO habrá hiddenFrame load.
+      // Entonces confirmamos aquí como éxito.
+      if(result.via === "fetch"){
+        awaitingAck = false;
+        hide(sendingBox);
+        unhide(successBox);
+        showToast("Enviado ✅");
+        sendBtn.disabled = true;
+        signatureName.disabled = true;
+        lockAfterSubmit = true;
+        setTimeout(()=>setStep(10), 700);
+      }
     });
 
     // init
