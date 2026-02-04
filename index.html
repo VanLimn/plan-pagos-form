@@ -236,8 +236,8 @@
       background: rgba(55,214,122,.18);
       border-radius:14px;
       padding:14px;
-      color:#10131a;
-      font-weight:800;
+      color:#ffffff;            /* ✅ ahora blanco */
+      font-weight:900;          /* ✅ más legible */
     }
     .sending{
       border:1px solid rgba(124,92,255,.35);
@@ -257,12 +257,12 @@
     .hidden{ display:none !important; }
 
     /* =========================
-       ✅ NUEVO: “PÁGINAS” DEL ACUERDO (MISMO LAYOUT)
+       ✅ “PÁGINAS” DEL ACUERDO (MISMO LAYOUT) - SIN LOGO
        ========================= */
     .agreementHeader{
       display:flex;
       align-items:flex-start;
-      justify-content:space-between;
+      justify-content:flex-start;
       gap:12px;
       flex-wrap:wrap;
       padding:4px 0 8px;
@@ -288,12 +288,6 @@
     .agreementSub span{
       font-weight:500;
       color:#c9cfdd;
-    }
-    .agreementLogo{
-      width:140px;
-      max-width:45%;
-      height:auto;
-      object-fit:contain;
     }
     .agreementSectionTitle{
       margin:10px 0 6px;
@@ -401,10 +395,10 @@
        ✅ PDF INTERNO (OCULTO)
        ========================= */
     #pdfAgreementTemplate{
-      display:none; /* ✅ nunca visible para el usuario */
+      display:none;
       font-family: Arial, Helvetica, sans-serif;
       color:#111;
-      width: 816px; /* carta aprox */
+      width: 816px;
       padding: 18px;
       background:#fff;
     }
@@ -569,7 +563,6 @@
               <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
               <div class="agreementSub">&gt; <b>brand lab x ab</b> <span>| Febrero 2026</span></div>
             </div>
-            <img class="agreementLogo" src="xab-university.png" alt="x ab university" />
           </div>
 
           <div class="summaryBox">
@@ -591,7 +584,6 @@
               <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
               <div class="agreementSub">&gt; <b>brand lab x ab</b> <span>| Febrero 2026</span></div>
             </div>
-            <img class="agreementLogo" src="xab-university.png" alt="x ab university" />
           </div>
 
           <div class="summaryBox">
@@ -617,7 +609,6 @@
               <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
               <div class="agreementSub">&gt; <b>brand lab x ab</b> <span>| Febrero 2026</span></div>
             </div>
-            <img class="agreementLogo" src="xab-university.png" alt="x ab university" />
           </div>
 
           <div class="summaryBox">
@@ -639,7 +630,6 @@
               <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
               <div class="agreementSub">&gt; <b>brand lab x ab</b> <span>| Febrero 2026</span></div>
             </div>
-            <img class="agreementLogo" src="xab-university.png" alt="x ab university" />
           </div>
 
           <div class="summaryBox">
@@ -716,8 +706,8 @@
     // Reglas
     const TICKET_TOTAL = 50000;
     const MAX_DATE = "2026-11-30";
-    const MAX_ABONO = 49999.99;      // ✅ bloqueo real
-    const MAX_ABONO_HINT = 49000;    // ✅ texto visible
+    const MAX_ABONO = 49999.99;
+    const MAX_ABONO_HINT = 49000;
 
     function todayISO(){
       const d = new Date();
@@ -951,7 +941,6 @@
     }
 
     function validatePaymentsDetailed(){
-      const n = Number(numPagos.value);
       const rows = Array.from(paymentsContainer.querySelectorAll(".payRow"));
 
       err_payments_list.textContent = "";
@@ -1128,7 +1117,7 @@
         },
         plan_pagos: { cantidad_pagos: n, pagos, total_programado: totalPlan },
         reglas: { min_fecha: MIN_DATE, max_fecha: MAX_DATE, min_fecha_pago1: FIRST_PAY_MIN_DATE, max_abono: MAX_ABONO },
-        meta: { created_at_iso: new Date().toISOString(), source: "formulario_plan_pagos_agreement_split_v1" }
+        meta: { created_at_iso: new Date().toISOString(), source: "formulario_plan_pagos_agreement_split_v1_no_logo" }
       };
     }
 
@@ -1253,7 +1242,7 @@ Restante pendiente: ${money(data.ticket.restante)}
       if(currentStep === 1 && !validateStep1()) return;
       if(currentStep === 2 && !validateStep2()) return;
       if(currentStep === 3 && !validateStep3()) return;
-      if(currentStep === 4 && !validateStep4()) return;
+      if(currentStep === 4 && !validatePaymentsDetailed().ok) return;
 
       if(currentStep < totalSteps){
         if(currentStep === 4){
@@ -1286,7 +1275,7 @@ Restante pendiente: ${money(data.ticket.restante)}
     });
 
     toAgreementBtn.addEventListener("click", ()=>{
-      if(!validateStep4()) { setStep(4); return; }
+      if(!validatePaymentsDetailed().ok) { setStep(4); return; }
       const data = collectData();
       if(!(Number(data.ticket.abono_inicial) <= MAX_ABONO)){ setStep(3); return; }
       if(!remainingIsZero(data.ticket.restante)){
@@ -1310,10 +1299,15 @@ Restante pendiente: ${money(data.ticket.restante)}
     });
 
     sendBtn.addEventListener("click", ()=>{
-      if(!validateStep1() || !validateStep2() || !validateStep3() || !validateStep4()){
+      if(!validateStep1() || !validateStep2() || !validateStep3()){
+        setStep(3);
+        return;
+      }
+      if(!validatePaymentsDetailed().ok){
         setStep(4);
         return;
       }
+
       const data = collectData();
       if(!remainingIsZero(data.ticket.restante)){
         signatureErr.textContent = "El restante pendiente debe ser 0 para poder enviar. Revisa montos.";
@@ -1322,12 +1316,10 @@ Restante pendiente: ${money(data.ticket.restante)}
       }
       if(!validateSignature()) return;
 
-      // ✅ alimenta firma en el template oculto
       pdfSignature.textContent = data.firma.nombre_firma;
 
       const payload = JSON.stringify({
         ...data,
-        // ✅ opcional: si quieres que Apps Script genere PDF con HTML:
         pdf_html: document.getElementById("pdfAgreementTemplate").outerHTML
       });
 
