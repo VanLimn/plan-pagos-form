@@ -451,7 +451,6 @@
           <div class="grid">
             <div class="field half">
               <label for="nombres">Nombres</label>
-              <!-- ✅ cambio placeholder neutro -->
               <input id="nombres" type="text" placeholder="Nombre 1 Nombre 2" autocomplete="given-name" />
               <div class="hint">Escríbelo exactamente como aparece en tu INE.</div>
               <div class="error" id="err_nombres">Escribe tus nombres.</div>
@@ -459,7 +458,6 @@
 
             <div class="field half">
               <label for="apellidos">Apellidos</label>
-              <!-- ✅ cambio placeholder neutro -->
               <input id="apellidos" type="text" placeholder="Apellido 1 Apellido 2" autocomplete="family-name" />
               <div class="hint">Escríbelo exactamente como aparece en tu INE.</div>
               <div class="error" id="err_apellidos">Escribe tus apellidos.</div>
@@ -612,10 +610,6 @@
 
             <div class="checkList">
               <div class="checkItem"><div class="checkBox">✓</div><div class="checkText">no hay <b>reembolsos/cancelaciones/devoluciones</b> del apartado y/o pagos realizados.</div></div>
-
-              <!-- ✅ (3) ELIMINADO: cambios de workshop -->
-              <!-- <div class="checkItem"><div class="checkBox">✓</div><div class="checkText">la fecha límite para <b>cambios de workshop</b> es un mes antes del evento.</div></div> -->
-
               <div class="checkItem"><div class="checkBox">✓</div><div class="checkText">mantendré las <b>fechas de pago acordadas</b> para conservar el precio especial; de no hacerlo, el monto total se ajustará al precio público.</div></div>
             </div>
 
@@ -660,7 +654,6 @@
             <div class="signatureWrap">
               <div class="signatureTitle">Pon aquí tu nombre completo, idéntico a tu INE para confirmar de enterado el acuerdo de financiamiento.</div>
 
-              <!-- ✅ placeholder neutro -->
               <input class="signatureInput" id="signatureName" type="text" placeholder="Nombre 1 Nombre 2 Apellido 1 Apellido 2" autocomplete="name" />
 
               <div class="signatureHint" id="signatureTip">Tip: Debe coincidir con el nombre que capturaste en el formulario para evitar errores.</div>
@@ -696,10 +689,6 @@
 
             <div class="sec">Estoy de acuerdo también con que</div>
             <div class="row">✓ no hay <b>reembolsos/cancelaciones/devoluciones</b> del apartado y/o pagos realizados.</div>
-
-            <!-- ✅ (3) ELIMINADO EN PDF: cambios de workshop -->
-            <!-- <div class="row">✓ la fecha límite para <b>cambios de workshop</b> es un mes antes del evento.</div> -->
-
             <div class="row">✓ mantendré las <b>fechas de pago acordadas</b> para conservar el precio especial; de no hacerlo, el monto total se ajustará al precio público.</div>
 
             <div class="sec">Mi plan de pago:</div>
@@ -842,6 +831,9 @@
     const pdfPlanList = document.getElementById("pdfPlanList");
     const pdfSignature = document.getElementById("pdfSignature");
 
+    // ✅ (EXTRA) flag para convertir BACK en reinicio después de enviar
+    let lockAfterSubmit = false;
+
     function showToast(msg){
       toast.textContent = msg;
       toast.classList.add("show");
@@ -855,6 +847,9 @@
       const total = steps.length;
       stepLabel.textContent = `Paso ${currentStep} de ${total}`;
       barFill.style.width = `${Math.round((currentStep-1)/(total-1)*100)}%`;
+
+      // ✅ si ya enviaron, back ya no navega: sigue habilitado, pero reinicia
+      // (lo manejamos en goBack)
 
       backBtn.disabled = currentStep === 1;
 
@@ -874,7 +869,7 @@
 
       if(currentStep === 4) updateLiveTotals();
 
-      // ✅ (2) BLOQUEO EXTRA: en Resumen (Step 5), si no puedes ir al acuerdo => bloquea Next también
+      // ✅ bloqueo extra: en Resumen (Step 5), si no puedes ir al acuerdo => bloquea Next también
       if(currentStep === 5){
         nextBtn.disabled = !!toAgreementBtn.disabled;
       }
@@ -1176,7 +1171,6 @@
         liveWarn.textContent = "";
       } else {
         unhide(liveWarn);
-        // ✅ (1) texto neutro
         liveWarn.textContent = restante > 0
           ? `Aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`
           : `Vas con exceso de ${money(Math.abs(restante))}. Revisa montos.`;
@@ -1231,21 +1225,15 @@ Restante pendiente: ${money(data.ticket.restante)}
 
       if(!remainingIsZero(restante)){
         unhide(validationBox);
-
-        // ✅ (1) texto neutro: “vas con exceso”
         validationBox.textContent = restante > 0
           ? `Hey, hay algo raro aquí: con tu abono + tu plan de pagos aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`
           : `Hey, hay algo raro aquí: vas con exceso de ${money(Math.abs(restante))} sobre el total.`;
 
-        // ✅ bloquea botón “Continuar al acuerdo”
         toAgreementBtn.disabled = true;
-
-        // ✅ (2) y también bloquea Next cuando estás en step 5
         if(currentStep === 5) nextBtn.disabled = true;
       } else {
         hide(validationBox);
         toAgreementBtn.disabled = false;
-
         if(currentStep === 5) nextBtn.disabled = false;
       }
     }
@@ -1290,6 +1278,64 @@ Restante pendiente: ${money(data.ticket.restante)}
       return true;
     }
 
+    // ✅ (EXTRA) Reinicio duro del formulario
+    function resetFormHard(){
+      // inputs básicos
+      nombres.value = "";
+      apellidos.value = "";
+      email.value = "";
+      lada.value = "+52";
+      telefono.value = "";
+      abonoInicial.value = "";
+      numPagos.value = "";
+      signatureName.value = "";
+
+      // limpiar contenedores
+      paymentsContainer.innerHTML = "";
+      summaryGrid.innerHTML = "";
+      agreementPlanList.innerHTML = "";
+      pdfPlanList.innerHTML = "";
+      pdfSignature.textContent = "";
+
+      // errores/hints visuales
+      show(err_nombres,false);
+      show(err_apellidos,false);
+      show(err_email,false);
+      show(err_telefono,false);
+      show(err_abonoInicial,false);
+      show(err_numPagos,false);
+      show(err_payments,false);
+      err_payments_list.textContent = "";
+
+      hide(validationBox);
+      validationBox.textContent = "";
+
+      signatureErr.textContent = "";
+      signatureErr.classList.remove("show");
+
+      // estados de envío
+      hide(successBox);
+      hide(sendingBox);
+      failBox.style.display = "none";
+
+      // botones
+      toAgreementBtn.disabled = false;
+      sendBtn.disabled = false;
+      signatureName.disabled = false;
+      nextBtn.disabled = false;
+
+      // warnings live
+      hide(liveWarn);
+      liveWarn.textContent = "";
+
+      // desactivar lock para nuevo registro
+      lockAfterSubmit = false;
+
+      // reset UI
+      updateLiveTotals();
+      setStep(1);
+    }
+
     function goNext(){
       const totalSteps = steps.length;
 
@@ -1298,10 +1344,9 @@ Restante pendiente: ${money(data.ticket.restante)}
       if(currentStep === 3 && !validateStep3()) return;
       if(currentStep === 4 && !validatePaymentsDetailed().ok) return;
 
-      // ✅ (2) BLOQUEO DURO: si estás en Step 5 y NO puedes continuar al acuerdo -> NO avanzas con Next/Enter
       if(currentStep === 5){
         const data = collectData();
-        renderSummary(data); // refresca UI por si cambió algo
+        renderSummary(data);
         if(!remainingIsZero(data.ticket.restante)){
           nextBtn.disabled = true;
           return;
@@ -1320,7 +1365,13 @@ Restante pendiente: ${money(data.ticket.restante)}
         setStep(currentStep + 1);
       }
     }
+
     function goBack(){
+      // ✅ (EXTRA) Si ya enviaron, BACK reinicia duro.
+      if(lockAfterSubmit){
+        resetFormHard();
+        return;
+      }
       if(currentStep > 1) setStep(currentStep - 1);
     }
 
@@ -1332,7 +1383,6 @@ Restante pendiente: ${money(data.ticket.restante)}
         const active = steps.find(s => s.classList.contains("active"));
         const stepNum = active ? Number(active.dataset.step) : 1;
 
-        // ✅ si estás en step 5 y está bloqueado, no avances
         if(stepNum === 5 && nextBtn.disabled){
           e.preventDefault();
           return;
@@ -1359,6 +1409,7 @@ Restante pendiente: ${money(data.ticket.restante)}
     });
 
     let awaitingAck = false;
+
     hiddenFrame.addEventListener("load", () => {
       if(!awaitingAck) return;
       awaitingAck = false;
@@ -1368,7 +1419,10 @@ Restante pendiente: ${money(data.ticket.restante)}
       sendBtn.disabled = true;
       signatureName.disabled = true;
 
-      // ✅ (4) Pantalla final
+      // ✅ (EXTRA) activar lock: Back ahora reinicia
+      lockAfterSubmit = true;
+
+      // ✅ Pantalla final
       setTimeout(()=>setStep(10), 700);
     });
 
