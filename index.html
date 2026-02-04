@@ -732,821 +732,828 @@
   <div class="toast" id="toast">Enviado ✅</div>
 
   <script>
-    // ✅ URL del Apps Script Web App (TUYA - ACTUALIZADA)
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx0h4Tn_-KLPiegbf_RgEASWAG0fhzmA4VUdbO_xim_fPDKYaFz7XM_BDClBH-7-6nYXQ/exec";
+  // ✅ URL del Apps Script Web App (TUYA - ACTUALIZADA)
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx0h4Tn_-KLPiegbf_RgEASWAG0fhzmA4VUdbO_xim_fPDKYaFz7XM_BDClBH-7-6nYXQ/exec";
 
-    // Reglas
-    const TICKET_TOTAL = 50000;
-    const MAX_DATE = "2026-11-30";
-    const MAX_ABONO = 49999.99;
-    const MAX_ABONO_HINT = 49000;
+  // Reglas
+  const TICKET_TOTAL = 50000;
+  const MAX_DATE = "2026-11-30";
+  const MAX_ABONO = 49999.99;
+  const MAX_ABONO_HINT = 49000;
 
-    function todayISO(){
-      const d = new Date();
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth()+1).padStart(2,"0");
-      const dd = String(d.getDate()).padStart(2,"0");
-      return `${yyyy}-${mm}-${dd}`;
+  function todayISO(){
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth()+1).padStart(2,"0");
+    const dd = String(d.getDate()).padStart(2,"0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  function addDaysISO(iso, days){
+    const [y,m,d] = iso.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m-1, d));
+    dt.setUTCDate(dt.getUTCDate() + days);
+    const yy = dt.getUTCFullYear();
+    const mm = String(dt.getUTCMonth()+1).padStart(2,"0");
+    const dd = String(dt.getUTCDate()).padStart(2,"0");
+    return `${yy}-${mm}-${dd}`;
+  }
+  function isoToDMY(iso){
+    if(!iso || typeof iso !== "string") return iso;
+    const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(!m) return iso;
+    return `${m[3]}/${m[2]}/${m[1]}`;
+  }
+  function isValidISODate(dateStr){
+    if(!dateStr || typeof dateStr !== "string") return false;
+    const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(!m) return false;
+    const y = Number(m[1]), mo = Number(m[2]), d = Number(m[3]);
+    const dt = new Date(Date.UTC(y, mo - 1, d));
+    return dt.getUTCFullYear() === y && (dt.getUTCMonth()+1) === mo && dt.getUTCDate() === d;
+  }
+
+  const MIN_DATE = todayISO();
+  const FIRST_PAY_MIN_DATE = addDaysISO(MIN_DATE, 1);
+  const REMAINING_TOL = 0.01;
+
+  const steps = Array.from(document.querySelectorAll(".step"));
+  let currentStep = 1;
+
+  const stepLabel = document.getElementById("stepLabel");
+  const barFill = document.getElementById("barFill");
+  const backBtn = document.getElementById("backBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const footerHint = document.getElementById("footerHint");
+
+  const nombres = document.getElementById("nombres");
+  const apellidos = document.getElementById("apellidos");
+  const email = document.getElementById("email");
+  const lada = document.getElementById("lada");
+  const telefono = document.getElementById("telefono");
+  const abonoInicial = document.getElementById("abonoInicial");
+  const abonoHint = document.getElementById("abonoHint");
+  const numPagos = document.getElementById("numPagos");
+  const paymentsContainer = document.getElementById("paymentsContainer");
+
+  const err_nombres = document.getElementById("err_nombres");
+  const err_apellidos = document.getElementById("err_apellidos");
+  const err_email = document.getElementById("err_email");
+  const err_telefono = document.getElementById("err_telefono");
+  const err_abonoInicial = document.getElementById("err_abonoInicial");
+  const err_numPagos = document.getElementById("err_numPagos");
+  const err_payments = document.getElementById("err_payments");
+  const err_payments_list = document.getElementById("err_payments_list");
+
+  const summaryGrid = document.getElementById("summaryGrid");
+  const validationBox = document.getElementById("validationBox");
+  const toAgreementBtn = document.getElementById("toAgreementBtn");
+
+  const liveTotalPaidEl = document.getElementById("liveTotalPaid");
+  const liveTicketTotalEl = document.getElementById("liveTicketTotal");
+  const liveRemainingEl = document.getElementById("liveRemaining");
+  const liveWarn = document.getElementById("liveWarn");
+
+  const agreementPlanList = document.getElementById("agreementPlanList");
+  const sendBtn = document.getElementById("sendBtn");
+  const successBox = document.getElementById("successBox");
+  const sendingBox = document.getElementById("sendingBox");
+  const failBox = document.getElementById("failBox");
+
+  const signatureName = document.getElementById("signatureName");
+  const signatureErr = document.getElementById("signatureErr");
+
+  const toast = document.getElementById("toast");
+  const postForm = document.getElementById("postForm");
+  const payloadField = document.getElementById("payloadField");
+  const hiddenFrame = document.getElementById("hiddenFrame");
+
+  // pdf oculto
+  const pdfPlanList = document.getElementById("pdfPlanList");
+  const pdfSignature = document.getElementById("pdfSignature");
+
+  // ✅ flag para convertir BACK en reinicio después de enviar
+  let lockAfterSubmit = false;
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add("show");
+    setTimeout(()=>toast.classList.remove("show"), 1100);
+  }
+
+  // ✅ NUEVO: controla el comportamiento del botón Next por step
+  function syncNextButtonRules(){
+    // default
+    nextBtn.disabled = false;
+    nextBtn.style.display = "inline-flex";
+
+    // Step 10: ya es final
+    if(currentStep === steps.length){
+      nextBtn.style.display = "none";
+      return;
     }
-    function addDaysISO(iso, days){
-      const [y,m,d] = iso.split("-").map(Number);
-      const dt = new Date(Date.UTC(y, m-1, d));
-      dt.setUTCDate(dt.getUTCDate() + days);
-      const yy = dt.getUTCFullYear();
-      const mm = String(dt.getUTCMonth()+1).padStart(2,"0");
-      const dd = String(dt.getUTCDate()).padStart(2,"0");
-      return `${yy}-${mm}-${dd}`;
-    }
-    function isoToDMY(iso){
-      if(!iso || typeof iso !== "string") return iso;
-      const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if(!m) return iso;
-      return `${m[3]}/${m[2]}/${m[1]}`;
-    }
-    function isValidISODate(dateStr){
-      if(!dateStr || typeof dateStr !== "string") return false;
-      const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if(!m) return false;
-      const y = Number(m[1]), mo = Number(m[2]), d = Number(m[3]);
-      const dt = new Date(Date.UTC(y, mo - 1, d));
-      return dt.getUTCFullYear() === y && (dt.getUTCMonth()+1) === mo && dt.getUTCDate() === d;
+
+    // ✅ Step 9 (FIRMA): NO se puede avanzar con Next NUNCA.
+    // Solo "Enviar" lleva al Step 10 cuando ya está firmado y enviado.
+    if(currentStep === 9){
+      nextBtn.disabled = true;
+      nextBtn.style.display = "none"; // lo ocultamos para que no confunda
+      return;
     }
 
-    const MIN_DATE = todayISO();
-    const FIRST_PAY_MIN_DATE = addDaysISO(MIN_DATE, 1);
-    const REMAINING_TOL = 0.01;
+    // ✅ Step 5: si el botón de acuerdo está deshabilitado, Next también
+    if(currentStep === 5){
+      nextBtn.disabled = !!toAgreementBtn.disabled;
+    }
+  }
 
-    const steps = Array.from(document.querySelectorAll(".step"));
-    let currentStep = 1;
+  function setStep(n){
+    currentStep = n;
+    steps.forEach(s => s.classList.toggle("active", Number(s.dataset.step) === currentStep));
 
-    const stepLabel = document.getElementById("stepLabel");
-    const barFill = document.getElementById("barFill");
-    const backBtn = document.getElementById("backBtn");
-    const nextBtn = document.getElementById("nextBtn");
-    const footerHint = document.getElementById("footerHint");
+    const total = steps.length;
+    stepLabel.textContent = `Paso ${currentStep} de ${total}`;
+    barFill.style.width = `${Math.round((currentStep-1)/(total-1)*100)}%`;
 
-    const nombres = document.getElementById("nombres");
-    const apellidos = document.getElementById("apellidos");
-    const email = document.getElementById("email");
-    const lada = document.getElementById("lada");
-    const telefono = document.getElementById("telefono");
-    const abonoInicial = document.getElementById("abonoInicial");
-    const abonoHint = document.getElementById("abonoHint");
-    const numPagos = document.getElementById("numPagos");
-    const paymentsContainer = document.getElementById("paymentsContainer");
+    backBtn.disabled = currentStep === 1;
 
-    const err_nombres = document.getElementById("err_nombres");
-    const err_apellidos = document.getElementById("err_apellidos");
-    const err_email = document.getElementById("err_email");
-    const err_telefono = document.getElementById("err_telefono");
-    const err_abonoInicial = document.getElementById("err_abonoInicial");
-    const err_numPagos = document.getElementById("err_numPagos");
-    const err_payments = document.getElementById("err_payments");
-    const err_payments_list = document.getElementById("err_payments_list");
-
-    const summaryGrid = document.getElementById("summaryGrid");
-    const validationBox = document.getElementById("validationBox");
-    const toAgreementBtn = document.getElementById("toAgreementBtn");
-
-    const liveTotalPaidEl = document.getElementById("liveTotalPaid");
-    const liveTicketTotalEl = document.getElementById("liveTicketTotal");
-    const liveRemainingEl = document.getElementById("liveRemaining");
-    const liveWarn = document.getElementById("liveWarn");
-
-    const agreementPlanList = document.getElementById("agreementPlanList");
-    const sendBtn = document.getElementById("sendBtn");
-    const successBox = document.getElementById("successBox");
-    const sendingBox = document.getElementById("sendingBox");
-    const failBox = document.getElementById("failBox");
-
-    const signatureName = document.getElementById("signatureName");
-    const signatureErr = document.getElementById("signatureErr");
-
-    const toast = document.getElementById("toast");
-    const postForm = document.getElementById("postForm");
-    const payloadField = document.getElementById("payloadField");
-    const hiddenFrame = document.getElementById("hiddenFrame");
-
-    // pdf oculto
-    const pdfPlanList = document.getElementById("pdfPlanList");
-    const pdfSignature = document.getElementById("pdfSignature");
-
-    // ✅ (EXTRA) flag para convertir BACK en reinicio después de enviar
-    let lockAfterSubmit = false;
-
-    function showToast(msg){
-      toast.textContent = msg;
-      toast.classList.add("show");
-      setTimeout(()=>toast.classList.remove("show"), 1100);
+    if(currentStep === total){
+      footerHint.textContent = "Listo. Puedes cerrar esta ventana.";
+    } else if(currentStep === 9){
+      footerHint.textContent = "Para finalizar, firma y presiona Enviar.";
+    } else {
+      footerHint.textContent = "Tip: Enter también avanza cuando es válido.";
     }
 
-    function setStep(n){
-      currentStep = n;
-      steps.forEach(s => s.classList.toggle("active", Number(s.dataset.step) === currentStep));
+    const focusMap = {1:nombres, 2:email, 3:abonoInicial, 4:numPagos, 9:signatureName};
+    if(focusMap[currentStep]) focusMap[currentStep].focus();
 
-      const total = steps.length;
-      stepLabel.textContent = `Paso ${currentStep} de ${total}`;
-      barFill.style.width = `${Math.round((currentStep-1)/(total-1)*100)}%`;
+    if(currentStep === 4) updateLiveTotals();
 
-      backBtn.disabled = currentStep === 1;
+    // ✅ aplica reglas del botón Next por step
+    syncNextButtonRules();
+  }
 
-      // ✅ reset default
-      nextBtn.disabled = false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  function show(el, yes){ el.classList.toggle("show", !!yes); }
+  function hide(el){ el.classList.add("hidden"); }
+  function unhide(el){ el.classList.remove("hidden"); }
 
-      if(currentStep === total){
-        nextBtn.style.display = "none";
-        footerHint.textContent = "Listo. Puedes cerrar esta ventana.";
-      } else {
-        nextBtn.style.display = "inline-flex";
-        footerHint.textContent = "Tip: Enter también avanza cuando es válido.";
+  function parseAmount(str){
+    const cleaned = (str || "").toString().replace(/,/g,'').trim();
+    if(cleaned === "") return NaN;
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : NaN;
+  }
+
+  function formatCurrencyInput(value){
+    const cleaned = (value || "").toString().replace(/[^\d.]/g,'');
+    if(cleaned === "") return "";
+    const parts = cleaned.split(".");
+    const intPart = parts[0].replace(/^0+(?=\d)/, "");
+    const formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return parts.length > 1 ? `${formatted}.${parts[1].slice(0,2)}` : formatted;
+  }
+
+  function money(n){
+    const x = Number(n || 0);
+    return x.toLocaleString("es-MX", { style:"currency", currency:"MXN" });
+  }
+
+  function remainingIsZero(restante){
+    return Math.abs(Number(restante || 0)) <= REMAINING_TOL;
+  }
+
+  function validateStep1(){
+    const okN = nombres.value.trim().length > 0;
+    const okA = apellidos.value.trim().length > 0;
+    show(err_nombres, !okN);
+    show(err_apellidos, !okA);
+    return okN && okA;
+  }
+
+  function validateStep2(){
+    const okE = emailRegex.test(email.value.trim());
+    const digits = telefono.value.replace(/\D/g,'');
+    const okT = digits.length === 10;
+    show(err_email, !okE);
+    show(err_telefono, !okT);
+    return okE && okT;
+  }
+
+  function validateStep3(){
+    const val = abonoInicial.value.trim();
+    const n = val === "" ? 0 : parseAmount(val);
+    const ok = Number.isFinite(n) && n >= 0 && n <= MAX_ABONO;
+    show(err_abonoInicial, !ok);
+    if(!ok) abonoInicial.classList.add("badField"); else abonoInicial.classList.remove("badField");
+    return ok;
+  }
+
+  function clearRowValidation(row){
+    const d = row.querySelector("input[type='date']");
+    const a = row.querySelector("input[data-role='amount']");
+    const re = row.querySelector(".rowError");
+    d.classList.remove("badField");
+    a.classList.remove("badField");
+    re.classList.remove("show");
+    re.textContent = "";
+  }
+  function appendRowError(row, text){
+    const rowErr = row.querySelector(".rowError");
+    const current = (rowErr.textContent || "").trim();
+    rowErr.textContent = current ? (current + "\n" + text) : text;
+    rowErr.classList.add("show");
+  }
+
+  function validatePaymentRow(row, idx){
+    const dateInput = row.querySelector("input[type='date']");
+    const amtInput  = row.querySelector("input[data-role='amount']");
+    clearRowValidation(row);
+
+    const errors = [];
+    const dateVal = dateInput.value;
+
+    if(!dateVal){
+      errors.push(`Pago ${idx}: Falta la fecha.`);
+      dateInput.classList.add("badField");
+    } else if(!isValidISODate(dateVal)){
+      errors.push(`Pago ${idx}: Fecha inválida (${dateVal}).`);
+      dateInput.classList.add("badField");
+    } else {
+      if(!(dateVal >= MIN_DATE && dateVal <= MAX_DATE)){
+        errors.push(`Pago ${idx}: Fecha fuera de rango (${isoToDMY(dateVal)}). Debe ser ${isoToDMY(MIN_DATE)} a ${isoToDMY(MAX_DATE)}.`);
+        dateInput.classList.add("badField");
       }
-
-      const focusMap = {1:nombres, 2:email, 3:abonoInicial, 4:numPagos, 9:signatureName};
-      if(focusMap[currentStep]) focusMap[currentStep].focus();
-
-      if(currentStep === 4) updateLiveTotals();
-
-      // ✅ bloqueo extra: en Resumen (Step 5), si no puedes ir al acuerdo => bloquea Next también
-      if(currentStep === 5){
-        nextBtn.disabled = !!toAgreementBtn.disabled;
+      if(idx === 1 && dateVal < FIRST_PAY_MIN_DATE){
+        errors.push(`Pago 1: No puede ser hoy. Selecciona desde ${isoToDMY(FIRST_PAY_MIN_DATE)}.`);
+        dateInput.classList.add("badField");
       }
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    function show(el, yes){ el.classList.toggle("show", !!yes); }
-    function hide(el){ el.classList.add("hidden"); }
-    function unhide(el){ el.classList.remove("hidden"); }
-
-    function parseAmount(str){
-      const cleaned = (str || "").toString().replace(/,/g,'').trim();
-      if(cleaned === "") return NaN;
-      const n = Number(cleaned);
-      return Number.isFinite(n) ? n : NaN;
+    const amount = Number((amtInput.value || "").replace(/,/g,''));
+    if(!(amount > 0)){
+      errors.push(`Pago ${idx}: Monto inválido. Debe ser mayor a 0.`);
+      amtInput.classList.add("badField");
     }
 
-    function formatCurrencyInput(value){
-      const cleaned = (value || "").toString().replace(/[^\d.]/g,'');
-      if(cleaned === "") return "";
-      const parts = cleaned.split(".");
-      const intPart = parts[0].replace(/^0+(?=\d)/, "");
-      const formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-      return parts.length > 1 ? `${formatted}.${parts[1].slice(0,2)}` : formatted;
-    }
-
-    function money(n){
-      const x = Number(n || 0);
-      return x.toLocaleString("es-MX", { style:"currency", currency:"MXN" });
-    }
-
-    function remainingIsZero(restante){
-      return Math.abs(Number(restante || 0)) <= REMAINING_TOL;
-    }
-
-    function validateStep1(){
-      const okN = nombres.value.trim().length > 0;
-      const okA = apellidos.value.trim().length > 0;
-      show(err_nombres, !okN);
-      show(err_apellidos, !okA);
-      return okN && okA;
-    }
-
-    function validateStep2(){
-      const okE = emailRegex.test(email.value.trim());
-      const digits = telefono.value.replace(/\D/g,'');
-      const okT = digits.length === 10;
-      show(err_email, !okE);
-      show(err_telefono, !okT);
-      return okE && okT;
-    }
-
-    function validateStep3(){
-      const val = abonoInicial.value.trim();
-      const n = val === "" ? 0 : parseAmount(val);
-      const ok = Number.isFinite(n) && n >= 0 && n <= MAX_ABONO;
-      show(err_abonoInicial, !ok);
-      if(!ok) abonoInicial.classList.add("badField"); else abonoInicial.classList.remove("badField");
-      return ok;
-    }
-
-    function clearRowValidation(row){
-      const d = row.querySelector("input[type='date']");
-      const a = row.querySelector("input[data-role='amount']");
-      const re = row.querySelector(".rowError");
-      d.classList.remove("badField");
-      a.classList.remove("badField");
-      re.classList.remove("show");
-      re.textContent = "";
-    }
-    function appendRowError(row, text){
+    if(errors.length){
       const rowErr = row.querySelector(".rowError");
-      const current = (rowErr.textContent || "").trim();
-      rowErr.textContent = current ? (current + "\n" + text) : text;
+      rowErr.textContent = errors.join("\n");
       rowErr.classList.add("show");
     }
+    return errors;
+  }
 
-    function validatePaymentRow(row, idx){
+  function validatePaymentsDetailed(){
+    const rows = Array.from(paymentsContainer.querySelectorAll(".payRow"));
+
+    err_payments_list.textContent = "";
+    show(err_payments, false);
+    rows.forEach(r => clearRowValidation(r));
+
+    const allErrors = [];
+
+    for(let i=0;i<rows.length;i++){
+      allErrors.push(...validatePaymentRow(rows[i], i+1));
+    }
+
+    // fechas únicas
+    const dateMap = new Map();
+    for(let i=0;i<rows.length;i++){
+      const dateVal = rows[i].querySelector("input[type='date']").value.trim();
+      if(dateVal && isValidISODate(dateVal)){
+        if(!dateMap.has(dateVal)) dateMap.set(dateVal, []);
+        dateMap.get(dateVal).push(i);
+      }
+    }
+    for(const [dateVal, idxs] of dateMap.entries()){
+      if(idxs.length > 1){
+        allErrors.push(`Fechas repetidas: ${isoToDMY(dateVal)} está repetida en los pagos: ${idxs.map(i=>i+1).join(", ")}.`);
+        idxs.forEach(i=>{
+          const row = rows[i];
+          row.querySelector("input[type='date']").classList.add("badField");
+          appendRowError(row, `Fecha repetida: ${isoToDMY(dateVal)}.`);
+        });
+      }
+    }
+
+    // orden cronológico
+    let prev = null;
+    for(let i=0;i<rows.length;i++){
+      const dateVal = rows[i].querySelector("input[type='date']").value.trim();
+      if(dateVal && isValidISODate(dateVal)){
+        if(prev && dateVal < prev){
+          allErrors.push(`Orden inválido: Pago ${i+1} (${isoToDMY(dateVal)}) no puede ser antes que el pago anterior (${isoToDMY(prev)}).`);
+          rows[i].querySelector("input[type='date']").classList.add("badField");
+          appendRowError(rows[i], `No puede ser antes que ${isoToDMY(prev)}.`);
+        }
+        prev = dateVal;
+      }
+    }
+
+    const ok = allErrors.length === 0;
+    if(!ok){
+      err_payments_list.textContent = allErrors.join("\n");
+      show(err_payments, true);
+    }
+    return { ok, errors: allErrors };
+  }
+
+  abonoInicial.addEventListener("input", ()=>{
+    const caret = abonoInicial.selectionStart;
+    const before = abonoInicial.value;
+    abonoInicial.value = formatCurrencyInput(abonoInicial.value);
+    const delta = abonoInicial.value.length - before.length;
+    try { abonoInicial.setSelectionRange(caret + delta, caret + delta); } catch(e){}
+    show(err_abonoInicial, false);
+    abonoInicial.classList.remove("badField");
+    updateLiveTotals();
+  });
+
+  telefono.addEventListener("input", ()=>{
+    telefono.value = telefono.value.replace(/[^\d]/g,'').slice(0,10);
+    show(err_telefono, false);
+  });
+
+  function buildPaymentRows(count){
+    paymentsContainer.innerHTML = "";
+    for(let i=1;i<=count;i++){
+      const row = document.createElement("div");
+      row.className = "payRow";
+      row.innerHTML = `
+        <div class="field" style="margin:0;">
+          <label>Fecha a abonar · Pago ${i}</label>
+          <input type="date" />
+          <div class="hint">Rango: ${isoToDMY(MIN_DATE)} a ${isoToDMY(MAX_DATE)}${i===1 ? ` · Pago 1 desde ${isoToDMY(FIRST_PAY_MIN_DATE)}` : ""}</div>
+        </div>
+        <div class="field" style="margin:0;">
+          <label>Monto a abonar</label>
+          <input data-role="amount" inputmode="decimal" placeholder="Ej. 2,000" />
+          <div class="hint">Número (sin $). Se formatea automático.</div>
+        </div>
+        <button type="button" class="small" title="Limpiar este pago">Limpiar</button>
+        <div class="rowError"></div>
+      `;
+
       const dateInput = row.querySelector("input[type='date']");
-      const amtInput  = row.querySelector("input[data-role='amount']");
-      clearRowValidation(row);
+      const amt = row.querySelector("input[data-role='amount']");
+      const btn = row.querySelector("button");
 
-      const errors = [];
-      const dateVal = dateInput.value;
+      dateInput.addEventListener("input", ()=>{ show(err_payments,false); updateLiveTotals(); });
+      dateInput.addEventListener("change", ()=>{ show(err_payments,false); updateLiveTotals(); });
 
-      if(!dateVal){
-        errors.push(`Pago ${idx}: Falta la fecha.`);
-        dateInput.classList.add("badField");
-      } else if(!isValidISODate(dateVal)){
-        errors.push(`Pago ${idx}: Fecha inválida (${dateVal}).`);
-        dateInput.classList.add("badField");
-      } else {
-        if(!(dateVal >= MIN_DATE && dateVal <= MAX_DATE)){
-          errors.push(`Pago ${idx}: Fecha fuera de rango (${isoToDMY(dateVal)}). Debe ser ${isoToDMY(MIN_DATE)} a ${isoToDMY(MAX_DATE)}.`);
-          dateInput.classList.add("badField");
-        }
-        if(idx === 1 && dateVal < FIRST_PAY_MIN_DATE){
-          errors.push(`Pago 1: No puede ser hoy. Selecciona desde ${isoToDMY(FIRST_PAY_MIN_DATE)}.`);
-          dateInput.classList.add("badField");
-        }
-      }
-
-      const amount = Number((amtInput.value || "").replace(/,/g,''));
-      if(!(amount > 0)){
-        errors.push(`Pago ${idx}: Monto inválido. Debe ser mayor a 0.`);
-        amtInput.classList.add("badField");
-      }
-
-      if(errors.length){
-        const rowErr = row.querySelector(".rowError");
-        rowErr.textContent = errors.join("\n");
-        rowErr.classList.add("show");
-      }
-      return errors;
-    }
-
-    function validatePaymentsDetailed(){
-      const rows = Array.from(paymentsContainer.querySelectorAll(".payRow"));
-
-      err_payments_list.textContent = "";
-      show(err_payments, false);
-      rows.forEach(r => clearRowValidation(r));
-
-      const allErrors = [];
-
-      for(let i=0;i<rows.length;i++){
-        allErrors.push(...validatePaymentRow(rows[i], i+1));
-      }
-
-      // fechas únicas
-      const dateMap = new Map();
-      for(let i=0;i<rows.length;i++){
-        const dateVal = rows[i].querySelector("input[type='date']").value.trim();
-        if(dateVal && isValidISODate(dateVal)){
-          if(!dateMap.has(dateVal)) dateMap.set(dateVal, []);
-          dateMap.get(dateVal).push(i);
-        }
-      }
-      for(const [dateVal, idxs] of dateMap.entries()){
-        if(idxs.length > 1){
-          allErrors.push(`Fechas repetidas: ${isoToDMY(dateVal)} está repetida en los pagos: ${idxs.map(i=>i+1).join(", ")}.`);
-          idxs.forEach(i=>{
-            const row = rows[i];
-            row.querySelector("input[type='date']").classList.add("badField");
-            appendRowError(row, `Fecha repetida: ${isoToDMY(dateVal)}.`);
-          });
-        }
-      }
-
-      // orden cronológico
-      let prev = null;
-      for(let i=0;i<rows.length;i++){
-        const dateVal = rows[i].querySelector("input[type='date']").value.trim();
-        if(dateVal && isValidISODate(dateVal)){
-          if(prev && dateVal < prev){
-            allErrors.push(`Orden inválido: Pago ${i+1} (${isoToDMY(dateVal)}) no puede ser antes que el pago anterior (${isoToDMY(prev)}).`);
-            rows[i].querySelector("input[type='date']").classList.add("badField");
-            appendRowError(rows[i], `No puede ser antes que ${isoToDMY(prev)}.`);
-          }
-          prev = dateVal;
-        }
-      }
-
-      const ok = allErrors.length === 0;
-      if(!ok){
-        err_payments_list.textContent = allErrors.join("\n");
-        show(err_payments, true);
-      }
-      return { ok, errors: allErrors };
-    }
-
-    abonoInicial.addEventListener("input", ()=>{
-      const caret = abonoInicial.selectionStart;
-      const before = abonoInicial.value;
-      abonoInicial.value = formatCurrencyInput(abonoInicial.value);
-      const delta = abonoInicial.value.length - before.length;
-      try { abonoInicial.setSelectionRange(caret + delta, caret + delta); } catch(e){}
-      show(err_abonoInicial, false);
-      abonoInicial.classList.remove("badField");
-      updateLiveTotals();
-    });
-
-    telefono.addEventListener("input", ()=>{
-      telefono.value = telefono.value.replace(/[^\d]/g,'').slice(0,10);
-      show(err_telefono, false);
-    });
-
-    function buildPaymentRows(count){
-      paymentsContainer.innerHTML = "";
-      for(let i=1;i<=count;i++){
-        const row = document.createElement("div");
-        row.className = "payRow";
-        row.innerHTML = `
-          <div class="field" style="margin:0;">
-            <label>Fecha a abonar · Pago ${i}</label>
-            <input type="date" />
-            <div class="hint">Rango: ${isoToDMY(MIN_DATE)} a ${isoToDMY(MAX_DATE)}${i===1 ? ` · Pago 1 desde ${isoToDMY(FIRST_PAY_MIN_DATE)}` : ""}</div>
-          </div>
-          <div class="field" style="margin:0;">
-            <label>Monto a abonar</label>
-            <input data-role="amount" inputmode="decimal" placeholder="Ej. 2,000" />
-            <div class="hint">Número (sin $). Se formatea automático.</div>
-          </div>
-          <button type="button" class="small" title="Limpiar este pago">Limpiar</button>
-          <div class="rowError"></div>
-        `;
-
-        const dateInput = row.querySelector("input[type='date']");
-        const amt = row.querySelector("input[data-role='amount']");
-        const btn = row.querySelector("button");
-
-        dateInput.addEventListener("input", ()=>{ show(err_payments,false); updateLiveTotals(); });
-        dateInput.addEventListener("change", ()=>{ show(err_payments,false); updateLiveTotals(); });
-
-        amt.addEventListener("input", ()=>{
-          const caret = amt.selectionStart;
-          const before = amt.value;
-          amt.value = formatCurrencyInput(amt.value);
-          const delta = amt.value.length - before.length;
-          try { amt.setSelectionRange(caret + delta, caret + delta); } catch(e){}
-          show(err_payments,false);
-          updateLiveTotals();
-        });
-
-        btn.addEventListener("click", ()=>{
-          dateInput.value = "";
-          amt.value = "";
-          clearRowValidation(row);
-          show(err_payments,false);
-          updateLiveTotals();
-        });
-
-        paymentsContainer.appendChild(row);
-      }
-      updateLiveTotals();
-    }
-
-    numPagos.addEventListener("input", ()=>{
-      const n = Number(numPagos.value);
-      show(err_numPagos, false);
-      show(err_payments,false);
-      err_payments_list.textContent = "";
-      if(Number.isInteger(n) && n >= 1 && n <= 50){
-        buildPaymentRows(n);
-      } else {
-        paymentsContainer.innerHTML = "";
+      amt.addEventListener("input", ()=>{
+        const caret = amt.selectionStart;
+        const before = amt.value;
+        amt.value = formatCurrencyInput(amt.value);
+        const delta = amt.value.length - before.length;
+        try { amt.setSelectionRange(caret + delta, caret + delta); } catch(e){}
+        show(err_payments,false);
         updateLiveTotals();
-      }
-    });
-
-    function collectData(){
-      const n = Number(numPagos.value);
-
-      const abonoVal = abonoInicial.value.trim();
-      const abono = abonoVal === "" ? 0 : (parseAmount(abonoVal) || 0);
-
-      const rows = Array.from(paymentsContainer.querySelectorAll(".payRow"));
-      const pagos = rows.map((row, idx) => {
-        const fecha = row.querySelector("input[type='date']").value;
-        const montoStr = row.querySelector("input[data-role='amount']").value || "";
-        const monto = Number(montoStr.replace(/,/g,'')) || 0;
-        return { num: idx+1, fecha, monto };
       });
 
-      const totalPlan = pagos.reduce((acc,p)=>acc + (p.monto || 0), 0);
-      const totalPagado = abono + totalPlan;
-      const restante = TICKET_TOTAL - totalPagado;
+      btn.addEventListener("click", ()=>{
+        dateInput.value = "";
+        amt.value = "";
+        clearRowValidation(row);
+        show(err_payments,false);
+        updateLiveTotals();
+      });
 
-      return {
-        contacto: {
-          nombres: nombres.value.trim(),
-          apellidos: apellidos.value.trim(),
-          email: email.value.trim(),
-          telefono: { lada: lada.value, numero: telefono.value.replace(/\D/g,'') }
-        },
-        firma: { nombre_firma: (signatureName.value || "").trim() },
-        ticket: {
-          total: TICKET_TOTAL,
-          abono_inicial: abono,
-          total_plan_pagos: totalPlan,
-          total_pagado: totalPagado,
-          restante: restante
-        },
-        plan_pagos: { cantidad_pagos: n, pagos, total_programado: totalPlan },
-        reglas: { min_fecha: MIN_DATE, max_fecha: MAX_DATE, min_fecha_pago1: FIRST_PAY_MIN_DATE, max_abono: MAX_ABONO },
-        meta: { created_at_iso: new Date().toISOString(), source: "formulario_plan_pagos_agreement_split_v1_no_logo" }
-      };
+      paymentsContainer.appendChild(row);
+    }
+    updateLiveTotals();
+  }
+
+  numPagos.addEventListener("input", ()=>{
+    const n = Number(numPagos.value);
+    show(err_numPagos, false);
+    show(err_payments,false);
+    err_payments_list.textContent = "";
+    if(Number.isInteger(n) && n >= 1 && n <= 50){
+      buildPaymentRows(n);
+    } else {
+      paymentsContainer.innerHTML = "";
+      updateLiveTotals();
+    }
+  });
+
+  function collectData(){
+    const n = Number(numPagos.value);
+
+    const abonoVal = abonoInicial.value.trim();
+    const abono = abonoVal === "" ? 0 : (parseAmount(abonoVal) || 0);
+
+    const rows = Array.from(paymentsContainer.querySelectorAll(".payRow"));
+    const pagos = rows.map((row, idx) => {
+      const fecha = row.querySelector("input[type='date']").value;
+      const montoStr = row.querySelector("input[data-role='amount']").value || "";
+      const monto = Number(montoStr.replace(/,/g,'')) || 0;
+      return { num: idx+1, fecha, monto };
+    });
+
+    const totalPlan = pagos.reduce((acc,p)=>acc + (p.monto || 0), 0);
+    const totalPagado = abono + totalPlan;
+    const restante = TICKET_TOTAL - totalPagado;
+
+    return {
+      contacto: {
+        nombres: nombres.value.trim(),
+        apellidos: apellidos.value.trim(),
+        email: email.value.trim(),
+        telefono: { lada: lada.value, numero: telefono.value.replace(/\D/g,'') }
+      },
+      firma: { nombre_firma: (signatureName.value || "").trim() },
+      ticket: {
+        total: TICKET_TOTAL,
+        abono_inicial: abono,
+        total_plan_pagos: totalPlan,
+        total_pagado: totalPagado,
+        restante: restante
+      },
+      plan_pagos: { cantidad_pagos: n, pagos, total_programado: totalPlan },
+      reglas: { min_fecha: MIN_DATE, max_fecha: MAX_DATE, min_fecha_pago1: FIRST_PAY_MIN_DATE, max_abono: MAX_ABONO },
+      meta: { created_at_iso: new Date().toISOString(), source: "formulario_plan_pagos_agreement_split_v1_no_logo" }
+    };
+  }
+
+  function updateLiveTotals(){
+    const data = collectData();
+    liveTicketTotalEl.textContent = money(TICKET_TOTAL);
+    liveTotalPaidEl.textContent = money(data.ticket.total_pagado);
+    liveRemainingEl.textContent = money(data.ticket.restante);
+
+    const restante = Number(data.ticket.restante || 0);
+    if(Math.abs(restante) <= REMAINING_TOL){
+      hide(liveWarn);
+      liveWarn.textContent = "";
+    } else {
+      unhide(liveWarn);
+      liveWarn.textContent = restante > 0
+        ? `Aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`
+        : `Vas con exceso de ${money(Math.abs(restante))}. Revisa montos.`;
+    }
+  }
+
+  function renderSummary(data){
+    summaryGrid.innerHTML = "";
+    hide(validationBox);
+    validationBox.textContent = "";
+
+    const fullName = `${data.contacto.nombres} ${data.contacto.apellidos}`.trim();
+    const phone = `${data.contacto.telefono.lada} ${data.contacto.telefono.numero}`.trim();
+
+    const blocks = [
+      { k:"Nombre completo (INE)", v: fullName || "-" },
+      { k:"Correo", v: data.contacto.email || "-" },
+      { k:"Teléfono", v: phone || "-" },
+      { k:"Abono inicial", v: money(data.ticket.abono_inicial) },
+      { k:"Cantidad de pagos", v: String(data.plan_pagos.cantidad_pagos || 0) },
+      { k:"Total plan de pagos", v: money(data.ticket.total_plan_pagos) },
+    ];
+
+    for(const b of blocks){
+      const el = document.createElement("div");
+      el.className = "kv";
+      el.innerHTML = `<div class="k">${b.k}</div><div class="v">${b.v}</div>`;
+      summaryGrid.appendChild(el);
     }
 
-    function updateLiveTotals(){
-      const data = collectData();
-      liveTicketTotalEl.textContent = money(TICKET_TOTAL);
-      liveTotalPaidEl.textContent = money(data.ticket.total_pagado);
-      liveRemainingEl.textContent = money(data.ticket.restante);
+    const payList = document.createElement("div");
+    payList.className = "kv";
+    payList.style.gridColumn = "1 / -1";
+    const lines = data.plan_pagos.pagos.map(p => `Pago ${p.num}: ${p.fecha ? isoToDMY(p.fecha) : "(sin fecha)"} · ${money(p.monto)}`);
+    payList.innerHTML = `<div class="k">Plan de pagos</div><div class="v">${lines.join("\n")}</div>`;
+    summaryGrid.appendChild(payList);
 
-      const restante = Number(data.ticket.restante || 0);
-      if(Math.abs(restante) <= REMAINING_TOL){
-        hide(liveWarn);
-        liveWarn.textContent = "";
-      } else {
-        unhide(liveWarn);
-        liveWarn.textContent = restante > 0
-          ? `Aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`
-          : `Vas con exceso de ${money(Math.abs(restante))}. Revisa montos.`;
-      }
-    }
-
-    function renderSummary(data){
-      summaryGrid.innerHTML = "";
-      hide(validationBox);
-      validationBox.textContent = "";
-
-      const fullName = `${data.contacto.nombres} ${data.contacto.apellidos}`.trim();
-      const phone = `${data.contacto.telefono.lada} ${data.contacto.telefono.numero}`.trim();
-
-      const blocks = [
-        { k:"Nombre completo (INE)", v: fullName || "-" },
-        { k:"Correo", v: data.contacto.email || "-" },
-        { k:"Teléfono", v: phone || "-" },
-        { k:"Abono inicial", v: money(data.ticket.abono_inicial) },
-        { k:"Cantidad de pagos", v: String(data.plan_pagos.cantidad_pagos || 0) },
-        { k:"Total plan de pagos", v: money(data.ticket.total_plan_pagos) },
-      ];
-
-      for(const b of blocks){
-        const el = document.createElement("div");
-        el.className = "kv";
-        el.innerHTML = `<div class="k">${b.k}</div><div class="v">${b.v}</div>`;
-        summaryGrid.appendChild(el);
-      }
-
-      const payList = document.createElement("div");
-      payList.className = "kv";
-      payList.style.gridColumn = "1 / -1";
-      const lines = data.plan_pagos.pagos.map(p => `Pago ${p.num}: ${p.fecha ? isoToDMY(p.fecha) : "(sin fecha)"} · ${money(p.monto)}`);
-      payList.innerHTML = `<div class="k">Plan de pagos</div><div class="v">${lines.join("\n")}</div>`;
-      summaryGrid.appendChild(payList);
-
-      const totals = document.createElement("div");
-      totals.className = "kv";
-      totals.style.gridColumn = "1 / -1";
-      totals.innerHTML = `
-        <div class="k">Totales</div>
-        <div class="v">
+    const totals = document.createElement("div");
+    totals.className = "kv";
+    totals.style.gridColumn = "1 / -1";
+    totals.innerHTML = `
+      <div class="k">Totales</div>
+      <div class="v">
 El total de tu ticket es 50,000 pesos
 Incluyendo tu abono y tu plan de pagos, el total pagado es ${money(data.ticket.total_pagado)}
 Restante pendiente: ${money(data.ticket.restante)}
-        </div>
-      `;
-      summaryGrid.appendChild(totals);
+      </div>
+    `;
+    summaryGrid.appendChild(totals);
 
-      const restante = Number(data.ticket.restante || 0);
+    const restante = Number(data.ticket.restante || 0);
 
-      if(!remainingIsZero(restante)){
-        unhide(validationBox);
-        validationBox.textContent = restante > 0
-          ? `Hey, hay algo raro aquí: con tu abono + tu plan de pagos aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`
-          : `Hey, hay algo raro aquí: vas con exceso de ${money(Math.abs(restante))} sobre el total.`;
+    if(!remainingIsZero(restante)){
+      unhide(validationBox);
+      validationBox.textContent = restante > 0
+        ? `Hey, hay algo raro aquí: con tu abono + tu plan de pagos aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`
+        : `Hey, hay algo raro aquí: vas con exceso de ${money(Math.abs(restante))} sobre el total.`;
 
-        toAgreementBtn.disabled = true;
-        if(currentStep === 5) nextBtn.disabled = true;
-      } else {
-        hide(validationBox);
-        toAgreementBtn.disabled = false;
-        if(currentStep === 5) nextBtn.disabled = false;
-      }
-    }
-
-    function renderAgreementPlan(data){
-      agreementPlanList.innerHTML = "";
-      pdfPlanList.innerHTML = "";
-
-      const pagos = data.plan_pagos?.pagos || [];
-      pagos.forEach(p=>{
-        const li = document.createElement("li");
-        li.textContent = `${p.fecha ? isoToDMY(p.fecha) : "(sin fecha)"} | ${money(p.monto)}`;
-        agreementPlanList.appendChild(li);
-
-        const li2 = document.createElement("li");
-        li2.textContent = `${p.fecha ? isoToDMY(p.fecha) : "(sin fecha)"} | ${money(p.monto)}`;
-        pdfPlanList.appendChild(li2);
-      });
-    }
-
-    function normalizeName(s){
-      return (s || "").trim().replace(/\s+/g," ").toLowerCase();
-    }
-    function validateSignature(){
-      signatureErr.textContent = "";
-      signatureErr.classList.remove("show");
-
-      const captured = `${nombres.value} ${apellidos.value}`.trim();
-      const must = normalizeName(captured);
-      const got = normalizeName(signatureName.value);
-
-      if(!got){
-        signatureErr.textContent = "Escribe tu nombre completo como aparece en tu INE.";
-        signatureErr.classList.add("show");
-        return false;
-      }
-      if(must && got !== must){
-        signatureErr.textContent = `Tu firma debe coincidir con el nombre capturado en el formulario:\n"${captured}"`;
-        signatureErr.classList.add("show");
-        return false;
-      }
-      return true;
-    }
-
-    // ✅ (EXTRA) envío robusto: intenta FETCH y si falla usa FORM/IFRAME
-    async function submitToWebApp(payloadStr){
-      // 1) Intento con fetch (preferido)
-      try{
-        const body = new URLSearchParams();
-        body.set("payload", payloadStr);
-
-        const res = await fetch(WEB_APP_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-          body
-        });
-
-        let txt = "";
-        try{ txt = await res.text(); }catch(e){}
-
-        if(!res.ok){
-          throw new Error(`HTTP ${res.status} ${res.statusText} :: ${txt.slice(0,200)}`);
-        }
-        return { ok:true, via:"fetch", responseText: txt };
-
-      }catch(err){
-        // 2) Fallback al método original (form + iframe)
-        try{
-          postForm.action = WEB_APP_URL;
-          payloadField.value = payloadStr;
-
-          awaitingAck = true;
-          postForm.submit();
-
-          return { ok:true, via:"form", responseText: "" };
-        }catch(err2){
-          return { ok:false, via:"none", error: String(err2 || err) };
-        }
-      }
-    }
-
-    // ✅ (EXTRA) Reinicio duro del formulario
-    function resetFormHard(){
-      // inputs básicos
-      nombres.value = "";
-      apellidos.value = "";
-      email.value = "";
-      lada.value = "+52";
-      telefono.value = "";
-      abonoInicial.value = "";
-      numPagos.value = "";
-      signatureName.value = "";
-
-      // limpiar contenedores
-      paymentsContainer.innerHTML = "";
-      summaryGrid.innerHTML = "";
-      agreementPlanList.innerHTML = "";
-      pdfPlanList.innerHTML = "";
-      pdfSignature.textContent = "";
-
-      // errores/hints visuales
-      show(err_nombres,false);
-      show(err_apellidos,false);
-      show(err_email,false);
-      show(err_telefono,false);
-      show(err_abonoInicial,false);
-      show(err_numPagos,false);
-      show(err_payments,false);
-      err_payments_list.textContent = "";
-
+      toAgreementBtn.disabled = true;
+    } else {
       hide(validationBox);
-      validationBox.textContent = "";
-
-      signatureErr.textContent = "";
-      signatureErr.classList.remove("show");
-
-      // estados de envío
-      hide(successBox);
-      hide(sendingBox);
-      failBox.style.display = "none";
-
-      // botones
       toAgreementBtn.disabled = false;
-      sendBtn.disabled = false;
-      signatureName.disabled = false;
-      nextBtn.disabled = false;
-
-      // warnings live
-      hide(liveWarn);
-      liveWarn.textContent = "";
-
-      // desactivar lock para nuevo registro
-      lockAfterSubmit = false;
-
-      // reset UI
-      updateLiveTotals();
-      setStep(1);
     }
 
-    function goNext(){
-      const totalSteps = steps.length;
+    // ✅ por si estás en step 5, aplica reglas de next
+    syncNextButtonRules();
+  }
 
-      if(currentStep === 1 && !validateStep1()) return;
-      if(currentStep === 2 && !validateStep2()) return;
-      if(currentStep === 3 && !validateStep3()) return;
-      if(currentStep === 4 && !validatePaymentsDetailed().ok) return;
+  function renderAgreementPlan(data){
+    agreementPlanList.innerHTML = "";
+    pdfPlanList.innerHTML = "";
 
-      if(currentStep === 5){
+    const pagos = data.plan_pagos?.pagos || [];
+    pagos.forEach(p=>{
+      const li = document.createElement("li");
+      li.textContent = `${p.fecha ? isoToDMY(p.fecha) : "(sin fecha)"} | ${money(p.monto)}`;
+      agreementPlanList.appendChild(li);
+
+      const li2 = document.createElement("li");
+      li2.textContent = `${p.fecha ? isoToDMY(p.fecha) : "(sin fecha)"} | ${money(p.monto)}`;
+      pdfPlanList.appendChild(li2);
+    });
+  }
+
+  function normalizeName(s){
+    return (s || "").trim().replace(/\s+/g," ").toLowerCase();
+  }
+  function validateSignature(){
+    signatureErr.textContent = "";
+    signatureErr.classList.remove("show");
+
+    const captured = `${nombres.value} ${apellidos.value}`.trim();
+    const must = normalizeName(captured);
+    const got = normalizeName(signatureName.value);
+
+    if(!got){
+      signatureErr.textContent = "Escribe tu nombre completo como aparece en tu INE.";
+      signatureErr.classList.add("show");
+      return false;
+    }
+    if(must && got !== must){
+      signatureErr.textContent = `Tu firma debe coincidir con el nombre capturado en el formulario:\n"${captured}"`;
+      signatureErr.classList.add("show");
+      return false;
+    }
+    return true;
+  }
+
+  // ✅ envío robusto: intenta FETCH y si falla usa FORM/IFRAME
+  async function submitToWebApp(payloadStr){
+    // 1) Intento con fetch (preferido)
+    try{
+      const body = new URLSearchParams();
+      body.set("payload", payloadStr);
+
+      const res = await fetch(WEB_APP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+        body
+      });
+
+      let txt = "";
+      try{ txt = await res.text(); }catch(e){}
+
+      if(!res.ok){
+        throw new Error(`HTTP ${res.status} ${res.statusText} :: ${txt.slice(0,200)}`);
+      }
+      return { ok:true, via:"fetch", responseText: txt };
+
+    }catch(err){
+      // 2) Fallback al método original (form + iframe)
+      try{
+        postForm.action = WEB_APP_URL;
+        payloadField.value = payloadStr;
+
+        awaitingAck = true;
+        postForm.submit();
+
+        return { ok:true, via:"form", responseText: "" };
+      }catch(err2){
+        return { ok:false, via:"none", error: String(err2 || err) };
+      }
+    }
+  }
+
+  // ✅ Reinicio duro del formulario
+  function resetFormHard(){
+    nombres.value = "";
+    apellidos.value = "";
+    email.value = "";
+    lada.value = "+52";
+    telefono.value = "";
+    abonoInicial.value = "";
+    numPagos.value = "";
+    signatureName.value = "";
+
+    paymentsContainer.innerHTML = "";
+    summaryGrid.innerHTML = "";
+    agreementPlanList.innerHTML = "";
+    pdfPlanList.innerHTML = "";
+    pdfSignature.textContent = "";
+
+    show(err_nombres,false);
+    show(err_apellidos,false);
+    show(err_email,false);
+    show(err_telefono,false);
+    show(err_abonoInicial,false);
+    show(err_numPagos,false);
+    show(err_payments,false);
+    err_payments_list.textContent = "";
+
+    hide(validationBox);
+    validationBox.textContent = "";
+
+    signatureErr.textContent = "";
+    signatureErr.classList.remove("show");
+
+    hide(successBox);
+    hide(sendingBox);
+    failBox.style.display = "none";
+
+    toAgreementBtn.disabled = false;
+    sendBtn.disabled = false;
+    signatureName.disabled = false;
+
+    hide(liveWarn);
+    liveWarn.textContent = "";
+
+    lockAfterSubmit = false;
+
+    updateLiveTotals();
+    setStep(1);
+  }
+
+  function goNext(){
+    const totalSteps = steps.length;
+
+    // ✅ NUEVO: en Step 9 NO se permite Next (solo Enviar)
+    if(currentStep === 9){
+      // por si alguien logra dispararlo con algo raro
+      validateSignature();
+      return;
+    }
+
+    if(currentStep === 1 && !validateStep1()) return;
+    if(currentStep === 2 && !validateStep2()) return;
+    if(currentStep === 3 && !validateStep3()) return;
+    if(currentStep === 4 && !validatePaymentsDetailed().ok) return;
+
+    if(currentStep === 5){
+      const data = collectData();
+      renderSummary(data);
+      if(!remainingIsZero(data.ticket.restante)){
+        syncNextButtonRules();
+        return;
+      }
+    }
+
+    if(currentStep < totalSteps){
+      if(currentStep === 4){
         const data = collectData();
         renderSummary(data);
-        if(!remainingIsZero(data.ticket.restante)){
-          nextBtn.disabled = true;
-          return;
-        }
       }
-// ⛔️ Si estás en el paso 9, NO avanzas sin firma válida
-if(currentStep === 9){
-  if(!validateSignature()){
-    // fuerza foco visual
-    signatureName.focus();
-    nextBtn.disabled = true;
-    return;
-  } else {
-    nextBtn.disabled = false;
+      if(currentStep === 5){
+        const data = collectData();
+        renderAgreementPlan(data);
+      }
+      setStep(currentStep + 1);
+    }
   }
-}
 
-      if(currentStep < totalSteps){
-        if(currentStep === 4){
-          const data = collectData();
-          renderSummary(data);
-        }
-        if(currentStep === 5){
-          const data = collectData();
-          renderAgreementPlan(data);
-        }
-        setStep(currentStep + 1);
-      }
+  function goBack(){
+    if(lockAfterSubmit){
+      resetFormHard();
+      return;
     }
+    if(currentStep > 1) setStep(currentStep - 1);
+  }
 
-    function goBack(){
-      // ✅ (EXTRA) Si ya enviaron, BACK reinicia duro.
-      if(lockAfterSubmit){
-        resetFormHard();
+  nextBtn.addEventListener("click", goNext);
+  backBtn.addEventListener("click", goBack);
+
+  document.addEventListener("keydown", (e)=>{
+    if(e.key === "Enter"){
+      const active = steps.find(s => s.classList.contains("active"));
+      const stepNum = active ? Number(active.dataset.step) : 1;
+
+      // ✅ NUEVO: Step 9 NO avanza con Enter (solo Enviar)
+      if(stepNum === 9){
+        e.preventDefault();
+        validateSignature();
         return;
       }
-      if(currentStep > 1) setStep(currentStep - 1);
-    }
 
-    nextBtn.addEventListener("click", goNext);
-    backBtn.addEventListener("click", goBack);
-
-    document.addEventListener("keydown", (e)=>{
-      if(e.key === "Enter"){
-        const active = steps.find(s => s.classList.contains("active"));
-        const stepNum = active ? Number(active.dataset.step) : 1;
-
-        if(stepNum === 5 && nextBtn.disabled){
-          e.preventDefault();
-          return;
-        }
-
-        if(stepNum < steps.length){
-          e.preventDefault();
-          goNext();
-        }
-      }
-    });
-
-    toAgreementBtn.addEventListener("click", ()=>{
-      if(!validatePaymentsDetailed().ok) { setStep(4); return; }
-      const data = collectData();
-      if(!(Number(data.ticket.abono_inicial) <= MAX_ABONO)){ setStep(3); return; }
-      if(!remainingIsZero(data.ticket.restante)){
-        unhide(validationBox);
-        validationBox.textContent = "El restante pendiente debe ser 0 para poder continuar. Revisa montos.";
+      // Step 5: si next está “bloqueado”, no avances
+      if(stepNum === 5 && nextBtn.disabled){
+        e.preventDefault();
         return;
       }
-      renderAgreementPlan(data);
-      setStep(6);
+
+      if(stepNum < steps.length){
+        e.preventDefault();
+        goNext();
+      }
+    }
+  });
+
+  toAgreementBtn.addEventListener("click", ()=>{
+    if(!validatePaymentsDetailed().ok) { setStep(4); return; }
+    const data = collectData();
+    if(!(Number(data.ticket.abono_inicial) <= MAX_ABONO)){ setStep(3); return; }
+    if(!remainingIsZero(data.ticket.restante)){
+      unhide(validationBox);
+      validationBox.textContent = "El restante pendiente debe ser 0 para poder continuar. Revisa montos.";
+      return;
+    }
+    renderAgreementPlan(data);
+    setStep(6);
+  });
+
+  let awaitingAck = false;
+
+  hiddenFrame.addEventListener("load", () => {
+    if(!awaitingAck) return;
+    awaitingAck = false;
+    hide(sendingBox);
+    unhide(successBox);
+    showToast("Enviado ✅");
+    sendBtn.disabled = true;
+    signatureName.disabled = true;
+
+    lockAfterSubmit = true;
+
+    setTimeout(()=>setStep(10), 700);
+  });
+
+  sendBtn.addEventListener("click", async ()=>{
+    if(!validateStep1() || !validateStep2() || !validateStep3()){
+      setStep(3);
+      return;
+    }
+    if(!validatePaymentsDetailed().ok){
+      setStep(4);
+      return;
+    }
+
+    const data = collectData();
+    if(!remainingIsZero(data.ticket.restante)){
+      signatureErr.textContent = "El restante pendiente debe ser 0 para poder enviar. Revisa montos.";
+      signatureErr.classList.add("show");
+      return;
+    }
+    if(!validateSignature()) return;
+
+    pdfSignature.textContent = data.firma.nombre_firma;
+
+    const payload = JSON.stringify({
+      ...data,
+      target_sheet: {
+        url: "https://docs.google.com/spreadsheets/d/1v-z87VzlcBtrYMdNFmEYmtjoHFg5W1YlRZtzBaJszRw/edit?usp=sharing",
+        id: "1v-z87VzlcBtrYMdNFmEYmtjoHFg5W1YlRZtzBaJszRw"
+      },
+      pdf_html: document.getElementById("pdfAgreementTemplate").outerHTML
     });
 
-    let awaitingAck = false;
+    failBox.style.display = "none";
+    hide(successBox);
+    unhide(sendingBox);
+    sendBtn.disabled = true;
 
-    hiddenFrame.addEventListener("load", () => {
-      if(!awaitingAck) return;
+    awaitingAck = true;
+    setTimeout(() => {
+      if(awaitingAck){
+        awaitingAck = false;
+        hide(sendingBox);
+        failBox.style.display = "block";
+        sendBtn.disabled = false;
+      }
+    }, 9000);
+
+    const result = await submitToWebApp(payload);
+
+    if(!result.ok){
+      awaitingAck = false;
+      hide(sendingBox);
+      failBox.style.display = "block";
+      sendBtn.disabled = false;
+      console.error("No se pudo enviar:", result);
+      return;
+    }
+
+    if(result.via === "fetch"){
       awaitingAck = false;
       hide(sendingBox);
       unhide(successBox);
       showToast("Enviado ✅");
       sendBtn.disabled = true;
       signatureName.disabled = true;
-
-      // ✅ (EXTRA) activar lock: Back ahora reinicia
       lockAfterSubmit = true;
-
-      // ✅ Pantalla final
       setTimeout(()=>setStep(10), 700);
-    });
+    }
+  });
 
-    sendBtn.addEventListener("click", async ()=>{
-      if(!validateStep1() || !validateStep2() || !validateStep3()){
-        setStep(3);
-        return;
-      }
-      if(!validatePaymentsDetailed().ok){
-        setStep(4);
-        return;
-      }
-
-      const data = collectData();
-      if(!remainingIsZero(data.ticket.restante)){
-        signatureErr.textContent = "El restante pendiente debe ser 0 para poder enviar. Revisa montos.";
-        signatureErr.classList.add("show");
-        return;
-      }
-      if(!validateSignature()) return;
-
-      pdfSignature.textContent = data.firma.nombre_firma;
-
-      const payload = JSON.stringify({
-        ...data,
-        // ✅ extra para que siempre quede claro a qué Sheet debe caer (aunque el script lo ignore no pasa nada)
-        target_sheet: {
-          url: "https://docs.google.com/spreadsheets/d/1v-z87VzlcBtrYMdNFmEYmtjoHFg5W1YlRZtzBaJszRw/edit?usp=sharing",
-          id: "1v-z87VzlcBtrYMdNFmEYmtjoHFg5W1YlRZtzBaJszRw"
-        },
-        pdf_html: document.getElementById("pdfAgreementTemplate").outerHTML
-      });
-
-      failBox.style.display = "none";
-      hide(successBox);
-      unhide(sendingBox);
-      sendBtn.disabled = true;
-
-      // ✅ timeout visual igual que ya tenías
-      awaitingAck = true;
-      setTimeout(() => {
-        if(awaitingAck){
-          awaitingAck = false;
-          hide(sendingBox);
-          failBox.style.display = "block";
-          sendBtn.disabled = false;
-        }
-      }, 9000);
-
-      // ✅ envío robusto (fetch → fallback form/iframe)
-      const result = await submitToWebApp(payload);
-
-      if(!result.ok){
-        awaitingAck = false;
-        hide(sendingBox);
-        failBox.style.display = "block";
-        sendBtn.disabled = false;
-        console.error("No se pudo enviar:", result);
-        return;
-      }
-
-      // Si fue por fetch, probablemente NO habrá hiddenFrame load.
-      // Entonces confirmamos aquí como éxito.
-      if(result.via === "fetch"){
-        awaitingAck = false;
-        hide(sendingBox);
-        unhide(successBox);
-        showToast("Enviado ✅");
-        sendBtn.disabled = true;
-        signatureName.disabled = true;
-        lockAfterSubmit = true;
-        setTimeout(()=>setStep(10), 700);
-      }
-    });
-
-    // init
-    abonoHint.textContent = `Número (sin $). Se formatea automático. Máximo ${money(MAX_ABONO_HINT)}.`;
-    setStep(1);
-    updateLiveTotals();
-  </script>
-</body>
-</html>
+  // init
+  abonoHint.textContent = `Número (sin $). Se formatea automático. Máximo ${money(MAX_ABONO_HINT)}.`;
+  setStep(1);
+  updateLiveTotals();
+</script>
