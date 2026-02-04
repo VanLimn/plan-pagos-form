@@ -409,6 +409,25 @@
     #pdfAgreementTemplate .row b{ font-weight:900; }
     #pdfAgreementTemplate .divider{ margin:16px 0; height:1px; background:#ddd; }
     #pdfAgreementTemplate ul{ margin:0; padding-left:18px; font-size:16px; line-height:1.55; }
+
+    /* ✅ pantalla final */
+    .finalWrap{
+      padding:10px 2px;
+      text-align:center;
+    }
+    .finalTitle{
+      font-size:18px;
+      font-weight:950;
+      margin:0 0 8px;
+      letter-spacing:.2px;
+    }
+    .finalText{
+      margin:0;
+      color:var(--muted);
+      line-height:1.45;
+      font-size:13px;
+      font-weight:700;
+    }
   </style>
 </head>
 
@@ -421,7 +440,7 @@
           <p>Captura de datos + calendarización de pagos. Multi-paso con Back/Next.</p>
         </div>
         <div class="progress">
-          <div class="stepLabel" id="stepLabel">Paso 1 de 9</div>
+          <div class="stepLabel" id="stepLabel">Paso 1 de 10</div>
           <div class="bar" aria-hidden="true"><div id="barFill"></div></div>
         </div>
       </div>
@@ -432,14 +451,16 @@
           <div class="grid">
             <div class="field half">
               <label for="nombres">Nombres</label>
-              <input id="nombres" type="text" placeholder="Ej. Iliana Vanessa" autocomplete="given-name" />
+              <!-- ✅ cambio placeholder neutro -->
+              <input id="nombres" type="text" placeholder="Nombre 1 Nombre 2" autocomplete="given-name" />
               <div class="hint">Escríbelo exactamente como aparece en tu INE.</div>
               <div class="error" id="err_nombres">Escribe tus nombres.</div>
             </div>
 
             <div class="field half">
               <label for="apellidos">Apellidos</label>
-              <input id="apellidos" type="text" placeholder="Ej. Enciso Bolaños" autocomplete="family-name" />
+              <!-- ✅ cambio placeholder neutro -->
+              <input id="apellidos" type="text" placeholder="Apellido 1 Apellido 2" autocomplete="family-name" />
               <div class="hint">Escríbelo exactamente como aparece en tu INE.</div>
               <div class="error" id="err_apellidos">Escribe tus apellidos.</div>
             </div>
@@ -591,7 +612,10 @@
 
             <div class="checkList">
               <div class="checkItem"><div class="checkBox">✓</div><div class="checkText">no hay <b>reembolsos/cancelaciones/devoluciones</b> del apartado y/o pagos realizados.</div></div>
-              <div class="checkItem"><div class="checkBox">✓</div><div class="checkText">la fecha límite para <b>cambios de workshop</b> es un mes antes del evento.</div></div>
+
+              <!-- ✅ (3) ELIMINADO: cambios de workshop -->
+              <!-- <div class="checkItem"><div class="checkBox">✓</div><div class="checkText">la fecha límite para <b>cambios de workshop</b> es un mes antes del evento.</div></div> -->
+
               <div class="checkItem"><div class="checkBox">✓</div><div class="checkText">mantendré las <b>fechas de pago acordadas</b> para conservar el precio especial; de no hacerlo, el monto total se ajustará al precio público.</div></div>
             </div>
 
@@ -635,7 +659,10 @@
           <div class="summaryBox">
             <div class="signatureWrap">
               <div class="signatureTitle">Pon aquí tu nombre completo, idéntico a tu INE para confirmar de enterado el acuerdo de financiamiento.</div>
-              <input class="signatureInput" id="signatureName" type="text" placeholder="Escribe tu nombre completo" autocomplete="name" />
+
+              <!-- ✅ placeholder neutro -->
+              <input class="signatureInput" id="signatureName" type="text" placeholder="Nombre 1 Nombre 2 Apellido 1 Apellido 2" autocomplete="name" />
+
               <div class="signatureHint" id="signatureTip">Tip: Debe coincidir con el nombre que capturaste en el formulario para evitar errores.</div>
               <div class="signatureErr" id="signatureErr"></div>
 
@@ -669,7 +696,10 @@
 
             <div class="sec">Estoy de acuerdo también con que</div>
             <div class="row">✓ no hay <b>reembolsos/cancelaciones/devoluciones</b> del apartado y/o pagos realizados.</div>
-            <div class="row">✓ la fecha límite para <b>cambios de workshop</b> es un mes antes del evento.</div>
+
+            <!-- ✅ (3) ELIMINADO EN PDF: cambios de workshop -->
+            <!-- <div class="row">✓ la fecha límite para <b>cambios de workshop</b> es un mes antes del evento.</div> -->
+
             <div class="row">✓ mantendré las <b>fechas de pago acordadas</b> para conservar el precio especial; de no hacerlo, el monto total se ajustará al precio público.</div>
 
             <div class="sec">Mi plan de pago:</div>
@@ -683,6 +713,19 @@
 
             <div class="divider"></div>
             <div class="row"><b>Firma (nombre idéntico al INE):</b> <span id="pdfSignature"></span></div>
+          </div>
+        </section>
+
+        <!-- ✅ STEP 10 (Pantalla final de cierre) -->
+        <section class="step" data-step="10">
+          <div class="summaryBox">
+            <div class="finalWrap">
+              <h2 class="finalTitle">Gracias por tu registro ✅</h2>
+              <p class="finalText">
+                En breve recibirás el acuerdo en tu WhatsApp.<br/>
+                Por favor confirma de recibido.
+              </p>
+            </div>
           </div>
         </section>
       </div>
@@ -815,9 +858,12 @@
 
       backBtn.disabled = currentStep === 1;
 
+      // ✅ reset default
+      nextBtn.disabled = false;
+
       if(currentStep === total){
         nextBtn.style.display = "none";
-        footerHint.textContent = "Firma el acuerdo y presiona Enviar.";
+        footerHint.textContent = "Listo. Puedes cerrar esta ventana.";
       } else {
         nextBtn.style.display = "inline-flex";
         footerHint.textContent = "Tip: Enter también avanza cuando es válido.";
@@ -827,6 +873,11 @@
       if(focusMap[currentStep]) focusMap[currentStep].focus();
 
       if(currentStep === 4) updateLiveTotals();
+
+      // ✅ (2) BLOQUEO EXTRA: en Resumen (Step 5), si no puedes ir al acuerdo => bloquea Next también
+      if(currentStep === 5){
+        nextBtn.disabled = !!toAgreementBtn.disabled;
+      }
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -995,14 +1046,6 @@
       return { ok, errors: allErrors };
     }
 
-    function validateStep4(){
-      const n = Number(numPagos.value);
-      const okN = Number.isInteger(n) && n >= 1 && n <= 50;
-      show(err_numPagos, !okN);
-      if(!okN) return false;
-      return validatePaymentsDetailed().ok;
-    }
-
     abonoInicial.addEventListener("input", ()=>{
       const caret = abonoInicial.selectionStart;
       const before = abonoInicial.value;
@@ -1133,9 +1176,10 @@
         liveWarn.textContent = "";
       } else {
         unhide(liveWarn);
+        // ✅ (1) texto neutro
         liveWarn.textContent = restante > 0
           ? `Aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`
-          : `Vas excedida por ${money(Math.abs(restante))}. Revisa montos.`;
+          : `Vas con exceso de ${money(Math.abs(restante))}. Revisa montos.`;
       }
     }
 
@@ -1184,15 +1228,25 @@ Restante pendiente: ${money(data.ticket.restante)}
       summaryGrid.appendChild(totals);
 
       const restante = Number(data.ticket.restante || 0);
+
       if(!remainingIsZero(restante)){
         unhide(validationBox);
+
+        // ✅ (1) texto neutro: “vas con exceso”
         validationBox.textContent = restante > 0
           ? `Hey, hay algo raro aquí: con tu abono + tu plan de pagos aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`
-          : `Hey, hay algo raro aquí: tu abono + tu plan de pagos exceden el total por ${money(Math.abs(restante))}.`;
+          : `Hey, hay algo raro aquí: vas con exceso de ${money(Math.abs(restante))} sobre el total.`;
+
+        // ✅ bloquea botón “Continuar al acuerdo”
         toAgreementBtn.disabled = true;
+
+        // ✅ (2) y también bloquea Next cuando estás en step 5
+        if(currentStep === 5) nextBtn.disabled = true;
       } else {
         hide(validationBox);
         toAgreementBtn.disabled = false;
+
+        if(currentStep === 5) nextBtn.disabled = false;
       }
     }
 
@@ -1244,6 +1298,16 @@ Restante pendiente: ${money(data.ticket.restante)}
       if(currentStep === 3 && !validateStep3()) return;
       if(currentStep === 4 && !validatePaymentsDetailed().ok) return;
 
+      // ✅ (2) BLOQUEO DURO: si estás en Step 5 y NO puedes continuar al acuerdo -> NO avanzas con Next/Enter
+      if(currentStep === 5){
+        const data = collectData();
+        renderSummary(data); // refresca UI por si cambió algo
+        if(!remainingIsZero(data.ticket.restante)){
+          nextBtn.disabled = true;
+          return;
+        }
+      }
+
       if(currentStep < totalSteps){
         if(currentStep === 4){
           const data = collectData();
@@ -1267,6 +1331,13 @@ Restante pendiente: ${money(data.ticket.restante)}
       if(e.key === "Enter"){
         const active = steps.find(s => s.classList.contains("active"));
         const stepNum = active ? Number(active.dataset.step) : 1;
+
+        // ✅ si estás en step 5 y está bloqueado, no avances
+        if(stepNum === 5 && nextBtn.disabled){
+          e.preventDefault();
+          return;
+        }
+
         if(stepNum < steps.length){
           e.preventDefault();
           goNext();
@@ -1296,6 +1367,9 @@ Restante pendiente: ${money(data.ticket.restante)}
       showToast("Enviado ✅");
       sendBtn.disabled = true;
       signatureName.disabled = true;
+
+      // ✅ (4) Pantalla final
+      setTimeout(()=>setStep(10), 700);
     });
 
     sendBtn.addEventListener("click", ()=>{
