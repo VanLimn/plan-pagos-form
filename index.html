@@ -23,7 +23,6 @@
 <!-- ✅ Favicon -->
 <link rel="icon" href="og-image.png" type="image/png" />
 
-
   <style>
     :root{
       --bg:#0b0c10;
@@ -310,9 +309,9 @@
 
             <div class="field">
               <label for="telefono">Número de teléfono</label>
-              <input id="telefono" type="tel" placeholder="Ej. 3312345678" autocomplete="tel-national" inputmode="numeric" />
-              <div class="hint">Solo números (sin espacios). Validación simple (10–15 dígitos).</div>
-              <div class="error" id="err_telefono">Escribe un teléfono válido (10–15 dígitos).</div>
+              <input id="telefono" type="tel" placeholder="Ej. 3312345678" autocomplete="tel-national" inputmode="numeric" maxlength="12" />
+              <div class="hint">Solo números (sin espacios). Validación: 10–12 dígitos.</div>
+              <div class="error" id="err_telefono">Escribe un teléfono válido (10–12 dígitos).</div>
             </div>
           </div>
         </section>
@@ -381,7 +380,7 @@
         <!-- STEP 5 -->
         <section class="step" data-step="5">
           <div class="summaryBox">
-            <div class="tag"><span class="tagDot"></span><span>Resumen final (listo).</span></div>
+            <div class="tag"><span class="tagDot"></span><span>Resumen final | Por favor, revisa que todos tus datos estén correctos. Número de teléfono principalmente. Una vez con eso, envíalo.</span></div>
 
             <div class="summaryGrid" id="summaryGrid"></div>
 
@@ -393,7 +392,6 @@
 
             <div class="btns">
               <button class="small primary" id="sendBtn" type="button">Enviar</button>
-              <button class="small danger" id="resetBtn" type="button">Reiniciar</button>
             </div>
 
             <iframe name="hiddenFrame" class="hidden" id="hiddenFrame"></iframe>
@@ -473,7 +471,6 @@
     const liveWarn = document.getElementById("liveWarn");
 
     const sendBtn = document.getElementById("sendBtn");
-    const resetBtn = document.getElementById("resetBtn");
     const successBox = document.getElementById("successBox");
     const sendingBox = document.getElementById("sendingBox");
     const failBox = document.getElementById("failBox");
@@ -555,7 +552,7 @@
     function validateStep2(){
       const okE = emailRegex.test(email.value.trim());
       const digits = telefono.value.replace(/\D/g,'');
-      const okT = digits.length >= 10 && digits.length <= 15;
+      const okT = digits.length >= 10 && digits.length <= 12;
       show(err_email, !okE);
       show(err_telefono, !okT);
       return okE && okT;
@@ -632,7 +629,7 @@
       return errors;
     }
 
-    // ✅ valida todos los pagos + (NUEVO) fechas únicas
+    // ✅ valida todos los pagos + fechas únicas
     function validatePaymentsDetailed(){
       const n = Number(numPagos.value);
       const rows = Array.from(paymentsContainer.querySelectorAll(".payRow"));
@@ -648,14 +645,13 @@
 
       const allErrors = [];
 
-      // 1) validaciones individuales (fecha válida / rango / monto)
+      // 1) validaciones individuales
       for(let i=0;i<rows.length;i++){
         const rowErrors = validatePaymentRow(rows[i], i+1);
         allErrors.push(...rowErrors);
       }
 
-      // 2) ✅ NUEVO: fechas NO repetidas (solo checa las que sí existen y son ISO válidas)
-      //    Si hay repetidas, marca en rojo las filas involucradas y agrega mensaje por fila.
+      // 2) fechas NO repetidas
       const dateMap = new Map(); // fechaISO -> [indices]
       for(let i=0;i<rows.length;i++){
         const dateInput = rows[i].querySelector("input[type='date']");
@@ -669,10 +665,7 @@
       for(const [dateVal, idxs] of dateMap.entries()){
         if(idxs.length > 1){
           const pagosHuman = idxs.map(i => i+1).join(", ");
-          // error general
           allErrors.push(`Fechas repetidas: La fecha ${dateVal} está repetida en los pagos: ${pagosHuman}. Deben ser todas diferentes.`);
-
-          // marca cada fila involucrada
           for(const i of idxs){
             const row = rows[i];
             const dateInput = row.querySelector("input[type='date']");
@@ -715,7 +708,7 @@
     }
 
     function remainingIsZero(restante){
-      return Math.abs(Number(restante || 0)) <= REMAINING_TOL;
+      return Math.abs(Number(restante || 0)) <= 0.01;
     }
 
     abonoInicial.addEventListener("input", ()=>{
@@ -725,7 +718,7 @@
       const delta = abonoInicial.value.length - before.length;
       try { abonoInicial.setSelectionRange(caret + delta, caret + delta); } catch(e){}
       show(err_abonoInicial, false);
-      updateLiveTotals(); // ✅
+      updateLiveTotals();
     });
 
     function buildPaymentRows(count){
@@ -753,19 +746,17 @@
         const btn = row.querySelector("button");
         const rowErr = row.querySelector(".rowError");
 
-        // ✅ NO ponemos min/max (evita bug al teclear 2026 en algunos browsers)
-        // Validación SOLO en Next/Enviar, pero limpiamos señal visual al editar.
         dateInput.addEventListener("input", ()=>{
           dateInput.classList.remove("badField");
           rowErr.classList.remove("show");
           show(err_payments, false);
-          updateLiveTotals(); // ✅
+          updateLiveTotals();
         });
         dateInput.addEventListener("change", ()=>{
           dateInput.classList.remove("badField");
           rowErr.classList.remove("show");
           show(err_payments, false);
-          updateLiveTotals(); // ✅
+          updateLiveTotals();
         });
 
         amt.addEventListener("input", () => {
@@ -777,7 +768,7 @@
           amt.classList.remove("badField");
           rowErr.classList.remove("show");
           show(err_payments, false);
-          updateLiveTotals(); // ✅
+          updateLiveTotals();
         });
 
         btn.addEventListener("click", ()=>{
@@ -785,12 +776,12 @@
           amt.value = "";
           clearRowValidation(row);
           show(err_payments, false);
-          updateLiveTotals(); // ✅
+          updateLiveTotals();
         });
 
         paymentsContainer.appendChild(row);
       }
-      updateLiveTotals(); // ✅
+      updateLiveTotals();
     }
 
     numPagos.addEventListener("input", () => {
@@ -802,7 +793,7 @@
         buildPaymentRows(n);
       } else {
         paymentsContainer.innerHTML = "";
-        updateLiveTotals(); // ✅
+        updateLiveTotals();
       }
     });
 
@@ -822,7 +813,7 @@
 
       const totalPlan = pagos.reduce((acc,p)=>acc + (p.monto || 0), 0);
       const totalPagado = abono + totalPlan;
-      const restante = TICKET_TOTAL - totalPagado;
+      const restante = 50000 - totalPagado;
 
       return {
         contacto: {
@@ -835,7 +826,7 @@
           }
         },
         ticket: {
-          total: TICKET_TOTAL,
+          total: 50000,
           abono_inicial: abono,
           total_plan_pagos: totalPlan,
           total_pagado: totalPagado,
@@ -857,28 +848,21 @@
       };
     }
 
-    // ✅ contador en vivo (abono inicial + plan de pagos)
     function updateLiveTotals(){
-      if(!liveTotalPaidEl || !liveRemainingEl || !liveTicketTotalEl) return;
-
       const data = collectData();
-
-      liveTicketTotalEl.textContent = money(TICKET_TOTAL);
-      liveTotalPaidEl.textContent = money(data.ticket.total_pagado);
-      liveRemainingEl.textContent = money(data.ticket.restante);
+      document.getElementById("liveTicketTotal").textContent = money(50000);
+      document.getElementById("liveTotalPaid").textContent = money(data.ticket.total_pagado);
+      document.getElementById("liveRemaining").textContent = money(data.ticket.restante);
 
       const restante = Number(data.ticket.restante || 0);
-
-      if(Math.abs(restante) <= REMAINING_TOL){
-        hide(liveWarn);
-        liveWarn.textContent = "";
+      if(Math.abs(restante) <= 0.01){
+        hide(document.getElementById("liveWarn"));
+        document.getElementById("liveWarn").textContent = "";
       } else {
-        unhide(liveWarn);
-        if(restante > 0){
-          liveWarn.textContent = `Aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`;
-        } else {
-          liveWarn.textContent = `Vas excedida por ${money(Math.abs(restante))}. Revisa montos.`;
-        }
+        unhide(document.getElementById("liveWarn"));
+        document.getElementById("liveWarn").textContent =
+          restante > 0 ? `Aún faltan ${money(restante)} para completar ${money(50000)}.`
+                       : `Vas excedida por ${money(Math.abs(restante))}. Revisa montos.`;
       }
     }
 
@@ -932,16 +916,12 @@ Restante pendiente: ${money(data.ticket.restante)}
       summaryGrid.appendChild(totals);
 
       const restante = Number(data.ticket.restante || 0);
-
-      if (!remainingIsZero(restante)) {
+      if (Math.abs(restante) > 0.01) {
         unhide(validationBox);
-        if (restante > 0) {
-          validationBox.textContent =
-            `Hey, hay algo raro aquí: con tu abono + tu plan de pagos aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}. Revisa montos/fechas.`;
-        } else {
-          validationBox.textContent =
-            `Hey, hay algo raro aquí: tu abono + tu plan de pagos exceden el total del ticket por ${money(Math.abs(restante))}. Revisa montos/fechas.`;
-        }
+        validationBox.textContent =
+          restante > 0
+            ? `Hey, hay algo raro aquí: con tu abono + tu plan de pagos aún faltan ${money(restante)} para completar ${money(50000)}. Revisa montos/fechas.`
+            : `Hey, hay algo raro aquí: tu abono + tu plan de pagos exceden el total del ticket por ${money(Math.abs(restante))}. Revisa montos/fechas.`;
         sendBtn.disabled = true;
       } else {
         hide(validationBox);
@@ -950,8 +930,6 @@ Restante pendiente: ${money(data.ticket.restante)}
     }
 
     function goNext(){
-      const totalSteps = steps.length;
-
       if(currentStep === 1 && !validateStep1()) return;
       if(currentStep === 2 && !validateStep2()) return;
       if(currentStep === 3 && !validateStep3()) return;
@@ -961,10 +939,9 @@ Restante pendiente: ${money(data.ticket.restante)}
         return;
       }
 
-      if(currentStep < totalSteps){
+      if(currentStep < steps.length){
         if(currentStep === 4){
-          const data = collectData();
-          renderSummary(data);
+          renderSummary(collectData());
         }
         setStep(currentStep + 1);
       }
@@ -988,8 +965,9 @@ Restante pendiente: ${money(data.ticket.restante)}
       }
     });
 
+    // ✅ teléfono: solo dígitos y máximo 12
     telefono.addEventListener("input", ()=>{
-      telefono.value = telefono.value.replace(/[^\d]/g,'');
+      telefono.value = telefono.value.replace(/[^\d]/g,'').slice(0,12);
       show(err_telefono, false);
     });
 
@@ -1014,7 +992,7 @@ Restante pendiente: ${money(data.ticket.restante)}
       }
 
       const dataCheck = collectData();
-      if(!remainingIsZero(dataCheck.ticket.restante)){
+      if(Math.abs(Number(dataCheck.ticket.restante || 0)) > 0.01){
         unhide(validationBox);
         validationBox.textContent = "Hey, hay algo raro aquí: el restante pendiente debe ser 0 para poder enviar. Revisa montos.";
         sendBtn.disabled = true;
@@ -1039,36 +1017,11 @@ Restante pendiente: ${money(data.ticket.restante)}
           hide(sendingBox);
           failBox.style.display = "block";
           const re = collectData();
-          sendBtn.disabled = !remainingIsZero(re.ticket.restante);
+          sendBtn.disabled = Math.abs(Number(re.ticket.restante || 0)) > 0.01;
         }
       }, 9000);
 
       postForm.submit();
-    });
-
-    resetBtn.addEventListener("click", ()=>{
-      nombres.value = "";
-      apellidos.value = "";
-      email.value = "";
-      telefono.value = "";
-      lada.value = "+52";
-      abonoInicial.value = "";
-      numPagos.value = "";
-      paymentsContainer.innerHTML = "";
-      summaryGrid.innerHTML = "";
-      hide(successBox);
-      hide(sendingBox);
-      hide(validationBox);
-      failBox.style.display = "none";
-      sendBtn.disabled = false;
-
-      [err_nombres,err_apellidos,err_email,err_telefono,err_abonoInicial,err_numPagos,err_payments].forEach(e=>show(e,false));
-      err_payments_list.textContent = "";
-
-      nextBtn.style.display = "inline-flex";
-      setStep(1);
-      updateLiveTotals();
-      showToast("Reiniciado");
     });
 
     setStep(1);
