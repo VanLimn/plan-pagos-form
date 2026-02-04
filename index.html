@@ -1386,6 +1386,17 @@ Restante pendiente: ${money(data.ticket.restante)}
           return;
         }
       }
+// ⛔️ Si estás en el paso 9, NO avanzas sin firma válida
+if(currentStep === 9){
+  if(!validateSignature()){
+    // fuerza foco visual
+    signatureName.focus();
+    nextBtn.disabled = true;
+    return;
+  } else {
+    nextBtn.disabled = false;
+  }
+}
 
       if(currentStep < totalSteps){
         if(currentStep === 4){
