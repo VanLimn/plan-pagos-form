@@ -7,7 +7,7 @@
 
   <!-- ✅ Link preview (Open Graph / WhatsApp / Facebook) -->
   <meta property="og:title" content="Acuerdo de Financiamiento" />
-  <meta property="og:description" content="Captura tus abonos y programa los pagos que mejor te queden." />
+  <meta property="og:description" content="Captura tus abonos, programa tus pagos y confirma de enterado." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://vanlimn.github.io/plan-pagos-form/" />
   <meta property="og:image" content="https://vanlimn.github.io/plan-pagos-form/og-image.png" />
@@ -17,7 +17,7 @@
   <!-- ✅ Twitter card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Acuerdo de Financiamiento" />
-  <meta name="twitter:description" content="Captura tus abonos y programa los pagos que mejor te queden." />
+  <meta name="twitter:description" content="Captura tus abonos, programa tus pagos y confirma de enterado." />
   <meta name="twitter:image" content="https://vanlimn.github.io/plan-pagos-form/og-image.png" />
 
   <!-- ✅ Favicon -->
@@ -34,8 +34,13 @@
       --danger:#ff4d6d;
       --ok:#37d67a;
       --warn:#ffcc00;
+
+      --paper:#ffffff;
+      --paperText:#0b0c10;
     }
+
     *{box-sizing:border-box}
+
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
@@ -49,7 +54,9 @@
       justify-content:center;
       padding:20px;
     }
-    .wrap{ width:min(920px, 100%); display:grid; grid-template-columns: 1fr; gap:14px; }
+
+    .wrap{ width:min(980px, 100%); display:grid; grid-template-columns: 1fr; gap:14px; }
+
     .card{
       background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
       border: 1px solid var(--line);
@@ -57,6 +64,7 @@
       overflow:hidden;
       box-shadow: 0 18px 60px rgba(0,0,0,.35);
     }
+
     .header{
       padding:18px 18px 14px;
       border-bottom:1px solid var(--line);
@@ -69,6 +77,7 @@
     .title{ display:flex; flex-direction:column; gap:6px; }
     .title h1{ margin:0; font-size:18px; letter-spacing:.2px; font-weight:650; }
     .title p{ margin:0; color:var(--muted); font-size:13px; line-height:1.35; }
+
     .progress{ display:flex; align-items:center; gap:10px; min-width:220px; justify-content:flex-end; flex:1; }
     .bar{
       width:160px; height:8px;
@@ -132,7 +141,9 @@
       align-items:center;
       flex-wrap:wrap;
     }
+
     .btns{ display:flex; gap:10px; flex-wrap:wrap; }
+
     button{
       border:1px solid var(--line);
       background:#0f1118;
@@ -142,7 +153,6 @@
       font-size:13px;
       cursor:pointer;
       transition: transform .06s ease, border-color .2s ease, background .2s ease, opacity .2s ease;
-      font-weight:600;
     }
     button:hover{ border-color: rgba(124,92,255,.6); background: rgba(124,92,255,.08); }
     button:active{transform: translateY(1px)}
@@ -151,22 +161,17 @@
     .primary{
       border-color: rgba(124,92,255,.65);
       background: linear-gradient(90deg, rgba(124,92,255,.28), rgba(124,92,255,.12));
-      font-weight:700;
     }
 
-    /* ✅ BOTÓN NEGRO (más visible) */
-    .primaryBlack{
-      background:#0b0c10 !important;
-      border-color:#0b0c10 !important;
-      color:#ffffff !important;
+    .small{ padding:10px 16px; font-size:13px; }
+    .sendBlack{
+      background:#000 !important;
+      color:#fff !important;
+      border-color:#000 !important;
       font-weight:800 !important;
+      letter-spacing:.2px;
     }
-    .primaryBlack:hover{
-      background:#12141a !important;
-      border-color:#12141a !important;
-    }
-
-    .small{ padding:8px 12px; font-size:12px; }
+    .sendBlack:hover{ background:#0c0c0c !important; border-color:#0c0c0c !important; }
 
     .payments{ display:flex; flex-direction:column; gap:10px; margin-top:6px; }
     .payRow{
@@ -188,6 +193,7 @@
       font-size:12px;
       line-height:1.35;
       margin-top:2px;
+      white-space:pre-wrap;
     }
     .rowError.show{ display:block; }
 
@@ -208,6 +214,7 @@
     }
     .summaryGrid{ display:grid; grid-template-columns: 1fr; gap:10px; }
     @media (min-width:720px){ .summaryGrid{grid-template-columns: 1fr 1fr;} }
+
     .kv{
       border:1px solid var(--line);
       background:#0f1118;
@@ -215,7 +222,7 @@
       padding:12px;
     }
     .kv .k{color:var(--muted); font-size:12px; margin-bottom:6px;}
-    .kv .v{font-size:14px; word-break:break-word;}
+    .kv .v{font-size:14px; word-break:break-word; white-space:pre-wrap; line-height:1.5;}
 
     .toast{
       position:fixed;
@@ -255,107 +262,105 @@
       border-radius:14px;
       padding:14px;
       color:#fff3c4;
+      white-space:pre-wrap;
+      line-height:1.45;
     }
     .hidden{ display:none !important; }
 
-    /* =========================
-       ✅ ACUERDO (alineado)
-       ========================= */
-    .agreementWrap{
-      background:#ffffff;
-      color:#0b0c10;
-      border-radius:18px;
-      padding:28px;
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,.06);
+    /* ==========================
+       ✅ Paso 6: Documento (Acuerdo)
+       ========================== */
+    .paper{
+      background: var(--paper);
+      color: var(--paperText);
+      border-radius: 16px;
+      padding: 26px;
+      border: 1px solid rgba(0,0,0,.08);
     }
-
-    /* ✅ Header alineado (título con logo) */
-    .agreementHeader{
+    .paperTop{
       display:flex;
       justify-content:space-between;
       align-items:flex-start;
-      gap:18px;
-      margin-bottom:18px;
+      gap:22px;
     }
-    .agreementLeft{
-      max-width: 62%;
-    }
-    .agreementTitle{
-      margin:0;
-      font-size:52px;
-      line-height:0.98;
+    .paperTitle{
       font-weight:900;
-      letter-spacing:-0.5px;
+      font-size:54px;
+      line-height:0.95;
+      letter-spacing:-.5px;
+      margin:0;
+      text-transform:uppercase;
     }
-    .agreementSub{
-      margin:12px 0 0;
+    .paperSub{
+      margin:10px 0 0;
       font-size:34px;
-      line-height:1.05;
       font-weight:700;
-      letter-spacing:-0.2px;
+      display:flex;
+      gap:14px;
+      align-items:baseline;
+      flex-wrap:wrap;
     }
-    .agreementSub span{
-      font-weight:500;
+    .paperSub .thin{ font-weight:500; }
+    .logoBox{
+      display:flex;
+      align-items:flex-start;
+      justify-content:flex-end;
+      min-width:240px;
     }
-    .brandLogo{
-      width:220px;
+    .logoBox img{
+      max-width: 240px;
       height:auto;
-      object-fit:contain;
-      margin-top:6px; /* micro ajuste para alinear visualmente */
+      display:block;
     }
 
-    @media (max-width:720px){
-      .agreementHeader{ flex-direction:column; align-items:flex-start; }
-      .agreementLeft{ max-width:100%; }
-      .brandLogo{ width:200px; margin-top:0; }
-      .agreementTitle{ font-size:42px; }
-      .agreementSub{ font-size:28px; }
-    }
-
-    .agreementSectionTitle{
-      margin:22px 0 10px;
-      font-size:20px;
-      font-weight:800;
+    .paperSectionTitle{
+      margin:24px 0 10px;
+      font-size:22px;
+      font-weight:900;
     }
 
     .checkList{
+      margin:0;
+      padding:0;
+      list-style:none;
       display:flex;
       flex-direction:column;
       gap:14px;
-      margin-top:10px;
-    }
-    .checkItem{
-      display:grid;
-      grid-template-columns: 30px 1fr;
-      gap:12px;
-      align-items:flex-start;
-      font-size:18px;
+      font-size:20px;
       line-height:1.35;
     }
+    .checkItem{
+      display:flex;
+      gap:14px;
+      align-items:flex-start;
+    }
     .box{
-      width:26px;height:26px;
-      border:3px solid #0b0c10;
+      width:32px;
+      height:32px;
+      border:3px solid #000;
       display:flex;
       align-items:center;
       justify-content:center;
+      flex:0 0 auto;
+      margin-top:1px;
+    }
+    .box span{
       font-weight:900;
-      border-radius:3px;
-      margin-top:2px;
+      font-size:22px;
+      transform:translateY(-1px);
     }
-    .box::after{
-      content:"✓";
-      font-size:20px;
-      line-height:1;
-    }
+
+    /* ✅ “Mi plan de pago” y lista: indent para librar checkboxes */
     .planBlock{
       margin:16px 0 6px;
       font-size:18px;
       line-height:1.45;
+      padding-left: 42px; /* ajusta 32-50 si quieres */
     }
     .planBlock b{ font-weight:900; }
     .bullets{
-      margin:10px 0 0 18px;
-      padding:0;
+      margin:10px 0 0 0;
+      padding-left: 22px;
       font-size:20px;
       line-height:1.6;
     }
@@ -365,25 +370,7 @@
       margin:26px 0 10px;
       font-size:28px;
       font-weight:900;
-      line-height:1.15;
-    }
-    .signTip{
-      margin:0;
-      font-size:18px;
-      color:#2c2f37;
-    }
-    .signWarn{
-      margin-top:10px;
-      font-size:18px;
-      color:#b00020;
-      font-weight:700;
-      white-space:pre-wrap;
-    }
-    .signRow{
-      margin-top:14px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
+      line-height:1.2;
     }
     .signInput{
       width:100%;
@@ -392,15 +379,34 @@
       border:2px solid rgba(124,92,255,.45);
       outline:none;
       font-size:22px;
+
+      /* ✅ claro normal */
+      background:#ffffff;
+      color:#0b0c10;
     }
     .signInput:focus{
-      border-color: rgba(124,92,255,.9);
-      box-shadow: 0 0 0 6px rgba(124,92,255,.12);
+      border-color: rgba(124,92,255,.85);
+      box-shadow: 0 0 0 4px rgba(124,92,255,.18);
     }
-    .signInput.badField{
-      border-color: rgba(255,77,109,.9) !important;
-      box-shadow: 0 0 0 6px rgba(255,77,109,.12) !important;
+    .signInput::placeholder{ color:#6b7280; }
+
+    .signTip{
+      margin-top:10px;
+      color:#4b5563;
+      font-size:18px;
+      line-height:1.35;
     }
+
+    .signErr{
+      margin-top:10px;
+      color:#b42318;
+      font-size:18px;
+      font-weight:700;
+      display:none;
+      white-space:pre-wrap;
+      line-height:1.35;
+    }
+    .signErr.show{ display:block; }
   </style>
 </head>
 
@@ -410,7 +416,7 @@
       <div class="header">
         <div class="title">
           <h1>Formulario · Plan de Pagos</h1>
-          <p>Captura de datos + calendarización de pagos. Multi-paso con Back/Next.</p>
+          <p>Captura de datos + calendarización + confirmación de enterado.</p>
         </div>
         <div class="progress">
           <div class="stepLabel" id="stepLabel">Paso 1 de 6</div>
@@ -424,13 +430,13 @@
           <div class="grid">
             <div class="field half">
               <label for="nombres">Nombres</label>
-              <input id="nombres" type="text" placeholder="Ej. Iliana Vanessa" autocomplete="given-name" />
+              <input id="nombres" type="text" placeholder="Ej. Luis" autocomplete="given-name" />
               <div class="error" id="err_nombres">Escribe tus nombres.</div>
             </div>
 
             <div class="field half">
               <label for="apellidos">Apellidos</label>
-              <input id="apellidos" type="text" placeholder="Ej. Enciso Bolaños" autocomplete="family-name" />
+              <input id="apellidos" type="text" placeholder="Ej. Cerón" autocomplete="family-name" />
               <div class="error" id="err_apellidos">Escribe tus apellidos.</div>
             </div>
 
@@ -467,7 +473,7 @@
             <div class="field">
               <label for="telefono">Número de teléfono</label>
               <input id="telefono" type="tel" placeholder="Ej. 3312345678" autocomplete="tel-national" inputmode="numeric" />
-              <div class="hint">Solo números (sin espacios). Debe ser exactamente 10 dígitos.</div>
+              <div class="hint">Solo números. Máximo 10 dígitos.</div>
               <div class="error" id="err_telefono">Escribe un teléfono válido (10 dígitos).</div>
             </div>
           </div>
@@ -491,7 +497,7 @@
             <div class="field">
               <label for="numPagos">¿Cuántos pagos vas a querer que sean?</label>
               <input id="numPagos" type="number" min="1" max="50" step="1" placeholder="Ej. 3" inputmode="numeric" />
-              <div class="hint">Al poner un número, se generan los campos de fecha + monto.</div>
+              <div class="hint">Mínimo 1, máximo 50. Se generan los campos de fecha + monto.</div>
               <div class="error" id="err_numPagos">Indica un número de pagos (1–50).</div>
             </div>
 
@@ -503,7 +509,7 @@
               <div id="paymentsContainer" class="payments"></div>
 
               <div class="error" id="err_payments">
-                <div style="font-weight:600; margin-bottom:6px;">Revisa estos pagos:</div>
+                <div style="font-weight:800; margin-bottom:6px;">Revisa estos pagos:</div>
                 <div id="err_payments_list" style="white-space:pre-wrap; line-height:1.4;"></div>
               </div>
 
@@ -532,79 +538,84 @@
           </div>
         </section>
 
-        <!-- STEP 5: RESUMEN -->
+        <!-- STEP 5 -->
         <section class="step" data-step="5">
           <div class="summaryBox">
-            <div class="tag">
-              <span class="tagDot"></span>
-              <span>Resumen final (listo) | Por favor, revisa que todos tus datos estén correctos. Número de teléfono principalmente.</span>
-            </div>
-
+            <div class="tag"><span class="tagDot"></span><span>Resumen final (listo) | Por favor, revisa que todos tus datos estén correctos. Número de teléfono principalmente.</span></div>
             <div class="summaryGrid" id="summaryGrid"></div>
-
             <div class="warning hidden" id="validationBox"></div>
-
-            <div class="hint">Siguiente: leer el acuerdo, firmar tu nombre y enviar.</div>
           </div>
         </section>
 
-        <!-- STEP 6: ACUERDO + FIRMA + ENVIAR -->
+        <!-- STEP 6: Acuerdo + Firma -->
         <section class="step" data-step="6">
-          <div class="agreementWrap">
-            <div class="agreementHeader">
-              <div class="agreementLeft">
-                <h2 class="agreementTitle">ACUERDO DE<br/>FINANCIAMIENTO</h2>
-                <div class="agreementSub">&gt; <b>circle x ab</b> <span>| Febrero 2026</span></div>
+          <div class="paper">
+            <div class="paperTop">
+              <div>
+                <h2 class="paperTitle">ACUERDO DE<br>FINANCIAMIENTO</h2>
+                <div class="paperSub">
+                  <span>&gt; <span style="font-weight:900;">circle x ab</span></span>
+                  <span class="thin">|</span>
+                  <span class="thin">Febrero 2026</span>
+                </div>
               </div>
 
-              <!-- ✅ Logo correcto -->
-              <img class="brandLogo" src="xab-university.png" alt="x ab university" />
+              <div class="logoBox" aria-label="Logo">
+                <!-- ✅ Cambia el nombre del archivo si lo guardas con otro -->
+                <img src="xab-university.png" alt="x ab university" />
+              </div>
             </div>
 
-            <div class="agreementSectionTitle">Estoy de acuerdo con que la empresa</div>
-            <div class="checkList">
-              <div class="checkItem"><div class="box"></div><div>use mi <b>imagen</b> en fotos y videos promocionales en el futuro;</div></div>
-              <div class="checkItem"><div class="box"></div><div>no es responsable de <b>robo/extravío</b> de mis pertenencias;</div></div>
-              <div class="checkItem"><div class="box"></div><div>me expulse de las instalaciones si mi <b>conducta</b> altera negativamente el evento.</div></div>
-              <div class="checkItem"><div class="box"></div><div>daré los créditos debidos al compartir públicamente <b>contenido</b> del evento.</div></div>
+            <div class="paperSectionTitle" style="margin-top:34px;">Estoy de acuerdo con que la empresa</div>
+            <ul class="checkList">
+              <li class="checkItem"><div class="box"><span>✓</span></div><div>use mi <b>imagen</b> en fotos y videos promocionales en el futuro;</div></li>
+              <li class="checkItem"><div class="box"><span>✓</span></div><div>no es responsable de <b>robo/extravío</b> de mis pertenencias;</div></li>
+              <li class="checkItem"><div class="box"><span>✓</span></div><div>me expulse de las instalaciones si mi <b>conducta</b> altera negativamente el evento.</div></li>
+              <li class="checkItem"><div class="box"><span>✓</span></div><div>daré los créditos debidos al compartir públicamente <b>contenido</b> del evento.</div></li>
+            </ul>
+
+            <div class="paperSectionTitle">Estoy de acuerdo también con que</div>
+            <ul class="checkList">
+              <li class="checkItem"><div class="box"><span>✓</span></div><div>no hay <b>reembolsos/cancelaciones/devoluciones</b> del apartado y/o pagos realizados.</div></li>
+              <li class="checkItem"><div class="box"><span>✓</span></div><div>la fecha límite para <b>cambios de workshop</b> es un mes antes del evento.</div></li>
+              <li class="checkItem" style="align-items:flex-start;">
+                <div class="box"><span>✓</span></div>
+                <div>
+                  mantendré las <b>fechas de pago acordadas</b> para conservar el precio especial; de no hacerlo, el monto total se ajustará al precio público.
+
+                  <!-- ✅ Aquí va tu plan -->
+                  <div class="planBlock">
+                    <b>Mi plan de pago:</b>
+                    <ul class="bullets" id="planBullets"></ul>
+                  </div>
+                </div>
+              </li>
+            </ul>
+
+            <div class="paperSectionTitle">Estoy de acuerdo con que para ingresar a las instalaciones</div>
+            <ul class="checkList">
+              <li class="checkItem"><div class="box"><span>✓</span></div><div>presento en recepción mi identificación oficial vigente con fotografía.</div></li>
+              <li class="checkItem"><div class="box"><span>✓</span></div><div>muestro en recepción foto y texto de presentación que compartí en el WhatsApp del evento.</div></li>
+              <li class="checkItem"><div class="box"><span>✓</span></div><div>debo tener firmado este MOU.</div></li>
+              <li class="checkItem"><div class="box"><span>✓</span></div><div>estoy de acuerdo con escuchar y leer toda la información e indicaciones del workshop que se envíen por WhatsApp.</div></li>
+            </ul>
+
+            <div class="signTitle">
+              Pon aquí tu nombre completo idéntico a tu INE para confirmar de enterado el acuerdo de financiamiento.
+            </div>
+            <input id="signatureName" class="signInput" type="text" placeholder="Escribe tu nombre completo" />
+
+            <div class="signTip">
+              Tip: Debe coincidir con el nombre que capturaste en el formulario (para evitar errores).
+            </div>
+            <div class="signErr" id="signErr"></div>
+
+            <div style="margin-top:16px; display:flex; gap:12px; flex-wrap:wrap;">
+              <button id="sendBtn" class="small sendBlack" type="button">Enviar</button>
             </div>
 
-            <div class="agreementSectionTitle">Estoy de acuerdo también con que</div>
-            <div class="checkList">
-              <div class="checkItem"><div class="box"></div><div>no hay <b>reembolsos/cancelaciones/devoluciones</b> del apartado y/o pagos realizados.</div></div>
-              <div class="checkItem"><div class="box"></div><div>la fecha límite para <b>cambios de workshop</b> es un mes antes del evento.</div></div>
-              <div class="checkItem"><div class="box"></div><div>mantendré las <b>fechas de pago acordadas</b> para conservar el precio especial; de no hacerlo, el monto total se ajustará al precio público.</div></div>
-            </div>
-
-            <!-- ✅ MI PLAN DE PAGO -->
-            <div class="planBlock" id="agreementPlanBlock">
-              <b>Mi plan de pago:</b>
-              <ul class="bullets" id="agreementPlanList"></ul>
-            </div>
-
-            <div class="agreementSectionTitle">Estoy de acuerdo con que para ingresar a las instalaciones</div>
-            <div class="checkList">
-              <div class="checkItem"><div class="box"></div><div>presento en recepción mi identificación oficial vigente con fotografía.</div></div>
-              <div class="checkItem"><div class="box"></div><div>muestro en recepción foto y texto de presentación que compartí en el WhatsApp del evento.</div></div>
-              <div class="checkItem"><div class="box"></div><div>debo tener firmado este MOU.</div></div>
-              <div class="checkItem"><div class="box"></div><div>estoy de acuerdo con escuchar y leer toda la información e indicaciones del workshop que se envíen por WhatsApp.</div></div>
-            </div>
-
-            <!-- ✅ FIRMA -->
-            <div class="signTitle">Pon aquí tu nombre completo, idéntico a tu INE para confirmar de enterado el acuerdo de financiamiento.</div>
-
-            <div class="signRow">
-              <input id="signatureName" class="signInput" type="text" placeholder="Escribe tu nombre completo" />
-              <p class="signTip">Tip: Debe coincidir con el nombre que capturaste en el formulario (para evitar errores).</p>
-              <div id="signatureWarn" class="signWarn hidden"></div>
-            </div>
-
-            <div style="margin-top:18px; display:flex; gap:12px; flex-wrap:wrap;">
-              <button class="small primaryBlack" id="sendBtn" type="button">Enviar</button>
-            </div>
-
-            <div class="sending hidden" id="sendingBox" style="margin-top:14px;">Enviando…</div>
-            <div class="success hidden" id="successBox" style="margin-top:14px;">Listo ✅ Se registró tu plan de pagos.</div>
+            <div class="sending hidden" id="sendingBox" style="margin-top:12px;">Enviando…</div>
+            <div class="success hidden" id="successBox" style="margin-top:12px;">Listo ✅ Se registró tu plan de pagos.</div>
             <div class="error" id="failBox" style="display:none; margin-top:12px;">No se pudo enviar. Revisa tu conexión e intenta otra vez.</div>
 
             <iframe name="hiddenFrame" class="hidden" id="hiddenFrame"></iframe>
@@ -613,7 +624,6 @@
             </form>
           </div>
         </section>
-
       </div>
 
       <div class="footer">
@@ -634,7 +644,8 @@
 
     // Reglas de negocio
     const TICKET_TOTAL = 50000;
-    const MAX_DATE = "2026-11-30"; // última fecha permitida
+    const MAX_DATE = "2026-11-30";
+    const REMAINING_TOL = 0.01;
 
     function todayISO(){
       const d = new Date();
@@ -644,7 +655,6 @@
       return `${yyyy}-${mm}-${dd}`;
     }
     const MIN_DATE = todayISO();
-    const REMAINING_TOL = 0.01;
 
     const steps = Array.from(document.querySelectorAll(".step"));
     let currentStep = 1;
@@ -678,16 +688,15 @@
     const summaryGrid = document.getElementById("summaryGrid");
     const validationBox = document.getElementById("validationBox");
 
-    // ✅ live totals
     const liveTotalPaidEl = document.getElementById("liveTotalPaid");
     const liveTicketTotalEl = document.getElementById("liveTicketTotal");
     const liveRemainingEl = document.getElementById("liveRemaining");
     const liveWarn = document.getElementById("liveWarn");
 
-    // ✅ Step 6
-    const agreementPlanList = document.getElementById("agreementPlanList");
+    // Paso 6
+    const planBullets = document.getElementById("planBullets");
     const signatureName = document.getElementById("signatureName");
-    const signatureWarn = document.getElementById("signatureWarn");
+    const signErr = document.getElementById("signErr");
 
     const sendBtn = document.getElementById("sendBtn");
     const successBox = document.getElementById("successBox");
@@ -695,7 +704,6 @@
     const failBox = document.getElementById("failBox");
 
     const toast = document.getElementById("toast");
-
     const postForm = document.getElementById("postForm");
     const payloadField = document.getElementById("payloadField");
     const hiddenFrame = document.getElementById("hiddenFrame");
@@ -724,10 +732,16 @@
         footerHint.textContent = "Tip: Enter también avanza cuando es válido.";
       }
 
-      const focusMap = {1:nombres, 2:email, 3:abonoInicial, 4:numPagos, 6:signatureName};
+      const focusMap = {1:nombres, 2:email, 3:abonoInicial, 4:numPagos, 5:null, 6:signatureName};
       if(focusMap[currentStep]) focusMap[currentStep].focus();
 
       if(currentStep === 4) updateLiveTotals();
+      if(currentStep === 6) {
+        // prepara el plan de pagos dentro del acuerdo
+        const data = collectData();
+        renderAgreementPlan(data);
+        validateSignatureLive(); // arranca validación visual
+      }
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -768,8 +782,10 @@
 
     function validateStep2(){
       const okE = emailRegex.test(email.value.trim());
+
       const digits = telefono.value.replace(/\D/g,'');
-      const okT = digits.length === 10; // ✅ EXACTAMENTE 10
+      const okT = digits.length === 10;
+
       show(err_email, !okE);
       show(err_telefono, !okT);
       return okE && okT;
@@ -787,7 +803,6 @@
       const d = row.querySelector("input[type='date']");
       const a = row.querySelector("input[data-role='amount']");
       const re = row.querySelector(".rowError");
-
       d.classList.remove("badField");
       a.classList.remove("badField");
       re.classList.remove("show");
@@ -842,7 +857,6 @@
       return errors;
     }
 
-    // ✅ valida pagos: individuales + fechas únicas + ORDEN cronológico (no puede bajar)
     function validatePaymentsDetailed(){
       const n = Number(numPagos.value);
       const rows = Array.from(paymentsContainer.querySelectorAll(".payRow"));
@@ -863,7 +877,7 @@
         allErrors.push(...rowErrors);
       }
 
-      // 2) fechas NO repetidas
+      // 2) fechas únicas
       const dateMap = new Map();
       for(let i=0;i<rows.length;i++){
         const dateInput = rows[i].querySelector("input[type='date']");
@@ -873,6 +887,7 @@
           dateMap.get(dateVal).push(i);
         }
       }
+
       for(const [dateVal, idxs] of dateMap.entries()){
         if(idxs.length > 1){
           const pagosHuman = idxs.map(i => i+1).join(", ");
@@ -886,18 +901,20 @@
         }
       }
 
-      // 3) ✅ ORDEN CRONOLÓGICO (cada pago >= anterior)
-      let prev = null;
+      // 3) orden cronológico (no puede ir para atrás)
+      //    regla: pago i >= pago i-1 (solo si ambos existen y son ISO válidos)
+      let prevDate = null;
       for(let i=0;i<rows.length;i++){
-        const dateInput = rows[i].querySelector("input[type='date']");
+        const row = rows[i];
+        const dateInput = row.querySelector("input[type='date']");
         const dateVal = (dateInput.value || "").trim();
         if(dateVal && isValidISODate(dateVal)){
-          if(prev && dateVal < prev){
-            allErrors.push(`Orden inválido: Pago ${i+1} (${dateVal}) no puede ser antes que el pago anterior (${prev}).`);
+          if(prevDate && dateVal < prevDate){
+            allErrors.push(`Orden inválido: El Pago ${i+1} (${dateVal}) no puede ser anterior al Pago ${i} (${prevDate}).`);
             dateInput.classList.add("badField");
-            appendRowError(rows[i], `Orden inválido: esta fecha no puede ser antes que la del pago anterior (${prev}).`);
+            appendRowError(row, `Orden inválido: esta fecha no puede ser anterior a la del pago anterior (${prevDate}).`);
           } else {
-            prev = dateVal;
+            prevDate = dateVal;
           }
         }
       }
@@ -1068,9 +1085,12 @@
           min_fecha: MIN_DATE,
           max_fecha: MAX_DATE
         },
+        firma: {
+          nombre_firma: signatureName ? signatureName.value.trim() : ""
+        },
         meta: {
           created_at_iso: new Date().toISOString(),
-          source: "formulario_plan_pagos_v7_agreement_step"
+          source: "formulario_plan_pagos_v7_agreement"
         }
       };
     }
@@ -1079,13 +1099,11 @@
       if(!liveTotalPaidEl || !liveRemainingEl || !liveTicketTotalEl) return;
 
       const data = collectData();
-
       liveTicketTotalEl.textContent = money(TICKET_TOTAL);
       liveTotalPaidEl.textContent = money(data.ticket.total_pagado);
       liveRemainingEl.textContent = money(data.ticket.restante);
 
       const restante = Number(data.ticket.restante || 0);
-
       if(Math.abs(restante) <= REMAINING_TOL){
         hide(liveWarn);
         liveWarn.textContent = "";
@@ -1127,7 +1145,7 @@
       payList.className = "kv";
       payList.style.gridColumn = "1 / -1";
       const lines = data.plan_pagos.pagos.map(p => `Pago ${p.num}: ${p.fecha || "(sin fecha)"} · ${money(p.monto)}`);
-      payList.innerHTML = `<div class="k">Plan de pagos</div><div class="v" style="white-space:pre-wrap; line-height:1.5;">${lines.join("\n")}</div>`;
+      payList.innerHTML = `<div class="k">Plan de pagos</div><div class="v">${lines.join("\n")}</div>`;
       summaryGrid.appendChild(payList);
 
       const totals = document.createElement("div");
@@ -1135,7 +1153,7 @@
       totals.style.gridColumn = "1 / -1";
       totals.innerHTML = `
         <div class="k">Totales</div>
-        <div class="v" style="white-space:pre-wrap; line-height:1.6;">
+        <div class="v">
 El total de tu ticket es 50,000 pesos
 Incluyendo tu abono y tu plan de pagos, el total pagado es ${money(data.ticket.total_pagado)}
 Restante pendiente: ${money(data.ticket.restante)}
@@ -1148,67 +1166,56 @@ Restante pendiente: ${money(data.ticket.restante)}
         unhide(validationBox);
         validationBox.textContent =
           (restante > 0)
-          ? `Hey, hay algo raro aquí: con tu abono + tu plan de pagos aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}. Revisa montos/fechas.`
-          : `Hey, hay algo raro aquí: tu abono + tu plan de pagos exceden el total del ticket por ${money(Math.abs(restante))}. Revisa montos/fechas.`;
+            ? `Hey, hay algo raro aquí: con tu abono + tu plan de pagos aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}. Revisa montos/fechas.`
+            : `Hey, hay algo raro aquí: tu abono + tu plan de pagos exceden el total del ticket por ${money(Math.abs(restante))}. Revisa montos/fechas.`;
+      } else {
+        hide(validationBox);
       }
     }
 
-    function normalizeName(s){
-      return (s || "")
+    function renderAgreementPlan(data){
+      if(!planBullets) return;
+      planBullets.innerHTML = "";
+
+      const pagos = (data.plan_pagos && data.plan_pagos.pagos) ? data.plan_pagos.pagos : [];
+      for(const p of pagos){
+        const li = document.createElement("li");
+        li.textContent = `${p.fecha || "(sin fecha)"} | ${money(p.monto)}`;
+        planBullets.appendChild(li);
+      }
+    }
+
+    function normalizeName(str){
+      return (str || "")
         .trim()
         .replace(/\s+/g, " ")
         .toLowerCase();
     }
 
-    function renderAgreement(data){
-      // Plan de pagos en el acuerdo
-      agreementPlanList.innerHTML = "";
-      for(const p of data.plan_pagos.pagos){
-        const li = document.createElement("li");
-        li.textContent = `${p.fecha || "(sin fecha)"} | ${money(p.monto)}`;
-        agreementPlanList.appendChild(li);
-      }
+    function validateSignatureLive(){
+      if(!signatureName) return true;
+      const expected = `${nombres.value.trim()} ${apellidos.value.trim()}`.trim();
 
-      // reset firma visual
-      signatureName.value = "";
+      const got = signatureName.value.trim();
+
+      // default
+      signErr.classList.remove("show");
+      signErr.textContent = "";
       signatureName.classList.remove("badField");
-      hide(signatureWarn);
-      signatureWarn.textContent = "";
 
-      // habilita o deshabilita envío (se hace en validateAgreementReady)
-      validateAgreementReady();
-    }
-
-    function validateAgreementReady(){
-      const data = collectData();
-
-      // Requerimos que Step4 sea válido y restante = 0
-      const okPayments = validateStep4();
-      const okRestante = remainingIsZero(data.ticket.restante);
-
-      // Firma debe coincidir con nombres+apellidos
-      const expected = normalizeName(`${data.contacto.nombres} ${data.contacto.apellidos}`);
-      const typed = normalizeName(signatureName.value);
-
-      const okSig = typed.length > 0 && typed === expected;
-
-      if(signatureName.value.trim().length === 0){
-        signatureName.classList.remove("badField");
-        hide(signatureWarn);
-        signatureWarn.textContent = "";
-      } else if(!okSig){
-        signatureName.classList.add("badField");
-        unhide(signatureWarn);
-        signatureWarn.textContent = `Tu firma debe coincidir con el nombre capturado en el formulario:\n"${(data.contacto.nombres + " " + data.contacto.apellidos).trim()}"`;
-      } else {
-        signatureName.classList.remove("badField");
-        hide(signatureWarn);
-        signatureWarn.textContent = "";
+      if(!got){
+        // no forzamos error hasta que intenten enviar
+        return false;
       }
 
-      // Si el resumen no cuadra, no se envía
-      sendBtn.disabled = !(okPayments && okRestante && okSig);
-      return sendBtn.disabled === false;
+      if(normalizeName(got) !== normalizeName(expected)){
+        signatureName.classList.add("badField");
+        signErr.textContent = `Tu firma debe coincidir con el nombre capturado en el formulario:\n"${expected}"`;
+        signErr.classList.add("show");
+        return false;
+      }
+
+      return true;
     }
 
     function goNext(){
@@ -1223,14 +1230,11 @@ Restante pendiente: ${money(data.ticket.restante)}
         return;
       }
 
+      // en paso 5 no se envía, solo se pasa al acuerdo
       if(currentStep < totalSteps){
         if(currentStep === 4){
           const data = collectData();
           renderSummary(data);
-        }
-        if(currentStep === 5){
-          const data = collectData();
-          renderAgreement(data);
         }
         setStep(currentStep + 1);
       }
@@ -1256,15 +1260,16 @@ Restante pendiente: ${money(data.ticket.restante)}
 
     // ✅ Teléfono: solo dígitos y máximo 10
     telefono.addEventListener("input", ()=>{
-      const digits = telefono.value.replace(/[^\d]/g,'').slice(0,10);
-      telefono.value = digits;
+      telefono.value = telefono.value.replace(/[^\d]/g,'').slice(0,10);
       show(err_telefono, false);
     });
 
-    // ✅ Firma: revalidar en vivo
-    signatureName.addEventListener("input", ()=>{
-      validateAgreementReady();
-    });
+    // Firma: validación live
+    if(signatureName){
+      signatureName.addEventListener("input", ()=> {
+        validateSignatureLive();
+      });
+    }
 
     let awaitingAck = false;
     hiddenFrame.addEventListener("load", () => {
@@ -1277,15 +1282,33 @@ Restante pendiente: ${money(data.ticket.restante)}
     });
 
     sendBtn.addEventListener("click", ()=>{
-      // revalida TODO antes de enviar
-      if(!validateAgreementReady()){
+      // antes de enviar: pagos OK
+      if(!validateStep4()){
+        showToast("Revisa fechas/montos");
         const firstBad = paymentsContainer.querySelector(".badField");
         if(firstBad) firstBad.scrollIntoView({behavior:"smooth", block:"center"});
         return;
       }
 
       const dataCheck = collectData();
-      const payload = JSON.stringify(dataCheck);
+      if(!remainingIsZero(dataCheck.ticket.restante)){
+        showToast("Restante debe ser $0");
+        return;
+      }
+
+      // firma debe coincidir
+      const sigOk = validateSignatureLive();
+      if(!sigOk){
+        signErr.classList.add("show");
+        signatureName.scrollIntoView({behavior:"smooth", block:"center"});
+        return;
+      }
+
+      // guardar firma en payload final
+      const payloadObj = collectData();
+      payloadObj.firma.nombre_firma = signatureName.value.trim();
+
+      const payload = JSON.stringify(payloadObj);
 
       postForm.action = WEB_APP_URL;
       payloadField.value = payload;
@@ -1302,7 +1325,7 @@ Restante pendiente: ${money(data.ticket.restante)}
           awaitingAck = false;
           hide(sendingBox);
           failBox.style.display = "block";
-          validateAgreementReady();
+          sendBtn.disabled = false;
         }
       }, 9000);
 
