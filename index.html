@@ -733,7 +733,7 @@
 
   <script>
   // ✅ URL del Apps Script Web App (TUYA - ACTUALIZADA)
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwTbQ7ZLVi0hQJgdK_lR9lpRZ1dTlm3G_GBZ0GSNkd_h8926BGIykyVOymOtSjtJXCQag/exec";
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxFalrNH2FAI4dSG1LMmx9WlzpZZ6dzDX0VT8deZQOykNCLF6OglDTRCjzGKeBvY6eVXg/exec";
 
   // Reglas
   const TICKET_TOTAL = 50000;
@@ -1298,64 +1298,37 @@ Restante pendiente: ${money(data.ticket.restante)}
   }
 
   // ✅ envío robusto: intenta FETCH y si falla usa FORM/IFRAME
-  async function submitToWebApp(payloadStr){
-    // 1) Intento con fetch (preferido)
+async function submitToWebApp(payloadStr){
+  // ✅ payloadStr debe ser un JSON string: JSON.stringify(obj)
+
+  // 1) Intento con fetch (preferido)
+  try{
+    const res = await fetch(WEB_APP_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body: new URLSearchParams({ payload: payloadStr }).toString(),
+    });
+
+    let txt = "";
+    try { txt = await res.text(); } catch(e){}
+
+    if(!res.ok){
+      throw new Error(`HTTP ${res.status} ${res.statusText} :: ${txt.slice(0,200)}`);
+    }
+    return { ok:true, via:"fetch", responseText: txt };
+  }catch(err){
+    // 2) Fallback al método original (form + iframe)
     try{
-      // payloadStr debe ser un JSON string. Si no estás 100% segura, abajo te dejo el “parche” automático.
-try {
-  // ✅ PARCHE ANTI-BUGS: asegura que SIEMPRE mandas JSON válido
-  const jsonBody = (typeof payloadStr === "string") ? payloadStr : JSON.stringify(payloadStr);
-  const SAFE_HEADERS = { "Content-Type": "text/plain;charset=utf-8" };
-
-  // (Opcional recomendado) Debug
-  console.log("Enviando a WebApp (preview):", jsonBody.slice(0, 300));
-
-  const res = await fetch(WEB_APP_URL, {
-    method: "POST",
-    headers: SAFE_HEADERS,
-    body: jsonBody
-  });
-
-  let txt = "";
-  try { txt = await res.text(); } catch (e) {}
-  console.log("WEBAPP status:", res.status, res.statusText);
-  console.log("WEBAPP response (first 200):", (txt || "").slice(0, 200));
-
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status} ${res.statusText} :: ${txt.slice(0,200)}`);
-  }
-
-  return { ok: true, via: "fetch", responseText: txt };
-
-} catch (err) {
-  // ... tu fallback form/iframe se queda igual
-}
-
-
-
-      let txt = "";
-      try{ txt = await res.text(); }catch(e){}
-
-      if(!res.ok){
-        throw new Error(`HTTP ${res.status} ${res.statusText} :: ${txt.slice(0,200)}`);
-      }
-      return { ok:true, via:"fetch", responseText: txt };
-
-    }catch(err){
-      // 2) Fallback al método original (form + iframe)
-      try{
-        postForm.action = WEB_APP_URL;
-        payloadField.value = payloadStr;
-
-        awaitingAck = true;
-        postForm.submit();
-
-        return { ok:true, via:"form", responseText: "" };
-      }catch(err2){
-        return { ok:false, via:"none", error: String(err2 || err) };
-      }
+      postForm.action = WEB_APP_URL;
+      payloadField.value = payloadStr;
+      awaitingAck = true;
+      postForm.submit();
+      return { ok:true, via:"iframe", responseText: "" };
+    }catch(e2){
+      return { ok:false, via:"none", error: String(err || e2) };
     }
   }
+}
 
   // ✅ Reinicio duro del formulario
   function resetFormHard(){
