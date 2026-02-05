@@ -1305,18 +1305,21 @@ Restante pendiente: ${money(data.ticket.restante)}
 try {
   // ✅ PARCHE ANTI-BUGS: asegura que SIEMPRE mandas JSON válido
   const jsonBody = (typeof payloadStr === "string") ? payloadStr : JSON.stringify(payloadStr);
+  const SAFE_HEADERS = { "Content-Type": "text/plain;charset=utf-8" };
 
   // (Opcional recomendado) Debug
   console.log("Enviando a WebApp (preview):", jsonBody.slice(0, 300));
 
   const res = await fetch(WEB_APP_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: SAFE_HEADERS,
     body: jsonBody
   });
 
   let txt = "";
   try { txt = await res.text(); } catch (e) {}
+  console.log("WEBAPP status:", res.status, res.statusText);
+  console.log("WEBAPP response (first 200):", (txt || "").slice(0, 200));
 
   if (!res.ok) {
     throw new Error(`HTTP ${res.status} ${res.statusText} :: ${txt.slice(0,200)}`);
