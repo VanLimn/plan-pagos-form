@@ -1301,14 +1301,34 @@ Restante pendiente: ${money(data.ticket.restante)}
   async function submitToWebApp(payloadStr){
     // 1) Intento con fetch (preferido)
     try{
-      const body = new URLSearchParams();
-      body.set("payload", payloadStr);
+      // payloadStr debe ser un JSON string. Si no estás 100% segura, abajo te dejo el “parche” automático.
+try {
+  // ✅ PARCHE ANTI-BUGS: asegura que SIEMPRE mandas JSON válido
+  const jsonBody = (typeof payloadStr === "string") ? payloadStr : JSON.stringify(payloadStr);
 
-      const res = await fetch(WEB_APP_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-        body
-      });
+  // (Opcional recomendado) Debug
+  console.log("Enviando a WebApp (preview):", jsonBody.slice(0, 300));
+
+  const res = await fetch(WEB_APP_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: jsonBody
+  });
+
+  let txt = "";
+  try { txt = await res.text(); } catch (e) {}
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} ${res.statusText} :: ${txt.slice(0,200)}`);
+  }
+
+  return { ok: true, via: "fetch", responseText: txt };
+
+} catch (err) {
+  // ... tu fallback form/iframe se queda igual
+}
+
+
 
       let txt = "";
       try{ txt = await res.text(); }catch(e){}
