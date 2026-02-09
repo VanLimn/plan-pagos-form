@@ -2129,205 +2129,211 @@ Restante pendiente: ${money(data.ticket.restante)}
     setStep(1);
     updateLiveTotals();
   </script>
-  <!-- ✅ OVERRIDES (UI Fixes) -->
+  <!-- ✅ INICIO OVERRIDES (iOS SAFE + UI FIXES) -->
 <style>
-  /* 1) Si el subtitle queda vacío, lo escondemos para que no deje espacio */
-  ._hideWhenEmpty:empty { display: none !important; }
+  /* ====== iOS Safari SAFE MODE (evita pantalla negra / desaparición) ====== */
+  @supports (-webkit-touch-callout: none) {
+    html, body {
+      height: 100%;
+      min-height: 100%;
+      background: #0b0c10 !important;
+    }
+    body {
+      min-height: 100dvh;
+      overflow: auto !important;
+      -webkit-overflow-scrolling: touch;
+      -webkit-text-size-adjust: 100%;
+    }
 
-  /* 2) Helper: ocultar bloques sin romper layout */
-  ._forceHidden { display: none !important; }
+    /* Apaga capas pesadas (si existen) */
+    .bgGlow, .bgGlow2, .noiseLayer, .grain, .blob, .aurora, .fxLayer {
+      display: none !important;
+    }
+
+    /* Quita blur/backdrop en “glass” y modales (causa #1 del crash en iOS) */
+    .glass, .card, .panel, .modal, .dialog, .sheet, .popup, .overlayCard {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      background: rgba(14, 16, 26, 0.96) !important;
+    }
+
+    /* Si tu overlay usa blur */
+    .overlay, .modalOverlay, .backdrop {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      background: rgba(0,0,0,0.70) !important;
+    }
+  }
+
+  /* ====== FIX: contador tipo “Pago 6 de 5” (clamp visual por CSS si existe el nodo) ====== */
+  /* Si tu título del calendario tiene un span/label, lo corregimos desde JS; aquí solo estética */
+  .paidHint {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: rgba(233, 236, 241, 0.72);
+  }
 </style>
 
 <script>
+/* ====== Polyfills ligeros (por si Safari iOS se pone especial) ====== */
 (function () {
-  // ===== Helpers =====
-  const money = (n) => {
-    const num = Number(n || 0);
-    try {
-      return num.toLocaleString("es-MX", { style: "currency", currency: "MXN" });
-    } catch {
-      return "$" + num.toFixed(2);
-    }
-  };
-
-  // Lee el número de pagos "¿Cuántos pagos vas a querer que sean?"
-  function getRequestedPayments() {
-    // Intento 1: input number visible
-    const numberInputs = Array.from(document.querySelectorAll('input[type="number"], input[inputmode="numeric"]'));
-    // Prioriza el que esté cerca del texto de la pregunta
-    const question = Array.from(document.querySelectorAll("label, p, h1, h2, h3, div"))
-      .find(el => (el.textContent || "").toLowerCase().includes("¿cuántos pagos"));
-    if (question) {
-      const container = question.closest("section, div") || document.body;
-      const near = Array.from(container.querySelectorAll('input[type="number"], input[inputmode="numeric"]'));
-      const v = near.find(i => i.value && String(i.value).trim() !== "");
-      if (v) return Math.max(0, parseInt(v.value, 10) || 0);
-      const any = near[0];
-      if (any) return Math.max(0, parseInt(any.value, 10) || 0);
-    }
-    // Fallback: primero con valor
-    const withVal = numberInputs.find(i => i.value && String(i.value).trim() !== "");
-    if (withVal) return Math.max(0, parseInt(withVal.value, 10) || 0);
-    // Fallback: primero
-    const any = numberInputs[0];
-    return any ? Math.max(0, parseInt(any.value, 10) || 0) : 0;
+  if (!String.prototype.replaceAll) {
+    // eslint-disable-next-line no-extend-native
+    String.prototype.replaceAll = function (search, replacement) {
+      const target = this;
+      return target.split(search).join(replacement);
+    };
   }
-
-  // Cuenta pagos ya agregados leyendo la lista "Pago #1, Pago #2..."
-  function getFilledPaymentsCount() {
-    const cards = Array.from(document.querySelectorAll("*"))
-      .filter(el => {
-        const t = (el.textContent || "").trim();
-        return /^Pago\s*#\d+/.test(t);
-      });
-
-    // Esto incluye muchos nodos internos; mejor contamos "títulos" únicos visibles.
-    const seen = new Set();
-    cards.forEach(el => {
-      const line = (el.textContent || "").trim().split("\n")[0].trim();
-      if (/^Pago\s*#\d+/.test(line)) seen.add(line);
-    });
-    return seen.size;
-  }
-
-  // Encuentra el subtitle del calendario: "Selecciona una fecha para Pago X de Y"
-  function findCalendarSubtitleEl() {
-    // Buscamos el primer elemento que contenga ese texto
-    const all = Array.from(document.querySelectorAll("div, p, span, small, strong"));
-    let el = all.find(n => (n.textContent || "").includes("Selecciona una fecha para Pago"));
-    if (!el) {
-      // Variación posible
-      el = all.find(n => (n.textContent || "").toLowerCase().includes("selecciona una fecha") && (n.textContent || "").toLowerCase().includes("pago"));
-    }
-    return el || null;
-  }
-
-  // Encuentra el bloque "Tu abono hasta el momento es de"
-  function findLiveTotalBlock() {
-    const all = Array.from(document.querySelectorAll("div, p, span, strong, small"));
-    const label = all.find(n => (n.textContent || "").toLowerCase().includes("tu abono hasta el momento"));
-    if (!label) return null;
-
-    // El contenedor suele ser una card grande; subimos un poco
-    return label.closest("section, article, div") || label.parentElement;
-  }
-
-  // ===== Core UI Fix =====
-  function applyFixes() {
-    const requested = getRequestedPayments();      // total deseado
-    const filled = getFilledPaymentsCount();       // pagos ya cargados (1,2,3,...)
-
-    // (A) Quitar "Pago 6 de 5" cuando ya se completó
-    const subtitle = findCalendarSubtitleEl();
-    if (subtitle) {
-      subtitle.classList.add("_hideWhenEmpty");
-
-      const txt = (subtitle.textContent || "").trim();
-      // Extrae X de Y del texto si existe
-      const m = txt.match(/Pago\s+(\d+)\s+de\s+(\d+)/i);
-
-      // Condición de "completado"
-      const completed =
-        (requested > 0 && filled >= requested) ||
-        (m && Number(m[1]) > Number(m[2])); // caso explícito "6 de 5"
-
-      if (completed) {
-        // Lo quitamos totalmente para no confundir
-        subtitle.textContent = "";
-      } else {
-        // Si el texto trae "Pago X de Y" pero Y ya lo sabemos y X se fue raro, lo corregimos
-        if (requested > 0) {
-          const current = Math.min(filled + 1, requested);
-          // Si el texto tiene el patrón, lo reescribimos estable
-          if (m) {
-            subtitle.textContent = `Selecciona una fecha para Pago ${current} de ${requested}`;
-          }
-        }
-      }
-    }
-
-    // (B) Mostrar "Tu abono..." solo a partir del pago #2
-    const liveTotal = findLiveTotalBlock();
-    if (liveTotal) {
-      // Regla:
-      // - Si requested <= 1 => nunca lo muestres
-      // - Si requested >= 2 => muéstralo solo cuando ya haya 1 pago capturado (o sea, ya vas en el pago #2)
-      const shouldShow = (requested >= 2) && (filled >= 1);
-
-      if (!shouldShow) liveTotal.classList.add("_forceHidden");
-      else liveTotal.classList.remove("_forceHidden");
-    }
-
-    // (C) Extra: si tienes un hint dentro del modal "Debe ser mayor a 0." podemos ponerle el status pequeño ahí
-    //     (esto NO rompe nada; si no lo encuentra, no hace nada)
-    const hintCandidates = Array.from(document.querySelectorAll("small, p, div, span"))
-      .filter(n => (n.textContent || "").includes("Debe ser mayor a 0"));
-    if (hintCandidates.length) {
-      const hint = hintCandidates[0];
-      // Calcula el abonado total leyendo los montos visibles ($...) de la lista de pagos
-      const amounts = Array.from(document.querySelectorAll("*"))
-        .map(n => (n.textContent || ""))
-        .filter(t => /\$\s?\d/.test(t));
-      // Intento simple: toma montos de tarjetas "Pago #"
-      let sum = 0;
-      const payCardsText = Array.from(document.querySelectorAll("div, p, span"))
-        .map(n => (n.textContent || "").trim())
-        .filter(t => /^Pago\s*#\d+/.test(t) || /\$\s?\d/.test(t))
-        .join("\n");
-
-      // Extrae cantidades $12,345.67
-      const nums = payCardsText.match(/\$\s?[\d,]+(\.\d{1,2})?/g) || [];
-      nums.forEach(s => {
-        const cleaned = s.replace(/\$/g, "").replace(/\s/g, "").replace(/,/g, "");
-        const n = Number(cleaned);
-        if (!isNaN(n)) sum += n;
-      });
-
-      // Inserta/actualiza un status pequeño justo debajo del hint
-      let status = document.getElementById("__paid_status_small");
-      if (!status) {
-        status = document.createElement("div");
-        status.id = "__paid_status_small";
-        status.style.marginTop = "6px";
-        status.style.fontSize = "12px";
-        status.style.opacity = "0.8";
-        hint.insertAdjacentElement("afterend", status);
-      }
-      // Si requested <=1 no lo mostramos porque dijiste que no tiene caso
-      if (requested <= 1) {
-        status.textContent = "";
-      } else if (filled >= 1) {
-        status.textContent = `Abonado hasta ahora: ${money(sum)} (aparece desde Pago #2)`;
-      } else {
-        status.textContent = "";
-      }
-    }
-  }
-
-  // ===== Throttle + Observers (para que NO congele) =====
-  let raf = 0;
-  function schedule() {
-    if (raf) return;
-    raf = requestAnimationFrame(() => {
-      raf = 0;
-      applyFixes();
-    });
-  }
-
-  // Primera pasada
-  window.addEventListener("load", schedule);
-
-  // Cada vez que cambie algo en el DOM (modales/listas)
-  const obs = new MutationObserver(schedule);
-  obs.observe(document.documentElement, { childList: true, subtree: true });
-
-  // Inputs y clicks también
-  document.addEventListener("input", schedule, true);
-  document.addEventListener("click", schedule, true);
-
 })();
+
+/* ====== Helpers ====== */
+function isIOS() {
+  const ua = navigator.userAgent || "";
+  const iOS = /iPad|iPhone|iPod/.test(ua);
+  const iPadOS = (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  return iOS || iPadOS;
+}
+
+function forceShowAppOnError(errText) {
+  try {
+    // Intenta “des-ocultar” cosas típicas
+    document.documentElement.style.visibility = "visible";
+    document.body.style.visibility = "visible";
+    document.body.style.opacity = "1";
+
+    const root = document.querySelector("#app") || document.querySelector("main") || document.body;
+    if (root) {
+      root.style.visibility = "visible";
+      root.style.opacity = "1";
+      root.style.display = root.style.display || "block";
+    }
+
+    // Banner discreto arriba con error (solo para debug)
+    let bar = document.getElementById("iosErrorBar");
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.id = "iosErrorBar";
+      bar.style.position = "fixed";
+      bar.style.top = "10px";
+      bar.style.left = "10px";
+      bar.style.right = "10px";
+      bar.style.zIndex = "999999";
+      bar.style.padding = "10px 12px";
+      bar.style.borderRadius = "12px";
+      bar.style.background = "rgba(0,0,0,0.75)";
+      bar.style.color = "#fff";
+      bar.style.fontSize = "12px";
+      bar.style.lineHeight = "1.35";
+      bar.style.backdropFilter = "none";
+      bar.style.webkitBackdropFilter = "none";
+      document.body.appendChild(bar);
+    }
+    bar.textContent = "iOS fallback activo. " + (errText ? ("Error: " + errText) : "");
+  } catch (_) {}
+}
+
+/* ====== UI FIXES ======
+  1) No mostrar “Pago 6 de 5” -> clamp y/o ocultar cuando ya completó
+  2) Bloque “Tu abono...” solo desde pago #2
+*/
+function applyUIFixes() {
+  // Intenta leer “cuántos pagos” desde el input que ya tienes (ajusta selector si lo tuyo es distinto)
+  const pagosInput =
+    document.querySelector('input[name="numPagos"]') ||
+    document.querySelector("#numPagos") ||
+    document.querySelector('input[data-role="numPagos"]');
+
+  const totalPagos = pagosInput ? Number(pagosInput.value || 0) : 0;
+
+  // 2) Ocultar bloque “Tu abono...” si totalPagos <= 1
+  // (selector flexible: busca el bloque por texto)
+  const allBlocks = Array.from(document.querySelectorAll("*"));
+  const abonoBlock = allBlocks.find(el => {
+    const t = (el.textContent || "").trim();
+    return t.includes("Tu abono hasta el momento");
+  });
+
+  if (abonoBlock) {
+    const wrapper = abonoBlock.closest(".card, .panel, .glass, section, div") || abonoBlock;
+    wrapper.style.display = (totalPagos && totalPagos > 1) ? "" : "none";
+  }
+
+  // 1) Clamp del label tipo “Pago X de Y” (tu UI lo muestra arriba del calendario)
+  // Buscamos cualquier nodo que tenga “Pago” y “de”
+  const candidates = allBlocks.filter(el => {
+    const t = (el.textContent || "");
+    return t.includes("Pago") && t.includes("de") && t.length < 60;
+  });
+
+  candidates.forEach(el => {
+    const t = (el.textContent || "").trim();
+
+    // Intenta parsear “Pago 6 de 5”
+    const m = t.match(/Pago\s+(\d+)\s+de\s+(\d+)/i);
+    if (!m) return;
+
+    const current = Number(m[1]);
+    const total = Number(m[2]);
+
+    // Si ya está completado, ocultamos esa línea para no confundir
+    if (total > 0 && current > total) {
+      el.style.display = "none";
+      return;
+    }
+
+    // Si por alguna razón sale 0 o raro, clamp
+    if (total > 0) {
+      const clamped = Math.min(Math.max(current, 1), total);
+      if (clamped !== current) {
+        el.textContent = t.replace(m[0], `Pago ${clamped} de ${total}`);
+      }
+    }
+  });
+}
+
+/* ====== iOS estabilidad extra ====== */
+function applyIOSStability() {
+  if (!isIOS()) return;
+
+  // Forzar fondo estable (evita flicker)
+  document.body.style.background = "#0b0c10";
+
+  // Evita renders raros por transforms en contenedores altos (si existen)
+  const big = document.querySelector(".app, #app, main, body");
+  if (big) {
+    big.style.transform = "translateZ(0)";
+  }
+}
+
+/* ====== Boot ====== */
+(function bootOverrides() {
+  try {
+    applyIOSStability();
+    applyUIFixes();
+
+    // Re-aplica cuando cambie DOM (porque tu app es dinámica)
+    const obs = new MutationObserver(() => {
+      applyUIFixes();
+    });
+    obs.observe(document.documentElement, { childList: true, subtree: true });
+
+    window.addEventListener("resize", () => applyUIFixes());
+
+  } catch (e) {
+    forceShowAppOnError(e && e.message ? e.message : String(e));
+  }
+})();
+
+/* Si truena algo más tarde, que no se desaparezca todo */
+window.addEventListener("error", (e) => {
+  forceShowAppOnError(e && e.message ? e.message : "JS error");
+});
+window.addEventListener("unhandledrejection", (e) => {
+  forceShowAppOnError(e && e.reason ? (e.reason.message || String(e.reason)) : "Promise rejection");
+});
 </script>
-<!-- ✅ FIN OVERRIDES -->
+<!-- ✅ FIN OVERRIDES (iOS SAFE + UI FIXES) -->
 
 </body>
 </html>
