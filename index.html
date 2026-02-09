@@ -2129,193 +2129,252 @@ Restante pendiente: ${money(data.ticket.restante)}
     setStep(1);
     updateLiveTotals();
   </script>
-  <!-- ✅ OVERRIDES (reemplaza TODO tu bloque de overrides por este) -->
+  <!-- ✅ OVERRIDES -->
 <style>
-  /* --- Anti-glitch iOS: evita que cosas fixed + blur rompan render --- */
-  html, body { -webkit-text-size-adjust: 100%; }
-  body { overscroll-behavior-y: none; }
+  /* =========================================================
+     iOS FIX: Safari/Chrome iOS a veces “blanquea” con blur/backdrop-filter.
+     En iPhone: quitamos blur y dejamos un vidrio sólido premium.
+     ========================================================= */
 
-  /* Popup: forzamos opacidad/solidez aunque tu CSS base use translucencias */
-  .__forceSolidModal {
-    background: rgba(12, 14, 20, 0.96) !important;
+  /* Overlay del modal: más oscuro y estable */
+  .ab-modal-overlay,
+  .modal-overlay,
+  [data-modal-overlay],
+  .overlay {
+    background: rgba(0,0,0,.65) !important;
+  }
+
+  /* Caja del modal: NO transparente */
+  .ab-modal,
+  .modal,
+  [data-modal],
+  .dialog,
+  .popup,
+  .sheet {
+    background: rgba(17, 19, 26, 0.96) !important; /* sólido premium */
     border: 1px solid rgba(255,255,255,0.08) !important;
-    box-shadow: 0 20px 80px rgba(0,0,0,0.55) !important;
-    backdrop-filter: none !important;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.45) !important;
     -webkit-backdrop-filter: none !important;
-    opacity: 1 !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Si tu UI usa “glass cards” */
+  .glass,
+  .card,
+  .panel {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Fallback específico iOS */
+  @supports (-webkit-touch-callout: none) {
+    /* Quita TODO blur/backdrop-filter que pueda romper iOS */
+    * {
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+
+    /* Evita bug por backgrounds fijos con gradientes enormes */
+    body {
+      background-attachment: scroll !important;
+    }
+  }
+
+  /* Hint mini debajo del “Debe ser mayor a 0.” */
+  .paid-hint {
+    display: inline-block;
+    margin-left: 8px;
+    opacity: .78;
+    font-size: 12px;
+    line-height: 1;
+    white-space: nowrap;
   }
 </style>
 
 <script>
-/**
- * OVERRIDES v2 (safe for mobile)
- * - Debounce + no infinite MutationObserver loops
- * - No heavy scans cada micro-cambio
- * - Try/catch global para que NO tumbe el render en iOS
- */
+/* =========================================================
+   OVERRIDES LIGEROS (sin observers agresivos)
+   - Fix “Pago 6 de 5”
+   - Hint “Llevas abonado …” solo si pagos >= 2
+   - iOS stable (no crashea)
+   ========================================================= */
+
 (function () {
-  'use strict';
+  // ---------- helpers ----------
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-  // --- guard extra para iOS: nunca dejes que un error mate toda la UI ---
-  function safe(fn) {
-    try { fn(); } catch (e) { /* silencioso a propósito */ }
+  function moneyToNumber(str) {
+    if (!str) return 0;
+    // acepta: "$48,800.00" / "48,800" / "48800"
+    const clean = String(str).replace(/[^\d.,-]/g, '').trim();
+    // si tiene ambas , y . asumimos , miles y . decimales
+    // si solo tiene , asumimos miles
+    let normalized = clean;
+    if (clean.includes(',') && clean.includes('.')) {
+      normalized = clean.replace(/,/g, '');
+    } else if (clean.includes(',') && !clean.includes('.')) {
+      normalized = clean.replace(/,/g, '');
+    }
+    const n = Number(normalized);
+    return Number.isFinite(n) ? n : 0;
   }
 
-  // Debounce por frame (ultra-ligero)
-  let rafId = 0;
-  function schedule(fn) {
-    if (rafId) return;
-    rafId = requestAnimationFrame(() => {
-      rafId = 0;
-      safe(fn);
-    });
+  function formatMXN(n) {
+    try {
+      return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n);
+    } catch {
+      return '$' + (Math.round(n * 100) / 100).toLocaleString('es-MX');
+    }
   }
 
-  // Helpers
-  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
-  const $  = (sel, root=document) => root.querySelector(sel);
-
-  // 1) Forzar modal sólido (busca el popup por textos y sube al contenedor)
-  function forceSolidPopupIfOpen() {
-    const titles = ['Monto a abonar', 'Editar pago', 'Editar pago', 'Monto a abonar'];
-    let titleEl = null;
-
-    // Busca el primer nodo que contenga alguno de los títulos
-    for (const t of titles) {
-      titleEl = $$('*').find(el => (el && el.textContent && el.textContent.trim() === t));
-      if (titleEl) break;
-    }
-    if (!titleEl) return;
-
-    // Sube hasta encontrar un contenedor razonable (cuadro del modal)
-    let box = titleEl;
-    for (let i=0; i<8; i++) {
-      if (!box || !box.parentElement) break;
-      box = box.parentElement;
-
-      const cs = window.getComputedStyle(box);
-      const w = box.getBoundingClientRect().width;
-
-      // Heurística: modal suele ser un “card” relativamente ancho, centrado
-      if (w > 260 && w < 820 && (cs.position === 'fixed' || cs.position === 'absolute' || cs.position === 'relative')) {
-        // Marcamos como modal sólido
-        box.classList.add('__forceSolidModal');
-      }
-    }
-
-    // También intenta solidificar el contenedor interno si existe
-    const maybeCards = $$('div', box || document).slice(0, 30);
-    maybeCards.forEach(d => {
-      const cs = window.getComputedStyle(d);
-      const w = d.getBoundingClientRect().width;
-      if (w > 260 && w < 820 && cs.backgroundColor && cs.backgroundColor.includes('rgba') && cs.backgroundColor.includes('0.')) {
-        d.classList.add('__forceSolidModal');
-      }
+  function getTotalPaymentsDesired() {
+    // Intenta agarrar el input de “¿Cuántos pagos…?”
+    // (si cambia tu HTML, esto igual funciona por fallback)
+    const inputs = Array.from(document.querySelectorAll('input, select, textarea'));
+    const cand = inputs.find(el => {
+      const ph = (el.placeholder || '').toLowerCase();
+      const name = (el.name || '').toLowerCase();
+      const id = (el.id || '').toLowerCase();
+      return /pagos/.test(ph) || /pagos/.test(name) || /pagos/.test(id);
     });
+    const v = cand ? Number(cand.value) : NaN;
+    if (Number.isFinite(v) && v > 0) return v;
+
+    // fallback: busca “Paso X de Y” no sirve; buscamos el contador “0/3” arriba de “Tus abonos”
+    const counter = document.querySelector('.payments-counter, .counter, [data-payments-counter]');
+    if (counter) {
+      const m = counter.textContent.match(/(\d+)\s*\/\s*(\d+)/);
+      if (m) return Number(m[2]);
+    }
+
+    // último fallback
+    return 1;
   }
 
-  // 2) “Pago X de Y” cuando ya llenó todo: evitar que salga X=Y+1
-  //    - Si detecta "Pago 6 de 5" lo clamp a "Pago 5 de 5"
-  //    - Si X > Y, lo oculta (para no confundir)
-  function fixPagoCounterText() {
-    // Busca nodos con “Pago” y “de”
-    const nodes = $$('*').filter(el => {
-      const tx = (el.textContent || '').trim();
-      return tx.length < 40 && /^Pago\s+\d+\s+de\s+\d+$/i.test(tx);
+  function sumCurrentPayments() {
+    // suma montos visibles en tarjetas de pagos del panel “Tus abonos”
+    const panel = Array.from(document.querySelectorAll('*')).find(el => {
+      const t = (el.textContent || '');
+      return t.includes('Tus abonos');
     });
 
-    nodes.forEach(el => {
-      const tx = el.textContent.trim();
-      const m = tx.match(/^Pago\s+(\d+)\s+de\s+(\d+)$/i);
-      if (!m) return;
-      const x = parseInt(m[1], 10);
-      const y = parseInt(m[2], 10);
-
-      if (!Number.isFinite(x) || !Number.isFinite(y) || y <= 0) return;
-
-      if (x > y) {
-        // Opción: ocultar completo para no confundir
-        el.style.display = 'none';
-        // Si prefieres que se vea “Pago y de y”, comenta la línea de arriba y descomenta:
-        // el.textContent = `Pago ${y} de ${y}`;
-      } else {
-        el.style.display = '';
-      }
-    });
-  }
-
-  // 3) Hint “llevas abonado…” SOLO si hay 2+ pagos
-  //    (esto asume que el hint lo inyecta este override o ya existe y lo detectamos)
-  function enforcePaidHintRules() {
-    // Intento 1: leer el total de pagos desde un input típico (si existe)
-    // Si tu input no se llama así, igual funciona por fallback (contador “Tus abonos 2/5”)
-    let totalPays = null;
-
-    // Fallback A: “Tus abonos 2/5”
-    const header = $$('*').find(el => {
-      const tx = (el.textContent || '').trim();
-      return /^\d+\s*\/\s*\d+$/.test(tx) && el.closest && el.closest('section,div');
-    });
-    if (header) {
-      const tx = (header.textContent || '').trim();
-      const parts = tx.split('/').map(s => parseInt(s.trim(), 10));
-      if (parts.length === 2 && Number.isFinite(parts[1])) totalPays = parts[1];
-    }
-
-    // Fallback B: input número “¿Cuántos pagos…?”
-    if (!totalPays) {
-      const numInput = $$('input[type="number"]').find(i => {
-        const ph = (i.getAttribute('placeholder') || '').toLowerCase();
-        const aria = (i.getAttribute('aria-label') || '').toLowerCase();
-        return ph.includes('pag') || aria.includes('pag');
-      });
-      if (numInput) {
-        const v = parseInt(numInput.value, 10);
-        if (Number.isFinite(v)) totalPays = v;
-      }
-    }
-
-    // Busca el hint por texto (el que agregamos antes: “llevas abonado” / “abonado hasta el momento”)
-    const hints = $$('*').filter(el => {
-      const tx = (el.textContent || '').toLowerCase();
-      return tx.includes('llevas abonado') || tx.includes('abonado hasta el momento');
-    });
-
-    // Regla: si totalPays === 1 -> ocultar hints
-    if (totalPays === 1) {
-      hints.forEach(h => { h.style.display = 'none'; });
+    let scope = panel;
+    if (scope) {
+      // usualmente el panel es un contenedor, subimos un poco para incluir cards
+      scope = scope.closest('section, div') || scope;
     } else {
-      // Si es 2+ o no se pudo determinar, no lo forzamos a ocultar
-      // (pero sí re-mostramos si estaba oculto)
-      hints.forEach(h => { h.style.display = ''; });
+      scope = document;
+    }
+
+    // agarramos textos con $ dentro de cards
+    const dollarNodes = Array.from(scope.querySelectorAll('*'))
+      .filter(el => el.children.length === 0 && (el.textContent || '').includes('$'));
+
+    let total = 0;
+    for (const el of dollarNodes) {
+      const txt = (el.textContent || '').trim();
+      // evita sumar “Ticket $50,000” y otros totales: solo suma los que están cerca de “Pago #”
+      const card = el.closest('.payment-card, .pay-card, .ab-card, .card, li, .item');
+      if (!card) continue;
+      const cardText = (card.textContent || '');
+      if (!/Pago\s*#?\s*\d+/i.test(cardText)) continue;
+
+      // encuentra la primer cantidad con $
+      const m = txt.match(/\$\s*[\d.,]+/);
+      if (m) total += moneyToNumber(m[0]);
+    }
+    return total;
+  }
+
+  function clampPagoHeader() {
+    // Busca textos tipo “Pago 6 de 5” o “Selecciona una fecha para Pago 6 de 5”
+    const nodes = Array.from(document.querySelectorAll('*'))
+      .filter(el => el.children.length === 0 && /Pago\s+\d+\s+de\s+\d+/i.test(el.textContent || ''));
+
+    for (const el of nodes) {
+      const t = el.textContent;
+      const m = t.match(/Pago\s+(\d+)\s+de\s+(\d+)/i);
+      if (!m) continue;
+
+      const cur = Number(m[1]);
+      const max = Number(m[2]);
+      if (!Number.isFinite(cur) || !Number.isFinite(max) || max <= 0) continue;
+
+      if (cur > max) {
+        // si ya están completos, mejor ocultar la línea (para no confundir)
+        // condición: si ya hay max pagos con monto capturado (o ya no hay pendientes)
+        const totalDesired = getTotalPaymentsDesired();
+        if (totalDesired === max) {
+          // si ya está rebasando, lo más seguro es que ya completó y el UI intentó avanzar
+          el.style.display = 'none';
+        } else {
+          // si por alguna razón max cambió, solo clamp
+          el.textContent = t.replace(/Pago\s+\d+\s+de\s+\d+/i, `Pago ${max} de ${max}`);
+        }
+      }
     }
   }
 
-  // 4) Principal: corre fixes sin reventar móvil
-  function runAllFixes() {
-    forceSolidPopupIfOpen();
-    fixPagoCounterText();
-    enforcePaidHintRules();
+  function injectPaidHint() {
+    const totalDesired = getTotalPaymentsDesired();
+    // solo a partir del pago #2
+    if (totalDesired < 2) {
+      // si existe hint, lo quitamos
+      document.querySelectorAll('.paid-hint').forEach(n => n.remove());
+      return;
+    }
+
+    // Encuentra la línea: “Debe ser mayor a 0.”
+    const lines = Array.from(document.querySelectorAll('*'))
+      .filter(el => el.children.length === 0 && /Debe ser mayor a 0\./i.test(el.textContent || ''));
+
+    if (!lines.length) return;
+
+    const totalPaid = sumCurrentPayments();
+    const hintText = `Llevas abonado: ${formatMXN(totalPaid)}`;
+
+    for (const line of lines) {
+      // evita duplicar
+      let hint = line.querySelector('.paid-hint');
+      if (!hint) {
+        hint = document.createElement('span');
+        hint.className = 'paid-hint';
+        line.appendChild(hint);
+      }
+      hint.textContent = hintText;
+    }
   }
 
-  // --- Arranque (load + observer con throttle y auto-stop para iOS) ---
-  safe(() => {
-    // corre una vez apenas cargue
-    schedule(runAllFixes);
+  // Sync ligero: evita observers agresivos (sobre todo iOS)
+  let ticking = false;
+  function syncUI() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      try {
+        clampPagoHeader();
+        injectPaidHint();
+      } catch (e) {
+        // silencioso para no romper UI
+      } finally {
+        ticking = false;
+      }
+    });
+  }
 
-    // observer ligero: SOLO childList en body (no documentElement) para evitar loops
-    const target = document.body || document.documentElement;
-    const obs = new MutationObserver(() => schedule(runAllFixes));
-    obs.observe(target, { childList: true, subtree: true });
-
-    // iOS: evita observers eternos (si algo se pone loco, lo cortamos)
-    setTimeout(() => safe(() => obs.disconnect()), 15000);
-
-    // también actualiza con input/click (pero con debounce)
-    window.addEventListener('click', () => schedule(runAllFixes), { passive: true });
-    window.addEventListener('input', () => schedule(runAllFixes), { passive: true });
-    window.addEventListener('resize', () => schedule(runAllFixes), { passive: true });
+  // Correr al cargar
+  window.addEventListener('load', () => {
+    syncUI();
   });
+
+  // Correr cuando el usuario interactúa (modales, guardar, editar)
+  document.addEventListener('click', syncUI, true);
+  document.addEventListener('input', syncUI, true);
+  document.addEventListener('change', syncUI, true);
+
+  // Intervalo suave (por si el UI se pinta async)
+  const intervalMs = isIOS ? 450 : 300;
+  setInterval(syncUI, intervalMs);
 
 })();
 </script>
