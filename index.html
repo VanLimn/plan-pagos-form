@@ -2129,136 +2129,231 @@ Restante pendiente: ${money(data.ticket.restante)}
     setStep(1);
     updateLiveTotals();
   </script>
-  <!-- ✅ OVERRIDES: MODAL SOLIDO + HINT "LLEVAS ABONADO" (pegar antes de </body>) -->
-<style>
-  /* Overlay más oscuro (no transparente raro) */
-  .modalOverlay,
-  .overlay,
-  .backdrop,
-  [data-overlay="true"]{
-    background: rgba(0,0,0,.72) !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-
-  /* Tarjeta del modal: SOLIDA (quita transparencia) */
-  .modal,
-  .modalCard,
-  .dialog,
-  .popup,
-  [role="dialog"]{
-    background: #0b0c10 !important;            /* ← sólido */
-    border: 1px solid rgba(255,255,255,.08) !important;
-    box-shadow: 0 24px 70px rgba(0,0,0,.65) !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-
-  /* Si tu modal usa "glass" con gradiente/transparencia, lo aplastamos */
-  .modal::before,
-  .dialog::before,
-  .popup::before{
-    content: none !important;
-  }
-
-  /* Hint pequeño debajo de “Debe ser mayor a 0.” */
-  .hintPaidSoFar{
-    margin-top: 6px;
-    font-size: 12px;
-    opacity: .85;
-    line-height: 1.2;
-  }
-</style>
-
+  <!-- ✅ OVERRIDES (Modal sólido + hint de total abonado) -->
 <script>
-  (function () {
-    // Formateo de dinero (MXN-like, pero sin forzar moneda por si ya tienes formato)
-    function fmtMoney(n){
-      const v = Number(n || 0);
-      try{
-        return v.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      }catch(e){
-        return String(v.toFixed(2));
+(() => {
+  // =========================
+  // Helpers
+  // =========================
+  const moneyToNumber = (str) => {
+    if (!str) return 0;
+    // acepta "$48,800.00", "48,800", "48800", "48.800,00" (parcial)
+    const cleaned = String(str)
+      .replace(/\s/g, "")
+      .replace(/\$/g, "")
+      .replace(/[^\d.,-]/g, "");
+
+    // Si tiene coma y punto, asumimos coma = miles, punto = decimales
+    // Si solo tiene coma, asumimos coma = miles (caso MX típico) si hay 3 dígitos tras coma repetidos
+    let val = cleaned;
+
+    const hasComma = val.includes(",");
+    const hasDot = val.includes(".");
+
+    if (hasComma && hasDot) {
+      // 48,800.00 -> 48800.00
+      val = val.replace(/,/g, "");
+    } else if (hasComma && !hasDot) {
+      // 48,800 -> 48800
+      val = val.replace(/,/g, "");
+    }
+    const n = Number(val);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const formatMXN = (n) => {
+    try {
+      return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(n || 0);
+    } catch {
+      return `$${(n || 0).toFixed(2)}`;
+    }
+  };
+
+  const findByText = (root, text) => {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
+    let node;
+    while ((node = walker.nextNode())) {
+      if (node && node.textContent && node.textContent.trim().includes(text)) return node;
+    }
+    return null;
+  };
+
+  // =========================
+  // 1) Inyectar CSS fuerte para que el modal NO sea transparente
+  // =========================
+  const injectModalCSS = () => {
+    if (document.getElementById("ab-modal-solid-css")) return;
+
+    const style = document.createElement("style");
+    style.id = "ab-modal-solid-css";
+    style.textContent = `
+      /* Backdrop/overlay: más oscuro */
+      .modalOverlay, .overlay, .backdrop, .dialog-backdrop, [data-overlay], [data-backdrop],
+      [class*="overlay"], [class*="backdrop"] {
+        background: rgba(0,0,0,0.72) !important;
+        backdrop-filter: blur(6px) !important;
+        -webkit-backdrop-filter: blur(6px) !important;
+      }
+
+      /* Modal: sólido (no glass) */
+      .modal, .dialog, .popup, .sheet, [role="dialog"], [aria-modal="true"], [data-modal],
+      [class*="modal"], [class*="dialog"], [class*="popup"] {
+        background: rgba(12, 13, 18, 0.98) !important;
+        border: 1px solid rgba(255,255,255,0.12) !important;
+        box-shadow: 0 18px 60px rgba(0,0,0,0.55) !important;
+      }
+
+      /* Si tu modal tiene un "card" interno */
+      .modal .card, .dialog .card, [role="dialog"] .card,
+      .modalContent, .dialogContent, [data-modal-content], [class*="content"] {
+        background: rgba(12, 13, 18, 0.98) !important;
+      }
+
+      /* Hint debajo del "Debe ser mayor a 0" */
+      .paidHintInline{
+        display:inline-block;
+        margin-left:8px;
+        padding:2px 8px;
+        border-radius:999px;
+        font-size:11px;
+        line-height:16px;
+        border:1px solid rgba(255,255,255,.12);
+        background: rgba(255,255,255,.06);
+        color: rgba(255,255,255,.78);
+        white-space:nowrap;
+      }
+    `;
+    document.head.appendChild(style);
+  };
+
+  // =========================
+  // 2) Detectar el modal abierto y "forzar" fondo sólido inline (por si CSS no alcanza)
+  // =========================
+  const forceSolidOnCurrentModal = () => {
+    // Ubicamos modal por texto clave del flujo
+    const key = "¿Cuánto quieres abonar?";
+    const el = findByText(document.body, key);
+    if (!el) return null;
+
+    // Subimos al contenedor que parezca modal (role=dialog / aria-modal / position fixed)
+    let modal = el.closest('[role="dialog"], [aria-modal="true"], [data-modal], .modal, .dialog, .popup, [class*="modal"], [class*="dialog"], [class*="popup"]');
+    if (!modal) {
+      // fallback: subir hasta un padre "grande"
+      let p = el;
+      for (let i = 0; i < 10 && p; i++) {
+        p = p.parentElement;
+        if (!p) break;
+        const cs = window.getComputedStyle(p);
+        if (cs.position === "fixed" || cs.position === "absolute") {
+          modal = p;
+          break;
+        }
+      }
+    }
+    if (!modal) return null;
+
+    // Fuerza sólido (inline)
+    modal.style.background = "rgba(12, 13, 18, 0.98)";
+    modal.style.border = "1px solid rgba(255,255,255,0.12)";
+    modal.style.boxShadow = "0 18px 60px rgba(0,0,0,0.55)";
+    modal.style.backdropFilter = "none";
+    modal.style.webkitBackdropFilter = "none";
+
+    return modal;
+  };
+
+  // =========================
+  // 3) Leer "abonado hasta el momento" (sin depender de tus variables internas)
+  // =========================
+  const getPaidTotalFromUI = () => {
+    // Método A: del bloque "Tu abono hasta el momento es de"
+    const label = findByText(document.body, "Tu abono hasta el momento es de");
+    if (label) {
+      // busca un $ cerca (siguiente(s) nodos)
+      const parent = label.closest("div") || label.parentElement;
+      if (parent) {
+        const txt = parent.textContent || "";
+        const match = txt.match(/\$[\d.,]+/);
+        if (match) return moneyToNumber(match[0]);
+      }
+      // fallback: busca en hermanos siguientes
+      let sib = label.nextElementSibling;
+      for (let i = 0; i < 6 && sib; i++) {
+        const m = (sib.textContent || "").match(/\$[\d.,]+/);
+        if (m) return moneyToNumber(m[0]);
+        sib = sib.nextElementSibling;
       }
     }
 
-    // Detecta el arreglo global de pagos (tu código ya lo trae como payments)
-    function getPaymentsArray(){
-      if (Array.isArray(window.payments)) return window.payments;
-      if (Array.isArray(window.PAYMENTS)) return window.PAYMENTS;
-      if (window.state && Array.isArray(window.state.payments)) return window.state.payments;
-      return null;
-    }
-
-    function sumPaid(){
-      const arr = getPaymentsArray();
-      if (!arr) return 0;
-      return arr.reduce((s, p) => s + Number(p?.monto || p?.amount || 0), 0);
-    }
-
-    // Busca el modal abierto (varios posibles)
-    function getOpenDialog(){
-      // prioridad: role dialog visible
-      const dialogs = Array.from(document.querySelectorAll('[role="dialog"], .modal, .dialog, .popup, .modalCard'));
-      const visible = dialogs.find(el => el && el.offsetParent !== null);
-      return visible || null;
-    }
-
-    // Encuentra el nodo que contiene el texto “Debe ser mayor a 0”
-    function findMustBeGreaterThanZeroNode(root){
-      if (!root) return null;
-
-      // búsqueda rápida por elementos típicos de helper
-      const candidates = root.querySelectorAll('p, small, div, span, label');
-      for (const el of candidates){
-        const t = (el.textContent || '').trim();
-        if (t.includes('Debe ser mayor a 0')) return el;
+    // Método B: sumar montos visibles en cards de "Tus abonos"
+    const head = findByText(document.body, "Tus abonos");
+    if (head) {
+      const container = head.closest("div")?.parentElement || head.parentElement;
+      if (container) {
+        const all = Array.from(container.querySelectorAll("*"))
+          .map(n => n.textContent || "")
+          .join(" ");
+        const matches = all.match(/\$[\d.,]+/g) || [];
+        // OJO: aquí puede contar ticket/otros; tratamos de sumar solo montos de pagos:
+        // heurística: tomar los montos más pequeños/medianos repetidos; si hay muchísimos, fallback a "Abono hasta el momento"
+        let sum = 0;
+        matches.forEach(m => sum += moneyToNumber(m));
+        // si sum es absurdo (ej: incluye ticket), lo recortamos usando el mayor valor como ticket
+        if (matches.length >= 3) {
+          const nums = matches.map(m => moneyToNumber(m)).filter(n => n > 0).sort((a,b)=>a-b);
+          // si el mayor es muy grande vs los demás, lo quitamos (probable ticket)
+          if (nums.length >= 3 && nums[nums.length-1] > nums[nums.length-2] * 1.8) {
+            sum = nums.slice(0, -1).reduce((a,b)=>a+b,0);
+          }
+        }
+        return sum || 0;
       }
-
-      // fallback: tree walk por texto
-      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
-      let node;
-      while ((node = walker.nextNode())){
-        const t = (node.nodeValue || '').trim();
-        if (t.includes('Debe ser mayor a 0')) return node.parentElement;
-      }
-      return null;
     }
 
-    function injectPaidHint(){
-      const dlg = getOpenDialog();
-      if (!dlg) return;
+    return 0;
+  };
 
-      const anchor = findMustBeGreaterThanZeroNode(dlg);
-      if (!anchor) return;
+  // =========================
+  // 4) Insertar hint "Llevas abonado: $X" después de "Debe ser mayor a 0."
+  // =========================
+  const injectPaidHintInModal = () => {
+    const key = "Debe ser mayor a 0";
+    const key2 = "Debe ser mayor a 0.";
+    const modal = forceSolidOnCurrentModal();
+    if (!modal) return;
 
-      // crea o actualiza hint
-      let hint = dlg.querySelector('#paidSoFarHint');
-      if (!hint){
-        hint = document.createElement('div');
-        hint.id = 'paidSoFarHint';
-        hint.className = 'hintPaidSoFar';
-        anchor.insertAdjacentElement('afterend', hint);
-      }
+    // busca el texto "Debe ser mayor a 0" dentro del modal
+    let hintLine = findByText(modal, key) || findByText(modal, key2);
+    if (!hintLine) return;
 
-      hint.textContent = `Llevas abonado hasta ahora: $${fmtMoney(sumPaid())}`;
-    }
+    // no duplicar
+    if (modal.querySelector(".paidHintInline")) return;
 
-    // Re-inyecta cada vez que se abre/cambia el modal (observador)
-    const obs = new MutationObserver(() => {
-      injectPaidHint();
-    });
+    const paid = getPaidTotalFromUI();
+    const span = document.createElement("span");
+    span.className = "paidHintInline";
+    span.textContent = `Llevas abonado: ${formatMXN(paid)}`;
 
-    obs.observe(document.documentElement, { childList: true, subtree: true });
+    // Insertar al final de esa línea
+    hintLine.appendChild(span);
+  };
 
-    // También al cargar
-    window.addEventListener('load', () => {
-      injectPaidHint();
-      // y cuando el usuario escribe (por si tu código recalcula pagos on input)
-      document.addEventListener('input', () => injectPaidHint(), true);
-      document.addEventListener('click', () => injectPaidHint(), true);
-    });
-  })();
+  // =========================
+  // 5) Observador para aplicar cuando se abra el modal o cambie el monto
+  // =========================
+  const runAll = () => {
+    injectModalCSS();
+    forceSolidOnCurrentModal();
+    injectPaidHintInModal();
+  };
+
+  const obs = new MutationObserver(() => runAll());
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+
+  window.addEventListener("load", () => runAll());
+  document.addEventListener("click", () => setTimeout(runAll, 0), true);
+  document.addEventListener("input", () => setTimeout(runAll, 0), true);
+})();
 </script>
 <!-- ✅ FIN OVERRIDES -->
 
