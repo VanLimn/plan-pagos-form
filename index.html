@@ -649,7 +649,7 @@
       <div class="header">
         <div class="title">
           <h1>Formulario · Plan de Pagos</h1>
-          <p>Captura de datos + calendarización de pagos.</p>
+          <p>Captura de datos + calendarización de pagos. Multi-paso con Back/Next.</p>
         </div>
         <div class="progress">
           <div class="stepLabel" id="stepLabel">Paso 1 de 10</div>
@@ -2129,206 +2129,206 @@ Restante pendiente: ${money(data.ticket.restante)}
     setStep(1);
     updateLiveTotals();
   </script>
-  <!-- ✅ OVERRIDES -->
+  <!-- ✅ OVERRIDES (pegado al final del body) -->
 <style id="vxab-overrides">
-  /* 1) Quitar "Multi-paso con Back/Next." */
-  .subtitulo, .subtitle, .header-subtitle { display:none !important; }
 
-  /* Fallback por si ese texto está suelto en un <p> */
-  /* 2) Backdrop (fondo del modal) con blur real + NO transparente */
+  /* 0) Quitar “Multi-paso con Back/Next.” arriba */
+  .subtitulo, .subtitle, .header-subtitle { display: none !important; }
+
+  /* 1) BLUR SOLO EN MODALES (no en tarjetas/paneles) */
   .modal-backdrop,
   .modal-overlay,
   .overlay,
   .backdrop,
   [data-backdrop],
   [data-modal-backdrop],
-  [aria-hidden="false"] .backdrop,
   [role="dialog"][aria-modal="true"]::before {
     background: rgba(0,0,0,.55) !important;
-    -webkit-backdrop-filter: blur(14px) !important;
-    backdrop-filter: blur(14px) !important;
-    opacity: 1 !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    backdrop-filter: blur(16px) !important;
   }
 
-  /* 3) Caja del modal (el pop up) sólida (evitar usar opacity en el contenedor) */
+  /* 2) Modal/dialog con fondo sólido para que NO se vea transparente */
   .modal,
   .dialog,
-  .modal-content,
-  .modal-card,
   [role="dialog"][aria-modal="true"] {
-    background: rgba(15, 18, 28, .92) !important;
+    background: rgba(12, 14, 20, .92) !important;
     border: 1px solid rgba(255,255,255,.08) !important;
-    box-shadow: 0 20px 70px rgba(0,0,0,.55) !important;
   }
 
-  /* 4) Hint chiquito dentro del modal */
-  .vxab-hint {
-    display: inline-block;
-    margin-left: 8px;
-    font-size: 12px;
-    opacity: .85;
-    white-space: nowrap;
+  /* 3) Anti “pantalla blanca” iPhone: NO blur global */
+  /* (si por accidente tu CSS tiene backdrop-filter en cards/panel/body, aquí lo neutralizamos) */
+  .card, .panel, .container-card, .form-card, .glass, .glass-card {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
   }
-
-  /* 5) iOS/Safari: evitar pantallazo blanco por alturas raras */
-  html, body { min-height: 100%; }
-  body { min-height: 100dvh; }
 </style>
 
 <script>
+/* ✅ OVERRIDES JS: restante pendiente correcto + ocultar totales cuando 1 pago + evitar "Pago 6 de 5" */
 (() => {
-  // ---------- helpers ----------
-  const moneyParse = (s) => {
-    if (!s) return NaN;
-    let t = String(s).trim();
-    // quita símbolos excepto dígitos, punto y coma
-    t = t.replace(/[^\d.,-]/g, "");
-    // casos:
-    // 1) "49,798.00" -> remove commas
-    // 2) "49.798,00" -> european -> remove dots, replace comma by dot
-    const hasComma = t.includes(",");
-    const hasDot = t.includes(".");
-    if (hasComma && hasDot) {
-      // decidir cuál es decimal: normalmente el último separador es decimal
-      if (t.lastIndexOf(",") > t.lastIndexOf(".")) {
-        t = t.replace(/\./g, "").replace(/,/g, ".");
-      } else {
-        t = t.replace(/,/g, "");
+  const money = (n) => {
+    const num = Number(n);
+    if (!isFinite(num)) return '$0.00';
+    return num.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+  };
+
+  const parseMoney = (txt) => {
+    if (!txt) return 0;
+    // Quita todo excepto dígitos y punto
+    const cleaned = String(txt).replace(/[^\d.]/g, '');
+    const v = Number(cleaned);
+    return isFinite(v) ? v : 0;
+  };
+
+  const getTicketTotal = () => {
+    // Busca un bloque que diga "Ticket" y al lado/abajo tenga $...
+    const labels = Array.from(document.querySelectorAll('div, span, p, h1, h2, h3, h4, h5, strong'));
+    const ticketLabel = labels.find(el => (el.textContent || '').trim().toLowerCase() === 'ticket');
+    if (!ticketLabel) return 0;
+
+    // intenta leer un sibling cercano con dinero
+    const parent = ticketLabel.closest('div') || ticketLabel.parentElement;
+    if (!parent) return 0;
+
+    const candidate = Array.from(parent.querySelectorAll('*'))
+      .map(x => x.textContent)
+      .find(t => /\$/.test(t || ''));
+
+    return parseMoney(candidate || parent.textContent);
+  };
+
+  const getRemainingFromUI = () => {
+    // Si ya existe "Restante pendiente" en UI, lo usamos (más confiable)
+    const nodes = Array.from(document.querySelectorAll('div, span, p, strong'));
+    const remLabel = nodes.find(el => (el.textContent || '').toLowerCase().includes('restante pendiente'));
+    if (!remLabel) return null;
+
+    const parent = remLabel.closest('div') || remLabel.parentElement;
+    if (!parent) return null;
+
+    // busca el primer $ dentro del mismo contenedor
+    const text = parent.textContent || '';
+    const match = text.match(/\$[\s]*[\d.,]+/);
+    if (!match) return null;
+
+    return parseMoney(match[0]);
+  };
+
+  const sumAbonosList = () => {
+    // Suma montos desde "Tus abonos" (cards de Pago #)
+    // Intenta detectar líneas tipo "$8,000.00" dentro del panel derecho
+    const panels = Array.from(document.querySelectorAll('div, section, aside'));
+    const tusAbonos = panels.find(el => (el.textContent || '').toLowerCase().includes('tus abonos'));
+    if (!tusAbonos) return 0;
+
+    const amounts = (tusAbonos.textContent || '').match(/\$[\s]*[\d.,]+/g) || [];
+    return amounts.reduce((acc, m) => acc + parseMoney(m), 0);
+  };
+
+  const getNumPagos = () => {
+    // Agarra el valor del input "¿Cuántos pagos...?"
+    const inputs = Array.from(document.querySelectorAll('input'));
+    const target = inputs.find(i => {
+      const ph = (i.getAttribute('placeholder') || '').toLowerCase();
+      return ph.includes('ej.') && (i.type === 'text' || i.type === 'number');
+    });
+    // si no lo encuentra, intenta por label cercano
+    if (target && target.value) return Math.max(0, parseInt(target.value, 10) || 0);
+
+    // fallback: busca el texto "Tus abonos 2/5" => extrae el total
+    const text = document.body.innerText || '';
+    const m = text.match(/tus abonos\s*\d+\s*\/\s*(\d+)/i);
+    if (m) return Math.max(0, parseInt(m[1], 10) || 0);
+
+    return 0;
+  };
+
+  const hideTotalsIfOne = () => {
+    const n = getNumPagos();
+    // encuentra la sección "Totales en vivo"
+    const nodes = Array.from(document.querySelectorAll('div, section'));
+    const tot = nodes.find(el => (el.textContent || '').toLowerCase().includes('totales en vivo'));
+    if (!tot) return;
+
+    const box = tot.closest('section') || tot.closest('div') || tot;
+    if (!box) return;
+
+    box.style.display = (n <= 1) ? 'none' : '';
+  };
+
+  const fixPagoXdeYText = () => {
+    const n = getNumPagos();
+    if (!n) return;
+
+    // Si ya tienen n pagos guardados (Tus abonos n/n), ocultar la línea “Selecciona una fecha para Pago X de Y”
+    const bodyText = document.body.innerText || '';
+    const done = new RegExp(`Tus abonos\\s*${n}\\s*\\/\\s*${n}`, 'i').test(bodyText);
+
+    if (!done) return;
+
+    const candidates = Array.from(document.querySelectorAll('div, p, span, small'));
+    candidates.forEach(el => {
+      const t = (el.textContent || '').toLowerCase();
+      if (t.includes('selecciona una fecha para pago') && t.includes(`de ${n}`)) {
+        el.style.display = 'none';
       }
-    } else if (hasComma && !hasDot) {
-      // "1234,56" -> decimal
-      t = t.replace(/,/g, ".");
-    }
-    const n = Number(t);
-    return Number.isFinite(n) ? n : NaN;
-  };
-
-  const moneyFmt = (n) => {
-    try {
-      return new Intl.NumberFormat("es-MX", { style:"currency", currency:"MXN" }).format(n);
-    } catch {
-      return "$" + (Math.round(n * 100) / 100).toFixed(2);
-    }
-  };
-
-  // Busca el valor asociado a un label visible (ej. "Restante pendiente")
-  const findValueByLabel = (labelText) => {
-    const all = Array.from(document.querySelectorAll("div,span,p,strong,b,small"));
-    const label = all.find(el => (el.textContent || "").trim().toLowerCase() === labelText.toLowerCase());
-    if (!label) return null;
-
-    // normalmente el valor está en un sibling cercano o dentro del mismo bloque
-    const parent = label.parentElement;
-    if (parent) {
-      const candidates = Array.from(parent.querySelectorAll("div,span,strong,b")).filter(x => x !== label);
-      // agarrar el que parezca monto
-      const valueEl = candidates.find(x => /[\d]/.test(x.textContent) && /[$\d]/.test(x.textContent));
-      if (valueEl) return valueEl.textContent;
-    }
-
-    // fallback: el siguiente elemento en el DOM
-    const next = label.nextElementSibling;
-    if (next) return next.textContent;
-
-    return null;
-  };
-
-  const getNumPayments = () => {
-    const inp = document.querySelector('input[type="number"], input[inputmode="numeric"]');
-    if (!inp) return NaN;
-    const n = Number(inp.value);
-    return Number.isFinite(n) ? n : NaN;
-  };
-
-  const removeBackNextSubtitle = () => {
-    const nodes = Array.from(document.querySelectorAll("p,span,div"));
-    nodes.forEach(el => {
-      const t = (el.textContent || "").trim();
-      if (t === "Multi-paso con Back/Next." || t.includes("Multi-paso con Back/Next")) {
-        el.style.display = "none";
-      }
     });
   };
 
-  // ---------- track "qué pago estás editando" ----------
-  let currentEditPayNumber = null;
+  const injectRemainingIntoModalHint = () => {
+    // Queremos que en el modal se muestre "Restante pendiente: $X"
+    // Ubicamos el modal por título “Monto a abonar” o “Editar pago”
+    const dialogs = Array.from(document.querySelectorAll('[role="dialog"], .modal, .dialog'));
+    const dlg = dialogs.find(d => {
+      const t = (d.textContent || '').toLowerCase();
+      return t.includes('monto a abonar') || t.includes('editar pago');
+    });
+    if (!dlg) return;
 
-  document.addEventListener("click", (e) => {
-    const btn = e.target.closest("button,a");
-    if (!btn) return;
-
-    const txt = (btn.textContent || "").trim().toLowerCase();
-    if (!(txt === "editar" || txt === "edit")) return;
-
-    // buscar "Pago #N" en el card contenedor
-    const card = btn.closest("div");
-    if (!card) return;
-
-    // subir unos niveles por si el botón está muy adentro
-    let scope = card;
-    for (let i = 0; i < 6; i++) {
-      const m = (scope.textContent || "").match(/Pago\s*#\s*(\d+)/i);
-      if (m) { currentEditPayNumber = Number(m[1]); return; }
-      if (!scope.parentElement) break;
-      scope = scope.parentElement;
+    // Calcula restante: preferimos UI “Restante pendiente”, si no calculamos por ticket - abonos
+    let remaining = getRemainingFromUI();
+    if (remaining == null) {
+      const ticket = getTicketTotal();
+      const abonado = sumAbonosList();
+      remaining = Math.max(0, ticket - abonado);
     }
-  }, true);
 
-  // ---------- inject hint into modal ----------
-  const injectRemainingHint = () => {
-    removeBackNextSubtitle();
+    // Encuentra el texto tipo “Número (sin $)....” y ahí anexamos restante
+    const nodes = Array.from(dlg.querySelectorAll('p, small, div, span'));
+    const hint = nodes.find(el => (el.textContent || '').toLowerCase().includes('número (sin'));
+    if (!hint) return;
 
-    // Solo desde pago 2 (regla tuya)
-    if (!(Number(currentEditPayNumber) >= 2)) return;
+    // Limpia cualquier resto previo para evitar duplicados
+    let base = hint.textContent || '';
+    base = base.replace(/restante pendiente:\s*\$[\d.,]+/ig, '').replace(/llevas abonado:\s*\$[\d.,]+/ig, '').trim();
 
-    // Lee "Restante pendiente" del cuadro de totales
-    const remainingText = findValueByLabel("Restante pendiente");
-    const remaining = moneyParse(remainingText);
-    if (!Number.isFinite(remaining)) return;
-
-    // Encuentra el modal visible
-    const dialogs = Array.from(document.querySelectorAll('[role="dialog"], .modal, .dialog, .modal-content'));
-    const modal = dialogs.find(el => {
-      const st = getComputedStyle(el);
-      return st && st.display !== "none" && st.visibility !== "hidden" && st.opacity !== "0";
-    });
-    if (!modal) return;
-
-    // Encuentra la línea "Debe ser mayor a 0."
-    const lines = Array.from(modal.querySelectorAll("small, p, div, span"));
-    const line = lines.find(el => (el.textContent || "").includes("Debe ser mayor a 0"));
-    if (!line) return;
-
-    // Evitar duplicados
-    if (line.querySelector(".vxab-hint")) return;
-
-    const hint = document.createElement("span");
-    hint.className = "vxab-hint";
-    hint.textContent = `Restante pendiente: ${moneyFmt(remaining)}`;
-
-    line.appendChild(hint);
+    hint.textContent = `${base}  Restante pendiente: ${money(remaining)}.`;
   };
 
-  // ---------- observer (pero con debounce para que NO explote iOS) ----------
-  let raf = null;
-  const schedule = () => {
-    if (raf) return;
-    raf = requestAnimationFrame(() => {
-      raf = null;
-      injectRemainingHint();
-    });
-  };
+  const schedule = (() => {
+    let raf = null;
+    return () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = null;
+        try { hideTotalsIfOne(); } catch(e){}
+        try { fixPagoXdeYText(); } catch(e){}
+        try { injectRemainingIntoModalHint(); } catch(e){}
+      });
+    };
+  })();
 
   // Observa cambios (modales + clicks + inputs)
   const obs = new MutationObserver(schedule);
   obs.observe(document.documentElement, { childList: true, subtree: true });
 
-  window.addEventListener("load", schedule, { passive:true });
-  document.addEventListener("click", schedule, true);
-  document.addEventListener("input", schedule, true);
-
+  window.addEventListener('load', schedule, { passive: true });
+  document.addEventListener('click', schedule, true);
+  document.addEventListener('input', schedule, true);
 })();
 </script>
 <!-- ✅ FIN OVERRIDES -->
+
 </body>
 </html>
