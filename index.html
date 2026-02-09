@@ -2129,7 +2129,7 @@ Restante pendiente: ${money(data.ticket.restante)}
     setStep(1);
     updateLiveTotals();
   </script>
-  <!-- ✅ START OVERRIDES (mobile + popup hint + clamp "Pago X de N") -->
+  <!-- ✅ START OVERRIDES (popup solid + hint + clamp "Pago X de N") -->
 <script>
 (() => {
   // -----------------------------
@@ -2140,30 +2140,23 @@ Restante pendiente: ${money(data.ticket.restante)}
     .replace(/[^\d.,-]/g, "")
     .trim();
 
-  // Lee "$49,799.00" / "49.799,00" sin reventar. Devuelve number o null.
   const parseMoneyLoose = (raw) => {
     const t = normMoney(raw);
     if (!t) return null;
 
-    // Si tiene ambos separadores, asumimos que el último es decimal
     const lastDot = t.lastIndexOf(".");
     const lastComma = t.lastIndexOf(",");
     let v = t;
 
     if (lastDot > -1 && lastComma > -1) {
       const decIsComma = lastComma > lastDot;
-      if (decIsComma) {
-        v = v.replace(/\./g, "").replace(",", ".");
-      } else {
-        v = v.replace(/,/g, "");
-      }
+      if (decIsComma) v = v.replace(/\./g, "").replace(",", ".");
+      else v = v.replace(/,/g, "");
     } else if (lastComma > -1) {
-      // Si solo hay coma, asumimos coma decimal si parece "123,45"
       const parts = t.split(",");
       if (parts.length === 2 && parts[1].length <= 2) v = t.replace(",", ".");
       else v = t.replace(/,/g, "");
     } else {
-      // solo punto o nada -> ok
       v = t;
     }
 
@@ -2179,57 +2172,91 @@ Restante pendiente: ${money(data.ticket.restante)}
     }
   };
 
-  // Encuentra un card/row por su label y devuelve el value (texto)
   const findValueByLabel = (labelText) => {
     const labelCandidates = Array.from(document.querySelectorAll("body *"))
       .filter(el => el.children.length === 0)
       .filter(el => (el.textContent || "").trim() === labelText);
 
     for (const lab of labelCandidates) {
-      // Buscamos un value cercano: siguiente sibling, o dentro del mismo contenedor
       const parent = lab.parentElement;
       if (!parent) continue;
 
-      // Caso típico: label y debajo un value
       const next = lab.nextElementSibling;
       if (next && (next.textContent || "").trim()) return (next.textContent || "").trim();
 
-      // O un contenedor donde el valor es el texto grande dentro
       const big = parent.querySelector("strong, b, .value, .amount");
       if (big && (big.textContent || "").trim()) return (big.textContent || "").trim();
 
-      // O el último nodo de texto dentro del parent
       const txts = Array.from(parent.querySelectorAll("*"))
         .filter(x => x.children.length === 0)
         .map(x => (x.textContent || "").trim())
         .filter(Boolean);
 
-      // si hay varios, el value suele ser el último
       if (txts.length >= 2) return txts[txts.length - 1];
     }
     return null;
   };
 
-  // Lee "Restante pendiente" del UI (esto es lo que tú quieres mostrar)
   const getRestantePendiente = () => {
     const raw = findValueByLabel("Restante pendiente");
-    const n = parseMoneyLoose(raw);
-    return n;
+    return parseMoneyLoose(raw);
   };
 
-  // Lee "Tu abono hasta el momento es de" (por si lo necesitas)
   const getAbonoHastaAhora = () => {
     const raw = findValueByLabel("Tu abono hasta el momento es de");
-    const n = parseMoneyLoose(raw);
-    return n;
+    return parseMoneyLoose(raw);
+  };
+
+  // -----------------------------
+  // 0) FIX: Modal transparente -> forzar fondo sólido (overlay + card)
+  // -----------------------------
+  const fixModalTransparency = () => {
+    const titles = ["Editar pago", "Monto a abonar"];
+    const titleEl = Array.from(document.querySelectorAll("body *"))
+      .find(el => el.children.length === 0 && titles.includes((el.textContent || "").trim()));
+
+    if (!titleEl) return;
+
+    // Card del modal: subimos varios niveles hasta encontrar un bloque "grande" (típico del modal)
+    let card = titleEl.closest("div");
+    if (!card) return;
+
+    // subir un poco para agarrar el contenedor correcto del modal
+    for (let i = 0; i < 6 && card && card.parentElement; i++) {
+      const r = card.getBoundingClientRect();
+      // si ya parece un "card" (ancho decente) paramos
+      if (r.width >= 260 && r.height >= 180) break;
+      card = card.parentElement;
+    }
+
+    // Overlay: suele ser el padre o abuelo con position fixed
+    let overlay = card;
+    for (let i = 0; i < 10 && overlay && overlay.parentElement; i++) {
+      const cs = window.getComputedStyle(overlay);
+      if (cs.position === "fixed") break;
+      overlay = overlay.parentElement;
+    }
+
+    // Fuerza overlay oscuro (si existe)
+    if (overlay) {
+      overlay.style.background = "rgba(0,0,0,0.55)";
+      overlay.style.backdropFilter = "blur(6px)";
+      overlay.style.webkitBackdropFilter = "blur(6px)";
+    }
+
+    // Fuerza card sólido
+    // OJO: esto deja tu estética premium, pero ya NUNCA se verá transparente
+    card.style.background = "rgba(10, 12, 18, 0.98)";
+    card.style.border = "1px solid rgba(255,255,255,0.08)";
+    card.style.boxShadow = "0 20px 60px rgba(0,0,0,0.55)";
+    card.style.backdropFilter = "none";
+    card.style.webkitBackdropFilter = "none";
   };
 
   // -----------------------------
   // 1) Clamp "Pago X de N" para que nunca sea "6 de 5"
-  //    y si ya llenó todos, ocultar ese texto.
   // -----------------------------
   const clampPagoCounter = () => {
-    // Busca textos tipo: "Selecciona una fecha para Pago 6 de 5"
     const nodes = Array.from(document.querySelectorAll("body *"))
       .filter(el => el.children.length === 0);
 
@@ -2242,55 +2269,43 @@ Restante pendiente: ${money(data.ticket.restante)}
       const total = Number(m[2]);
       if (!Number.isFinite(cur) || !Number.isFinite(total) || total <= 0) continue;
 
-      // Si ya está completo o se pasó, lo arreglamos/hide
       if (cur > total) {
-        // Si el UI te confunde, mejor ocultarlo cuando ya terminó:
-        // (cur>total suele ocurrir justo cuando completó)
-        el.style.display = "none";
+        el.style.display = "none"; // ocultar si ya está completo
       } else {
-        el.style.display = ""; // por si estaba oculto
+        el.style.display = "";
       }
     }
   };
 
   // -----------------------------
-  // 2) Hint dentro del popup:
-  //    Cambiamos a: "Restante pendiente: $X"
-  //    y lo mostramos SOLO a partir del pago #2 (o sea, cuando ya hay más de un pago).
+  // 2) Hint dentro del popup: "Restante pendiente: $X"
+  //    SOLO a partir del pago #2
   // -----------------------------
   const injectPendingHintInPopup = () => {
-    // Detecta el popup (tu modal) por título
     const modalTitles = ["Editar pago", "Monto a abonar"];
-    const modal = Array.from(document.querySelectorAll("body *"))
-      .find(el => el.children.length === 0 && modalTitles.includes((el.textContent || "").trim()))
-      ?.closest("div");
+    const titleEl = Array.from(document.querySelectorAll("body *"))
+      .find(el => el.children.length === 0 && modalTitles.includes((el.textContent || "").trim()));
 
+    const modal = titleEl ? titleEl.closest("div") : null;
     if (!modal) return;
 
-    // Detecta el texto de ayuda: "Número (sin $). Se formatea automático. Debe ser mayor a 0."
     const helpEl = Array.from(modal.querySelectorAll("*"))
       .find(el => el.children.length === 0 && /Debe\s+ser\s+mayor\s+a\s+0\./i.test((el.textContent || "").trim()));
 
     if (!helpEl) return;
 
-    // Solo mostrar a partir de pago #2:
-    // Leemos si en el modal dice "Pago #1" o hay tarjeta seleccionada.
     const modalText = (modal.textContent || "");
     const isPago1 = /Pago\s*#?\s*1\b/i.test(modalText) || /Pago\s*1\b/i.test(modalText);
 
-    // Si es pago 1 -> deja el texto limpio (sin hint)
     if (isPago1) {
-      // restaura versión base sin hint extra si antes se lo pegamos
       helpEl.textContent = "Número (sin $). Se formatea automático. Debe ser mayor a 0.";
       return;
     }
 
     const restante = getRestantePendiente();
     if (restante == null) {
-      // fallback: usa abono hasta ahora si no encontró restante
       const abono = getAbonoHastaAhora();
       if (abono == null) return;
-
       helpEl.textContent =
         "Número (sin $). Se formatea automático. Debe ser mayor a 0. · Llevas abonado: " + formatMXN(abono);
       return;
@@ -2301,14 +2316,14 @@ Restante pendiente: ${money(data.ticket.restante)}
   };
 
   // -----------------------------
-  // Observers: correr al cargar, al click y cuando cambia el DOM
+  // Runner + observer (ligero)
   // -----------------------------
   const runAll = () => {
+    fixModalTransparency();
     clampPagoCounter();
     injectPendingHintInPopup();
   };
 
-  // Un observer MUY ligero para no romper Safari (evitar loops)
   let rafId = null;
   const schedule = () => {
     if (rafId) return;
