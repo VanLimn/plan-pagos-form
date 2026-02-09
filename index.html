@@ -2229,6 +2229,47 @@ Restante pendiente: ${money(data.ticket.restante)}
 })();
 </script>
 <!-- ✅ FIN OVERRIDE v4 -->
+<!-- ✅ ADD-ON: Arreglar "Pago 4 de 3" (cuando X > Y) -->
+<script>
+(() => {
+  const RX = /Selecciona una fecha para Pago\s+(\d+)\s+de\s+(\d+)/i;
+
+  const fixPagoXdeY = () => {
+    // Buscamos textos cortos donde normalmente aparece esa línea
+    const candidates = document.querySelectorAll('p, span, div, small, strong, em, label');
+
+    candidates.forEach(el => {
+      const t = (el.textContent || '').trim();
+      const m = t.match(RX);
+      if (!m) return;
+
+      const x = Number(m[1]);
+      const y = Number(m[2]);
+
+      // Guardar original para poder restaurar si el usuario cambia el número de pagos
+      if (!el.dataset.vxabOrig) el.dataset.vxabOrig = t;
+
+      if (Number.isFinite(x) && Number.isFinite(y) && x > y) {
+        el.textContent = 'Pagos completos ✅';
+      } else {
+        // Si ya no está rebasado, restauramos el texto original
+        el.textContent = el.dataset.vxabOrig;
+      }
+    });
+  };
+
+  // Correr al load + cuando cambie el DOM (calendario / pagos)
+  const schedule = () => requestAnimationFrame(fixPagoXdeY);
+
+  window.addEventListener('load', schedule, { passive:true });
+  document.addEventListener('click', schedule, true);
+  document.addEventListener('input', schedule, true);
+
+  const obs = new MutationObserver(schedule);
+  obs.observe(document.body, { childList:true, subtree:true, characterData:true });
+})();
+</script>
+<!-- ✅ FIN ADD-ON -->
 
 </body>
 </html>
