@@ -2129,253 +2129,203 @@ Restante pendiente: ${money(data.ticket.restante)}
     setStep(1);
     updateLiveTotals();
   </script>
-  <!-- ✅ OVERRIDES -->
-<style>
-  /* =========================================================
-     iOS FIX: Safari/Chrome iOS a veces “blanquea” con blur/backdrop-filter.
-     En iPhone: quitamos blur y dejamos un vidrio sólido premium.
-     ========================================================= */
-
-  /* Overlay del modal: más oscuro y estable */
-  .ab-modal-overlay,
-  .modal-overlay,
-  [data-modal-overlay],
-  .overlay {
-    background: rgba(0,0,0,.65) !important;
-  }
-
-  /* Caja del modal: NO transparente */
-  .ab-modal,
-  .modal,
-  [data-modal],
-  .dialog,
-  .popup,
-  .sheet {
-    background: rgba(17, 19, 26, 0.96) !important; /* sólido premium */
-    border: 1px solid rgba(255,255,255,0.08) !important;
-    box-shadow: 0 24px 70px rgba(0,0,0,0.45) !important;
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
-  }
-
-  /* Si tu UI usa “glass cards” */
-  .glass,
-  .card,
-  .panel {
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
-  }
-
-  /* Fallback específico iOS */
-  @supports (-webkit-touch-callout: none) {
-    /* Quita TODO blur/backdrop-filter que pueda romper iOS */
-    * {
-      -webkit-backdrop-filter: none !important;
-      backdrop-filter: none !important;
-    }
-
-    /* Evita bug por backgrounds fijos con gradientes enormes */
-    body {
-      background-attachment: scroll !important;
-    }
-  }
-
-  /* Hint mini debajo del “Debe ser mayor a 0.” */
-  .paid-hint {
-    display: inline-block;
-    margin-left: 8px;
-    opacity: .78;
-    font-size: 12px;
-    line-height: 1;
-    white-space: nowrap;
-  }
-</style>
-
+  <!-- ✅ START OVERRIDES (mobile + popup hint + clamp "Pago X de N") -->
 <script>
-/* =========================================================
-   OVERRIDES LIGEROS (sin observers agresivos)
-   - Fix “Pago 6 de 5”
-   - Hint “Llevas abonado …” solo si pagos >= 2
-   - iOS stable (no crashea)
-   ========================================================= */
+(() => {
+  // -----------------------------
+  // Helpers
+  // -----------------------------
+  const normMoney = (s) => (s || "")
+    .replace(/\u00A0/g, " ")
+    .replace(/[^\d.,-]/g, "")
+    .trim();
 
-(function () {
-  // ---------- helpers ----------
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  // Lee "$49,799.00" / "49.799,00" sin reventar. Devuelve number o null.
+  const parseMoneyLoose = (raw) => {
+    const t = normMoney(raw);
+    if (!t) return null;
 
-  function moneyToNumber(str) {
-    if (!str) return 0;
-    // acepta: "$48,800.00" / "48,800" / "48800"
-    const clean = String(str).replace(/[^\d.,-]/g, '').trim();
-    // si tiene ambas , y . asumimos , miles y . decimales
-    // si solo tiene , asumimos miles
-    let normalized = clean;
-    if (clean.includes(',') && clean.includes('.')) {
-      normalized = clean.replace(/,/g, '');
-    } else if (clean.includes(',') && !clean.includes('.')) {
-      normalized = clean.replace(/,/g, '');
-    }
-    const n = Number(normalized);
-    return Number.isFinite(n) ? n : 0;
-  }
+    // Si tiene ambos separadores, asumimos que el último es decimal
+    const lastDot = t.lastIndexOf(".");
+    const lastComma = t.lastIndexOf(",");
+    let v = t;
 
-  function formatMXN(n) {
-    try {
-      return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n);
-    } catch {
-      return '$' + (Math.round(n * 100) / 100).toLocaleString('es-MX');
-    }
-  }
-
-  function getTotalPaymentsDesired() {
-    // Intenta agarrar el input de “¿Cuántos pagos…?”
-    // (si cambia tu HTML, esto igual funciona por fallback)
-    const inputs = Array.from(document.querySelectorAll('input, select, textarea'));
-    const cand = inputs.find(el => {
-      const ph = (el.placeholder || '').toLowerCase();
-      const name = (el.name || '').toLowerCase();
-      const id = (el.id || '').toLowerCase();
-      return /pagos/.test(ph) || /pagos/.test(name) || /pagos/.test(id);
-    });
-    const v = cand ? Number(cand.value) : NaN;
-    if (Number.isFinite(v) && v > 0) return v;
-
-    // fallback: busca “Paso X de Y” no sirve; buscamos el contador “0/3” arriba de “Tus abonos”
-    const counter = document.querySelector('.payments-counter, .counter, [data-payments-counter]');
-    if (counter) {
-      const m = counter.textContent.match(/(\d+)\s*\/\s*(\d+)/);
-      if (m) return Number(m[2]);
-    }
-
-    // último fallback
-    return 1;
-  }
-
-  function sumCurrentPayments() {
-    // suma montos visibles en tarjetas de pagos del panel “Tus abonos”
-    const panel = Array.from(document.querySelectorAll('*')).find(el => {
-      const t = (el.textContent || '');
-      return t.includes('Tus abonos');
-    });
-
-    let scope = panel;
-    if (scope) {
-      // usualmente el panel es un contenedor, subimos un poco para incluir cards
-      scope = scope.closest('section, div') || scope;
+    if (lastDot > -1 && lastComma > -1) {
+      const decIsComma = lastComma > lastDot;
+      if (decIsComma) {
+        v = v.replace(/\./g, "").replace(",", ".");
+      } else {
+        v = v.replace(/,/g, "");
+      }
+    } else if (lastComma > -1) {
+      // Si solo hay coma, asumimos coma decimal si parece "123,45"
+      const parts = t.split(",");
+      if (parts.length === 2 && parts[1].length <= 2) v = t.replace(",", ".");
+      else v = t.replace(/,/g, "");
     } else {
-      scope = document;
+      // solo punto o nada -> ok
+      v = t;
     }
 
-    // agarramos textos con $ dentro de cards
-    const dollarNodes = Array.from(scope.querySelectorAll('*'))
-      .filter(el => el.children.length === 0 && (el.textContent || '').includes('$'));
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
 
-    let total = 0;
-    for (const el of dollarNodes) {
-      const txt = (el.textContent || '').trim();
-      // evita sumar “Ticket $50,000” y otros totales: solo suma los que están cerca de “Pago #”
-      const card = el.closest('.payment-card, .pay-card, .ab-card, .card, li, .item');
-      if (!card) continue;
-      const cardText = (card.textContent || '');
-      if (!/Pago\s*#?\s*\d+/i.test(cardText)) continue;
-
-      // encuentra la primer cantidad con $
-      const m = txt.match(/\$\s*[\d.,]+/);
-      if (m) total += moneyToNumber(m[0]);
+  const formatMXN = (n) => {
+    try {
+      return n.toLocaleString("es-MX", { style: "currency", currency: "MXN" });
+    } catch {
+      return "$" + (Math.round(n * 100) / 100).toFixed(2);
     }
-    return total;
-  }
+  };
 
-  function clampPagoHeader() {
-    // Busca textos tipo “Pago 6 de 5” o “Selecciona una fecha para Pago 6 de 5”
-    const nodes = Array.from(document.querySelectorAll('*'))
-      .filter(el => el.children.length === 0 && /Pago\s+\d+\s+de\s+\d+/i.test(el.textContent || ''));
+  // Encuentra un card/row por su label y devuelve el value (texto)
+  const findValueByLabel = (labelText) => {
+    const labelCandidates = Array.from(document.querySelectorAll("body *"))
+      .filter(el => el.children.length === 0)
+      .filter(el => (el.textContent || "").trim() === labelText);
+
+    for (const lab of labelCandidates) {
+      // Buscamos un value cercano: siguiente sibling, o dentro del mismo contenedor
+      const parent = lab.parentElement;
+      if (!parent) continue;
+
+      // Caso típico: label y debajo un value
+      const next = lab.nextElementSibling;
+      if (next && (next.textContent || "").trim()) return (next.textContent || "").trim();
+
+      // O un contenedor donde el valor es el texto grande dentro
+      const big = parent.querySelector("strong, b, .value, .amount");
+      if (big && (big.textContent || "").trim()) return (big.textContent || "").trim();
+
+      // O el último nodo de texto dentro del parent
+      const txts = Array.from(parent.querySelectorAll("*"))
+        .filter(x => x.children.length === 0)
+        .map(x => (x.textContent || "").trim())
+        .filter(Boolean);
+
+      // si hay varios, el value suele ser el último
+      if (txts.length >= 2) return txts[txts.length - 1];
+    }
+    return null;
+  };
+
+  // Lee "Restante pendiente" del UI (esto es lo que tú quieres mostrar)
+  const getRestantePendiente = () => {
+    const raw = findValueByLabel("Restante pendiente");
+    const n = parseMoneyLoose(raw);
+    return n;
+  };
+
+  // Lee "Tu abono hasta el momento es de" (por si lo necesitas)
+  const getAbonoHastaAhora = () => {
+    const raw = findValueByLabel("Tu abono hasta el momento es de");
+    const n = parseMoneyLoose(raw);
+    return n;
+  };
+
+  // -----------------------------
+  // 1) Clamp "Pago X de N" para que nunca sea "6 de 5"
+  //    y si ya llenó todos, ocultar ese texto.
+  // -----------------------------
+  const clampPagoCounter = () => {
+    // Busca textos tipo: "Selecciona una fecha para Pago 6 de 5"
+    const nodes = Array.from(document.querySelectorAll("body *"))
+      .filter(el => el.children.length === 0);
 
     for (const el of nodes) {
-      const t = el.textContent;
+      const t = (el.textContent || "").trim();
       const m = t.match(/Pago\s+(\d+)\s+de\s+(\d+)/i);
       if (!m) continue;
 
       const cur = Number(m[1]);
-      const max = Number(m[2]);
-      if (!Number.isFinite(cur) || !Number.isFinite(max) || max <= 0) continue;
+      const total = Number(m[2]);
+      if (!Number.isFinite(cur) || !Number.isFinite(total) || total <= 0) continue;
 
-      if (cur > max) {
-        // si ya están completos, mejor ocultar la línea (para no confundir)
-        // condición: si ya hay max pagos con monto capturado (o ya no hay pendientes)
-        const totalDesired = getTotalPaymentsDesired();
-        if (totalDesired === max) {
-          // si ya está rebasando, lo más seguro es que ya completó y el UI intentó avanzar
-          el.style.display = 'none';
-        } else {
-          // si por alguna razón max cambió, solo clamp
-          el.textContent = t.replace(/Pago\s+\d+\s+de\s+\d+/i, `Pago ${max} de ${max}`);
-        }
+      // Si ya está completo o se pasó, lo arreglamos/hide
+      if (cur > total) {
+        // Si el UI te confunde, mejor ocultarlo cuando ya terminó:
+        // (cur>total suele ocurrir justo cuando completó)
+        el.style.display = "none";
+      } else {
+        el.style.display = ""; // por si estaba oculto
       }
     }
-  }
+  };
 
-  function injectPaidHint() {
-    const totalDesired = getTotalPaymentsDesired();
-    // solo a partir del pago #2
-    if (totalDesired < 2) {
-      // si existe hint, lo quitamos
-      document.querySelectorAll('.paid-hint').forEach(n => n.remove());
+  // -----------------------------
+  // 2) Hint dentro del popup:
+  //    Cambiamos a: "Restante pendiente: $X"
+  //    y lo mostramos SOLO a partir del pago #2 (o sea, cuando ya hay más de un pago).
+  // -----------------------------
+  const injectPendingHintInPopup = () => {
+    // Detecta el popup (tu modal) por título
+    const modalTitles = ["Editar pago", "Monto a abonar"];
+    const modal = Array.from(document.querySelectorAll("body *"))
+      .find(el => el.children.length === 0 && modalTitles.includes((el.textContent || "").trim()))
+      ?.closest("div");
+
+    if (!modal) return;
+
+    // Detecta el texto de ayuda: "Número (sin $). Se formatea automático. Debe ser mayor a 0."
+    const helpEl = Array.from(modal.querySelectorAll("*"))
+      .find(el => el.children.length === 0 && /Debe\s+ser\s+mayor\s+a\s+0\./i.test((el.textContent || "").trim()));
+
+    if (!helpEl) return;
+
+    // Solo mostrar a partir de pago #2:
+    // Leemos si en el modal dice "Pago #1" o hay tarjeta seleccionada.
+    const modalText = (modal.textContent || "");
+    const isPago1 = /Pago\s*#?\s*1\b/i.test(modalText) || /Pago\s*1\b/i.test(modalText);
+
+    // Si es pago 1 -> deja el texto limpio (sin hint)
+    if (isPago1) {
+      // restaura versión base sin hint extra si antes se lo pegamos
+      helpEl.textContent = "Número (sin $). Se formatea automático. Debe ser mayor a 0.";
       return;
     }
 
-    // Encuentra la línea: “Debe ser mayor a 0.”
-    const lines = Array.from(document.querySelectorAll('*'))
-      .filter(el => el.children.length === 0 && /Debe ser mayor a 0\./i.test(el.textContent || ''));
+    const restante = getRestantePendiente();
+    if (restante == null) {
+      // fallback: usa abono hasta ahora si no encontró restante
+      const abono = getAbonoHastaAhora();
+      if (abono == null) return;
 
-    if (!lines.length) return;
-
-    const totalPaid = sumCurrentPayments();
-    const hintText = `Llevas abonado: ${formatMXN(totalPaid)}`;
-
-    for (const line of lines) {
-      // evita duplicar
-      let hint = line.querySelector('.paid-hint');
-      if (!hint) {
-        hint = document.createElement('span');
-        hint.className = 'paid-hint';
-        line.appendChild(hint);
-      }
-      hint.textContent = hintText;
+      helpEl.textContent =
+        "Número (sin $). Se formatea automático. Debe ser mayor a 0. · Llevas abonado: " + formatMXN(abono);
+      return;
     }
-  }
 
-  // Sync ligero: evita observers agresivos (sobre todo iOS)
-  let ticking = false;
-  function syncUI() {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => {
-      try {
-        clampPagoHeader();
-        injectPaidHint();
-      } catch (e) {
-        // silencioso para no romper UI
-      } finally {
-        ticking = false;
-      }
+    helpEl.textContent =
+      "Número (sin $). Se formatea automático. Debe ser mayor a 0. · Restante pendiente: " + formatMXN(restante);
+  };
+
+  // -----------------------------
+  // Observers: correr al cargar, al click y cuando cambia el DOM
+  // -----------------------------
+  const runAll = () => {
+    clampPagoCounter();
+    injectPendingHintInPopup();
+  };
+
+  // Un observer MUY ligero para no romper Safari (evitar loops)
+  let rafId = null;
+  const schedule = () => {
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      runAll();
     });
-  }
+  };
 
-  // Correr al cargar
-  window.addEventListener('load', () => {
-    syncUI();
+  const obs = new MutationObserver(() => schedule());
+
+  window.addEventListener("load", () => {
+    runAll();
+    obs.observe(document.documentElement, { childList: true, subtree: true });
+    document.addEventListener("click", schedule, true);
+    document.addEventListener("input", schedule, true);
   });
-
-  // Correr cuando el usuario interactúa (modales, guardar, editar)
-  document.addEventListener('click', syncUI, true);
-  document.addEventListener('input', syncUI, true);
-  document.addEventListener('change', syncUI, true);
-
-  // Intervalo suave (por si el UI se pinta async)
-  const intervalMs = isIOS ? 450 : 300;
-  setInterval(syncUI, intervalMs);
-
 })();
 </script>
 <!-- ✅ FIN OVERRIDES -->
