@@ -2270,6 +2270,73 @@ Restante pendiente: ${money(data.ticket.restante)}
 })();
 </script>
 <!-- ✅ FIN ADD-ON -->
+ <!-- ✅ ADD-ON v2: Ocultar "Selecciona una fecha para Pago X de Y" cuando X > Y -->
+<script>
+(() => {
+  // Match flexible: soporta saltos de línea, espacios múltiples, NBSP, etc.
+  const RX = /Selecciona\s+una\s+fecha[\s\S]*?Pago\s*(\d+)\s*de\s*(\d+)/i;
+
+  // Encontrar el elemento más "chico" que contiene ese texto (para no ocultar contenedores grandes)
+  const findLeafTargets = () => {
+    const all = Array.from(document.querySelectorAll('div, p, span, small, label, strong, em, h1, h2, h3, h4'));
+    const targets = [];
+
+    for (const el of all) {
+      const t = (el.textContent || '').replace(/\u00A0/g, ' ').trim(); // NBSP -> espacio
+      if (!RX.test(t)) continue;
+
+      // Si algún hijo también hace match, preferimos el hijo (leaf-most)
+      const childHit = Array.from(el.querySelectorAll('div, p, span, small, label, strong, em'))
+        .some(ch => RX.test(((ch.textContent || '').replace(/\u00A0/g,' ').trim())));
+
+      if (!childHit) targets.push(el);
+    }
+    return targets;
+  };
+
+  const applyFix = () => {
+    const targets = findLeafTargets();
+    targets.forEach(el => {
+      const raw = (el.textContent || '').replace(/\u00A0/g, ' ').trim();
+      const m = raw.match(RX);
+      if (!m) return;
+
+      const x = Number(m[1]);
+      const y = Number(m[2]);
+
+      // Guardamos el display original para restaurar si deja de rebasarse
+      if (!el.dataset.vxabDisp) el.dataset.vxabDisp = (el.style.display || '');
+
+      if (Number.isFinite(x) && Number.isFinite(y) && x > y) {
+        // Ocultamos SOLO la leyenda, sin tocar layout general
+        el.style.display = 'none';
+      } else {
+        // Restaurar si ya no está rebasado
+        el.style.display = el.dataset.vxabDisp;
+      }
+    });
+  };
+
+  // Ejecutar en momentos clave + cuando el DOM cambia (calendario se re-renderiza)
+  let raf = null;
+  const schedule = () => {
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = null;
+      applyFix();
+    });
+  };
+
+  window.addEventListener('load', schedule, { passive:true });
+  document.addEventListener('click', schedule, true);
+  document.addEventListener('input', schedule, true);
+
+  const obs = new MutationObserver(schedule);
+  obs.observe(document.body, { childList:true, subtree:true, characterData:true });
+})();
+</script>
+<!-- ✅ FIN ADD-ON v2 -->
+
 
 </body>
 </html>
