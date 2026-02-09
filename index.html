@@ -2129,97 +2129,106 @@ Restante pendiente: ${money(data.ticket.restante)}
     setStep(1);
     updateLiveTotals();
   </script>
-  <!-- ✅ OVERRIDE v3 (SAFE) -->
-<style id="vxab-overrides-v3">
-
+  <!-- ✅ OVERRIDE v4 (VISIBLE-DIALOG ONLY + BLUR 50%) -->
+<style id="vxab-overrides-v4">
   /* Quitar “Multi-paso con Back/Next.” */
   .subtitulo, .subtitle, .header-subtitle { display:none !important; }
 
-  /* Por default: NO blur global (para que NO se “desaparezca” el form) */
+  /* Backdrop SOLO cuando el script le ponga la clase.
+     50% “decente” (menos negro) */
   .vxab-modal-backdrop {
-    background: rgba(0,0,0,.55) !important;
-    -webkit-backdrop-filter: blur(16px) !important;
-    backdrop-filter: blur(16px) !important;
+    background: rgba(0,0,0,.35) !important; /* <- antes estaba muy oscuro */
+    -webkit-backdrop-filter: blur(12px) !important;
+    backdrop-filter: blur(12px) !important;
   }
 
-  /* Caja del modal sólida (evita “transparente”) */
-  [role="dialog"][aria-modal="true"],
+  /* Caja del modal sólida para que no se vea “transparente” */
   .vxab-dialog {
-    background: rgba(12,14,20,.92) !important;
+    background: rgba(12,14,20,.90) !important;
     border: 1px solid rgba(255,255,255,.10) !important;
   }
 
-  /* iPhone: el blur solo en backdrop del modal (no en toda la página) */
+  /* iPhone: mismo blur (Safari a veces se pone intenso) */
   @supports (-webkit-touch-callout: none){
     .vxab-modal-backdrop {
-      -webkit-backdrop-filter: blur(16px) !important;
-      backdrop-filter: blur(16px) !important;
+      background: rgba(0,0,0,.30) !important; /* un pelín más light en iOS */
+      -webkit-backdrop-filter: blur(12px) !important;
+      backdrop-filter: blur(12px) !important;
     }
   }
-
 </style>
 
 <script>
 (() => {
-  // Encuentra modal abierto
-  const findDialog = () =>
-    Array.from(document.querySelectorAll('[role="dialog"]'))
-      .find(d => (d.getAttribute('aria-modal') || '').toLowerCase() === 'true');
 
-  // Encuentra el backdrop REAL del modal (el contenedor que cubre toda la pantalla)
+  const isVisible = (el) => {
+    if (!el) return false;
+    // Visible real (no hidden / display:none)
+    if (el.offsetParent !== null) return true;
+    // Algunos modales usan position:fixed; offsetParent puede ser null
+    return (el.getClientRects && el.getClientRects().length > 0);
+  };
+
+  // SOLO dialog visible + aria-modal=true
+  const findOpenDialog = () => {
+    const dialogs = Array.from(document.querySelectorAll('[role="dialog"]'));
+    return dialogs.find(d => {
+      const aria = (d.getAttribute('aria-modal') || '').toLowerCase() === 'true';
+      return aria && isVisible(d);
+    }) || null;
+  };
+
+  // Backdrop real del dialog (parent / wrappers comunes)
   const findBackdropFor = (dlg) => {
     if (!dlg) return null;
 
-    // 1) Si el dialog tiene un parent que parece backdrop (clases comunes)
-    const p = dlg.parentElement;
-    if (p && /backdrop|overlay|modal/i.test(p.className || '')) return p;
+    const looksBackdrop = (node) => {
+      const s = ((node.id || '') + ' ' + (node.className || '')).toLowerCase();
+      // OJO: aquí NO tocamos ".overlay" genérico en CSS, solo lo detectamos como contenedor.
+      return /backdrop|modal-backdrop|dialog-backdrop|overlay|modal-overlay/.test(s);
+    };
 
-    // 2) Sube 2 niveles (a veces el diálogo está dentro de un wrapper)
-    const p2 = p?.parentElement;
-    if (p2 && /backdrop|overlay|modal/i.test(p2.className || '')) return p2;
-
-    // 3) Heurística: elemento que contiene al dialog y ocupa toda la pantalla
-    // (sin getComputedStyle para no romper iOS; solo estructura)
-    let node = dlg;
-    for (let i=0; i<4; i++){
-      node = node.parentElement;
-      if (!node) break;
-      const idc = (node.id || '') + ' ' + (node.className || '');
-      if (/backdrop|overlay|modal/i.test(idc)) return node;
+    let n = dlg.parentElement;
+    for (let i = 0; i < 5 && n; i++) {
+      if (looksBackdrop(n)) return n;
+      n = n.parentElement;
     }
     return null;
   };
 
-  const apply = () => {
-    // Limpia marcado anterior
+  const clearMarks = () => {
     document.querySelectorAll('.vxab-modal-backdrop')
       .forEach(el => el.classList.remove('vxab-modal-backdrop'));
     document.querySelectorAll('.vxab-dialog')
       .forEach(el => el.classList.remove('vxab-dialog'));
+  };
 
-    const dlg = findDialog();
+  const apply = () => {
+    clearMarks();
+
+    const dlg = findOpenDialog();
     if (!dlg) return;
 
-    // Marca el dialog
     dlg.classList.add('vxab-dialog');
 
-    // Marca SOLO su backdrop real
     const bd = findBackdropFor(dlg);
     if (bd) bd.classList.add('vxab-modal-backdrop');
   };
 
-  // Run en eventos ligeros (sin subtree observer pesado)
-  window.addEventListener('load', apply, { passive:true });
-  document.addEventListener('click', () => requestAnimationFrame(apply), true);
-  document.addEventListener('input', () => requestAnimationFrame(apply), true);
+  // Hooks ligeros
+  const rafApply = () => requestAnimationFrame(apply);
 
-  // Observer mínimo: solo childList del body
-  const obs = new MutationObserver(() => requestAnimationFrame(apply));
-  obs.observe(document.body, { childList:true });
+  window.addEventListener('load', rafApply, { passive:true });
+  document.addEventListener('click', rafApply, true);
+  document.addEventListener('input', rafApply, true);
+
+  // Observer mínimo (sin subtree) para detectar que aparezca/desaparezca modal
+  const obs = new MutationObserver(rafApply);
+  obs.observe(document.body, { childList:true, attributes:true });
 
 })();
 </script>
-<!-- ✅ FIN OVERRIDE v3 -->
+<!-- ✅ FIN OVERRIDE v4 -->
 
 </body>
 </html>
