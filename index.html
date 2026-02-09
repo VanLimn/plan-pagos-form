@@ -2129,201 +2129,97 @@ Restante pendiente: ${money(data.ticket.restante)}
     setStep(1);
     updateLiveTotals();
   </script>
-  <!-- ✅ OVERRIDE v2 (REEMPLAZA el anterior) -->
-<style id="vxab-overrides-v2">
+  <!-- ✅ OVERRIDE v3 (SAFE) -->
+<style id="vxab-overrides-v3">
 
-  /* Quitar “Multi-paso con Back/Next.” arriba */
-  .subtitulo, .subtitle, .header-subtitle { display: none !important; }
+  /* Quitar “Multi-paso con Back/Next.” */
+  .subtitulo, .subtitle, .header-subtitle { display:none !important; }
 
-  /* ====== BLUR SOLO EN MODAL (desktop + mobile) ====== */
-  .modal-backdrop,
-  .modal-overlay,
-  .overlay,
-  .backdrop,
-  [data-backdrop],
-  [data-modal-backdrop]{
+  /* Por default: NO blur global (para que NO se “desaparezca” el form) */
+  .vxab-modal-backdrop {
     background: rgba(0,0,0,.55) !important;
     -webkit-backdrop-filter: blur(16px) !important;
     backdrop-filter: blur(16px) !important;
   }
 
   /* Caja del modal sólida (evita “transparente”) */
-  .modal,
-  .dialog,
-  [role="dialog"][aria-modal="true"]{
+  [role="dialog"][aria-modal="true"],
+  .vxab-dialog {
     background: rgba(12,14,20,.92) !important;
     border: 1px solid rgba(255,255,255,.10) !important;
   }
 
-  /* ====== FIX iPhone: apagar blur global (causa pantalla blanca) ====== */
-  @media (max-width: 900px){
-    /* mata cualquier glass/blur grande en mobile */
-    *{
-      -webkit-backdrop-filter: none !important;
-      backdrop-filter: none !important;
-    }
-    /* pero lo reactivamos SOLO para el backdrop del modal */
-    .modal-backdrop,
-    .modal-overlay,
-    .overlay,
-    .backdrop,
-    [data-backdrop],
-    [data-modal-backdrop]{
+  /* iPhone: el blur solo en backdrop del modal (no en toda la página) */
+  @supports (-webkit-touch-callout: none){
+    .vxab-modal-backdrop {
       -webkit-backdrop-filter: blur(16px) !important;
       backdrop-filter: blur(16px) !important;
     }
   }
 
-  /* extra iOS hook (por si no entra el media query) */
-  @supports (-webkit-touch-callout: none){
-    *{
-      -webkit-backdrop-filter: none !important;
-      backdrop-filter: none !important;
-    }
-    .modal-backdrop,
-    .modal-overlay,
-    .overlay,
-    .backdrop,
-    [data-backdrop],
-    [data-modal-backdrop]{
-      -webkit-backdrop-filter: blur(16px) !important;
-      backdrop-filter: blur(16px) !important;
-    }
-  }
 </style>
 
 <script>
 (() => {
-  /* --- helpers --- */
-  const money = (n) => {
-    const num = Number(n);
-    if (!isFinite(num)) return '$0.00';
-    return num.toLocaleString('es-MX', { style:'currency', currency:'MXN' });
-  };
-  const parseMoney = (txt) => {
-    if (!txt) return 0;
-    const cleaned = String(txt).replace(/[^\d.]/g, '');
-    const v = Number(cleaned);
-    return isFinite(v) ? v : 0;
-  };
+  // Encuentra modal abierto
+  const findDialog = () =>
+    Array.from(document.querySelectorAll('[role="dialog"]'))
+      .find(d => (d.getAttribute('aria-modal') || '').toLowerCase() === 'true');
 
-  const getNumPagos = () => {
-    // 1) intenta el input de "¿Cuántos pagos...?"
-    const q = Array.from(document.querySelectorAll('input')).find(i => {
-      const p = (i.placeholder || '').toLowerCase();
-      return p.includes('ej.') && (i.type === 'text' || i.type === 'number');
-    });
-    if (q && q.value) return Math.max(0, parseInt(q.value, 10) || 0);
+  // Encuentra el backdrop REAL del modal (el contenedor que cubre toda la pantalla)
+  const findBackdropFor = (dlg) => {
+    if (!dlg) return null;
 
-    // 2) fallback: "Tus abonos 2/5"
-    const t = document.body.innerText || '';
-    const m = t.match(/tus abonos\s*\d+\s*\/\s*(\d+)/i);
-    return m ? (parseInt(m[1],10)||0) : 0;
-  };
+    // 1) Si el dialog tiene un parent que parece backdrop (clases comunes)
+    const p = dlg.parentElement;
+    if (p && /backdrop|overlay|modal/i.test(p.className || '')) return p;
 
-  const sumAbonosList = () => {
-    const panels = Array.from(document.querySelectorAll('div, section, aside'));
-    const tusAbonos = panels.find(el => (el.textContent||'').toLowerCase().includes('tus abonos'));
-    if (!tusAbonos) return 0;
-    const amounts = (tusAbonos.textContent||'').match(/\$[\s]*[\d.,]+/g) || [];
-    return amounts.reduce((acc, m) => acc + parseMoney(m), 0);
-  };
+    // 2) Sube 2 niveles (a veces el diálogo está dentro de un wrapper)
+    const p2 = p?.parentElement;
+    if (p2 && /backdrop|overlay|modal/i.test(p2.className || '')) return p2;
 
-  const getTicketTotal = () => {
-    const nodes = Array.from(document.querySelectorAll('div, span, p, strong, h1, h2, h3, h4'));
-    const ticketLabel = nodes.find(el => (el.textContent||'').trim().toLowerCase() === 'ticket');
-    if (!ticketLabel) return 0;
-    const parent = ticketLabel.closest('div') || ticketLabel.parentElement;
-    if (!parent) return 0;
-    const match = (parent.textContent||'').match(/\$[\s]*[\d.,]+/);
-    return match ? parseMoney(match[0]) : 0;
-  };
-
-  const getRemainingFromUI = () => {
-    const nodes = Array.from(document.querySelectorAll('div, span, p, strong'));
-    const rem = nodes.find(el => (el.textContent||'').toLowerCase().includes('restante pendiente'));
-    if (!rem) return null;
-    const text = (rem.closest('div')?.textContent || rem.textContent || '');
-    const m = text.match(/\$[\s]*[\d.,]+/);
-    return m ? parseMoney(m[0]) : null;
-  };
-
-  /* --- 1) Ocultar Totales en vivo si solo 1 pago --- */
-  const hideTotalsIfOne = () => {
-    const n = getNumPagos();
-    const blocks = Array.from(document.querySelectorAll('div, section'));
-    const tot = blocks.find(el => (el.textContent||'').toLowerCase().includes('totales en vivo'));
-    if (!tot) return;
-    const box = tot.closest('section') || tot.closest('div') || tot;
-    box.style.display = (n <= 1) ? 'none' : '';
-  };
-
-  /* --- 2) Si sale “Pago X de Y” y X > Y, ocultar esa línea --- */
-  const fixPagoXdeY = () => {
-    const els = Array.from(document.querySelectorAll('div, p, span, small'));
-    for (const el of els) {
-      const txt = (el.textContent||'').trim();
-      // "Selecciona una fecha para Pago 4 de 3"
-      const m = txt.match(/Selecciona una fecha para\s*Pago\s*(\d+)\s*de\s*(\d+)/i);
-      if (!m) continue;
-      const x = parseInt(m[1],10)||0;
-      const y = parseInt(m[2],10)||0;
-      if (x > y && y > 0) {
-        el.style.display = 'none';        // lo quitamos para no confundir
-      } else {
-        el.style.display = '';
-      }
+    // 3) Heurística: elemento que contiene al dialog y ocupa toda la pantalla
+    // (sin getComputedStyle para no romper iOS; solo estructura)
+    let node = dlg;
+    for (let i=0; i<4; i++){
+      node = node.parentElement;
+      if (!node) break;
+      const idc = (node.id || '') + ' ' + (node.className || '');
+      if (/backdrop|overlay|modal/i.test(idc)) return node;
     }
+    return null;
   };
 
-  /* --- 3) En modal, mostrar “Restante pendiente: $...” (no “llevas abonado 199,999”) --- */
-  const injectRemainingInModal = () => {
-    const dlg = Array.from(document.querySelectorAll('[role="dialog"], .modal, .dialog'))
-      .find(d => {
-        const t = (d.textContent||'').toLowerCase();
-        return t.includes('monto a abonar') || t.includes('editar pago');
-      });
+  const apply = () => {
+    // Limpia marcado anterior
+    document.querySelectorAll('.vxab-modal-backdrop')
+      .forEach(el => el.classList.remove('vxab-modal-backdrop'));
+    document.querySelectorAll('.vxab-dialog')
+      .forEach(el => el.classList.remove('vxab-dialog'));
+
+    const dlg = findDialog();
     if (!dlg) return;
 
-    let remaining = getRemainingFromUI();
-    if (remaining == null) {
-      const ticket = getTicketTotal();
-      const abonado = sumAbonosList();
-      remaining = Math.max(0, ticket - abonado);
-    }
+    // Marca el dialog
+    dlg.classList.add('vxab-dialog');
 
-    const hint = Array.from(dlg.querySelectorAll('p, small, div, span'))
-      .find(el => (el.textContent||'').toLowerCase().includes('número (sin'));
-    if (!hint) return;
-
-    let base = hint.textContent || '';
-    base = base
-      .replace(/restante pendiente:\s*\$[\d.,]+/ig,'')
-      .replace(/llevas abonado:\s*\$[\d.,]+/ig,'')
-      .trim();
-
-    hint.textContent = `${base}  Restante pendiente: ${money(remaining)}.`;
+    // Marca SOLO su backdrop real
+    const bd = findBackdropFor(dlg);
+    if (bd) bd.classList.add('vxab-modal-backdrop');
   };
 
-  /* --- scheduler ultra ligero (para no romper mobile) --- */
-  const run = () => {
-    try { hideTotalsIfOne(); } catch(e){}
-    try { fixPagoXdeY(); } catch(e){}
-    try { injectRemainingInModal(); } catch(e){}
-  };
+  // Run en eventos ligeros (sin subtree observer pesado)
+  window.addEventListener('load', apply, { passive:true });
+  document.addEventListener('click', () => requestAnimationFrame(apply), true);
+  document.addEventListener('input', () => requestAnimationFrame(apply), true);
 
-  // Solo eventos (nada de MutationObserver “subtree: true” que mata iPhone)
-  window.addEventListener('load', run, { passive:true });
-  document.addEventListener('click', () => requestAnimationFrame(run), true);
-  document.addEventListener('input', () => requestAnimationFrame(run), true);
-
-  // Observer mínimo: solo cuando se agregan modales al BODY (sin subtree)
-  const obs = new MutationObserver(() => requestAnimationFrame(run));
+  // Observer mínimo: solo childList del body
+  const obs = new MutationObserver(() => requestAnimationFrame(apply));
   obs.observe(document.body, { childList:true });
 
 })();
 </script>
-<!-- ✅ FIN OVERRIDE v2 -->
+<!-- ✅ FIN OVERRIDE v3 -->
 
 </body>
 </html>
