@@ -2129,145 +2129,202 @@ Restante pendiente: ${money(data.ticket.restante)}
     setStep(1);
     updateLiveTotals();
   </script>
-  <!-- ✅ OVERRIDES (ANTI-FREEZE + POPUP SOLIDO + STATUS ABONADO) -->
+  <!-- ✅ OVERRIDES (UI Fixes) -->
 <style>
-  /* 1) Quitar “transparencia” del modal */
-  .pp-modalOverlay,
-  .modalOverlay,
-  .overlay,
-  .backdrop {
-    background: rgba(0,0,0,.55) !important;
-    backdrop-filter: blur(6px) !important;
-    -webkit-backdrop-filter: blur(6px) !important;
-  }
+  /* 1) Si el subtitle queda vacío, lo escondemos para que no deje espacio */
+  ._hideWhenEmpty:empty { display: none !important; }
 
-  .pp-modal,
-  .modal,
-  .dialog,
-  .popup,
-  .pp-dialog {
-    background: rgba(12, 12, 18, .98) !important;  /* sólido */
-    border: 1px solid rgba(255,255,255,.10) !important;
-    box-shadow: 0 18px 60px rgba(0,0,0,.55) !important;
-  }
-
-  /* 2) Hint “llevas abonado” abajo del texto */
-  .paidHintInline{
-    margin-top: 6px;
-    font-size: 12px;
-    opacity: .9;
-    color: rgba(255,255,255,.72);
-  }
-  .paidHintInline b{
-    color: rgba(255,255,255,.92);
-    font-weight: 700;
-  }
+  /* 2) Helper: ocultar bloques sin romper layout */
+  ._forceHidden { display: none !important; }
 </style>
 
 <script>
-(() => {
-  "use strict";
-
+(function () {
   // ===== Helpers =====
-  const moneyMX = (n) => {
-    const v = Number(n || 0);
+  const money = (n) => {
+    const num = Number(n || 0);
     try {
-      return v.toLocaleString("es-MX", { style: "currency", currency: "MXN" });
-    } catch (_) {
-      return "$" + (Math.round(v * 100) / 100).toLocaleString("es-MX");
+      return num.toLocaleString("es-MX", { style: "currency", currency: "MXN" });
+    } catch {
+      return "$" + num.toFixed(2);
     }
   };
 
-  const getTotalPaidFromUI = () => {
-    // Intenta leer el “Tu abono hasta el momento es de $X” que ya existe en tu UI
-    const all = Array.from(document.querySelectorAll("div, p, span"));
-    const label = all.find(el => (el.textContent || "").trim() === "Tu abono hasta el momento es de");
+  // Lee el número de pagos "¿Cuántos pagos vas a querer que sean?"
+  function getRequestedPayments() {
+    // Intento 1: input number visible
+    const numberInputs = Array.from(document.querySelectorAll('input[type="number"], input[inputmode="numeric"]'));
+    // Prioriza el que esté cerca del texto de la pregunta
+    const question = Array.from(document.querySelectorAll("label, p, h1, h2, h3, div"))
+      .find(el => (el.textContent || "").toLowerCase().includes("¿cuántos pagos"));
+    if (question) {
+      const container = question.closest("section, div") || document.body;
+      const near = Array.from(container.querySelectorAll('input[type="number"], input[inputmode="numeric"]'));
+      const v = near.find(i => i.value && String(i.value).trim() !== "");
+      if (v) return Math.max(0, parseInt(v.value, 10) || 0);
+      const any = near[0];
+      if (any) return Math.max(0, parseInt(any.value, 10) || 0);
+    }
+    // Fallback: primero con valor
+    const withVal = numberInputs.find(i => i.value && String(i.value).trim() !== "");
+    if (withVal) return Math.max(0, parseInt(withVal.value, 10) || 0);
+    // Fallback: primero
+    const any = numberInputs[0];
+    return any ? Math.max(0, parseInt(any.value, 10) || 0) : 0;
+  }
+
+  // Cuenta pagos ya agregados leyendo la lista "Pago #1, Pago #2..."
+  function getFilledPaymentsCount() {
+    const cards = Array.from(document.querySelectorAll("*"))
+      .filter(el => {
+        const t = (el.textContent || "").trim();
+        return /^Pago\s*#\d+/.test(t);
+      });
+
+    // Esto incluye muchos nodos internos; mejor contamos "títulos" únicos visibles.
+    const seen = new Set();
+    cards.forEach(el => {
+      const line = (el.textContent || "").trim().split("\n")[0].trim();
+      if (/^Pago\s*#\d+/.test(line)) seen.add(line);
+    });
+    return seen.size;
+  }
+
+  // Encuentra el subtitle del calendario: "Selecciona una fecha para Pago X de Y"
+  function findCalendarSubtitleEl() {
+    // Buscamos el primer elemento que contenga ese texto
+    const all = Array.from(document.querySelectorAll("div, p, span, small, strong"));
+    let el = all.find(n => (n.textContent || "").includes("Selecciona una fecha para Pago"));
+    if (!el) {
+      // Variación posible
+      el = all.find(n => (n.textContent || "").toLowerCase().includes("selecciona una fecha") && (n.textContent || "").toLowerCase().includes("pago"));
+    }
+    return el || null;
+  }
+
+  // Encuentra el bloque "Tu abono hasta el momento es de"
+  function findLiveTotalBlock() {
+    const all = Array.from(document.querySelectorAll("div, p, span, strong, small"));
+    const label = all.find(n => (n.textContent || "").toLowerCase().includes("tu abono hasta el momento"));
     if (!label) return null;
 
-    // Busca el siguiente elemento cercano que traiga el monto
-    const box = label.closest("div");
-    if (!box) return null;
+    // El contenedor suele ser una card grande; subimos un poco
+    return label.closest("section, article, div") || label.parentElement;
+  }
 
-    const txt = (box.textContent || "");
-    // Extrae números tipo 50,000.00
-    const m = txt.match(/(\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?)/);
-    if (!m) return null;
-    const num = Number(m[1].replace(/,/g, ""));
-    return isNaN(num) ? null : num;
-  };
+  // ===== Core UI Fix =====
+  function applyFixes() {
+    const requested = getRequestedPayments();      // total deseado
+    const filled = getFilledPaymentsCount();       // pagos ya cargados (1,2,3,...)
 
-  // Encuentra el texto “Debe ser mayor a 0.” dentro del modal
-  const findGreaterThanZeroLine = () => {
-    const nodes = Array.from(document.querySelectorAll("div, p, span, small, label"));
-    return nodes.find(n => (n.textContent || "").includes("Debe ser mayor a 0"));
-  };
+    // (A) Quitar "Pago 6 de 5" cuando ya se completó
+    const subtitle = findCalendarSubtitleEl();
+    if (subtitle) {
+      subtitle.classList.add("_hideWhenEmpty");
 
-  const makeModalSolid = () => {
-    // Por si tu HTML usa nombres raros, forzamos “sólido” al contenedor visible del popup
-    const candidates = Array.from(document.querySelectorAll("div"));
-    const modal = candidates.find(el => {
-      const t = (el.textContent || "");
-      return (
-        t.includes("¿Cuánto quieres abonar?") ||
-        t.includes("Monto a abonar") ||
-        t.includes("Editar pago")
-      );
-    });
+      const txt = (subtitle.textContent || "").trim();
+      // Extrae X de Y del texto si existe
+      const m = txt.match(/Pago\s+(\d+)\s+de\s+(\d+)/i);
 
-    if (modal) {
-      modal.style.background = "rgba(12,12,18,.98)";
-      modal.style.border = "1px solid rgba(255,255,255,.10)";
-      modal.style.boxShadow = "0 18px 60px rgba(0,0,0,.55)";
+      // Condición de "completado"
+      const completed =
+        (requested > 0 && filled >= requested) ||
+        (m && Number(m[1]) > Number(m[2])); // caso explícito "6 de 5"
+
+      if (completed) {
+        // Lo quitamos totalmente para no confundir
+        subtitle.textContent = "";
+      } else {
+        // Si el texto trae "Pago X de Y" pero Y ya lo sabemos y X se fue raro, lo corregimos
+        if (requested > 0) {
+          const current = Math.min(filled + 1, requested);
+          // Si el texto tiene el patrón, lo reescribimos estable
+          if (m) {
+            subtitle.textContent = `Selecciona una fecha para Pago ${current} de ${requested}`;
+          }
+        }
+      }
     }
-  };
 
-  const injectPaidHint = () => {
-    const line = findGreaterThanZeroLine();
-    if (!line) return;
+    // (B) Mostrar "Tu abono..." solo a partir del pago #2
+    const liveTotal = findLiveTotalBlock();
+    if (liveTotal) {
+      // Regla:
+      // - Si requested <= 1 => nunca lo muestres
+      // - Si requested >= 2 => muéstralo solo cuando ya haya 1 pago capturado (o sea, ya vas en el pago #2)
+      const shouldShow = (requested >= 2) && (filled >= 1);
 
-    // No duplicar
-    if (line.parentElement && line.parentElement.querySelector(".paidHintInline")) return;
+      if (!shouldShow) liveTotal.classList.add("_forceHidden");
+      else liveTotal.classList.remove("_forceHidden");
+    }
 
-    const total = getTotalPaidFromUI();
-    if (total == null) return;
+    // (C) Extra: si tienes un hint dentro del modal "Debe ser mayor a 0." podemos ponerle el status pequeño ahí
+    //     (esto NO rompe nada; si no lo encuentra, no hace nada)
+    const hintCandidates = Array.from(document.querySelectorAll("small, p, div, span"))
+      .filter(n => (n.textContent || "").includes("Debe ser mayor a 0"));
+    if (hintCandidates.length) {
+      const hint = hintCandidates[0];
+      // Calcula el abonado total leyendo los montos visibles ($...) de la lista de pagos
+      const amounts = Array.from(document.querySelectorAll("*"))
+        .map(n => (n.textContent || ""))
+        .filter(t => /\$\s?\d/.test(t));
+      // Intento simple: toma montos de tarjetas "Pago #"
+      let sum = 0;
+      const payCardsText = Array.from(document.querySelectorAll("div, p, span"))
+        .map(n => (n.textContent || "").trim())
+        .filter(t => /^Pago\s*#\d+/.test(t) || /\$\s?\d/.test(t))
+        .join("\n");
 
-    const hint = document.createElement("div");
-    hint.className = "paidHintInline";
-    hint.innerHTML = `Llevas abonado: <b>${moneyMX(total)}</b>`;
+      // Extrae cantidades $12,345.67
+      const nums = payCardsText.match(/\$\s?[\d,]+(\.\d{1,2})?/g) || [];
+      nums.forEach(s => {
+        const cleaned = s.replace(/\$/g, "").replace(/\s/g, "").replace(/,/g, "");
+        const n = Number(cleaned);
+        if (!isNaN(n)) sum += n;
+      });
 
-    // Lo ponemos justo debajo del “Debe ser mayor a 0”
-    line.insertAdjacentElement("afterend", hint);
-  };
+      // Inserta/actualiza un status pequeño justo debajo del hint
+      let status = document.getElementById("__paid_status_small");
+      if (!status) {
+        status = document.createElement("div");
+        status.id = "__paid_status_small";
+        status.style.marginTop = "6px";
+        status.style.fontSize = "12px";
+        status.style.opacity = "0.8";
+        hint.insertAdjacentElement("afterend", status);
+      }
+      // Si requested <=1 no lo mostramos porque dijiste que no tiene caso
+      if (requested <= 1) {
+        status.textContent = "";
+      } else if (filled >= 1) {
+        status.textContent = `Abonado hasta ahora: ${money(sum)} (aparece desde Pago #2)`;
+      } else {
+        status.textContent = "";
+      }
+    }
+  }
 
-  // ===== Anti-freeze scheduler =====
-  // (1) Nunca corremos directo en el observer.
-  // (2) Debounce por frame.
-  // (3) Si no hay cambios, no toca DOM.
-  let scheduled = false;
-  const run = () => {
-    scheduled = false;
-    // Corre solo lo mínimo
-    makeModalSolid();
-    injectPaidHint();
-  };
+  // ===== Throttle + Observers (para que NO congele) =====
+  let raf = 0;
+  function schedule() {
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      applyFixes();
+    });
+  }
 
-  const schedule = () => {
-    if (scheduled) return;
-    scheduled = true;
-    requestAnimationFrame(run);
-  };
+  // Primera pasada
+  window.addEventListener("load", schedule);
 
-  // Observer “ligero”
-  const obs = new MutationObserver(() => schedule());
-  obs.observe(document.body, { childList: true, subtree: true });
+  // Cada vez que cambie algo en el DOM (modales/listas)
+  const obs = new MutationObserver(schedule);
+  obs.observe(document.documentElement, { childList: true, subtree: true });
 
-  // Eventos mínimos (sin spam)
-  window.addEventListener("load", schedule, { once: true });
-  document.addEventListener("click", schedule, true);
+  // Inputs y clicks también
   document.addEventListener("input", schedule, true);
+  document.addEventListener("click", schedule, true);
 
-  // Primer run
-  schedule();
 })();
 </script>
 <!-- ✅ FIN OVERRIDES -->
