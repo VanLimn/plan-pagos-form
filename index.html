@@ -1,3 +1,4 @@
+```html
 <!doctype html>
 <html lang="es">
 <head>
@@ -159,28 +160,6 @@
     .blackBtn:hover{ background:#000 !important; border-color:#000 !important; }
 
     .payments{ display:flex; flex-direction:column; gap:10px; margin-top:6px; }
-    .payRow{
-      display:grid;
-      grid-template-columns: 1fr 1fr auto;
-      gap:10px;
-      align-items:end;
-      padding:12px;
-      border:1px solid var(--line);
-      border-radius:14px;
-      background: rgba(255,255,255,.02);
-    }
-    @media (max-width:520px){ .payRow{grid-template-columns: 1fr;} }
-
-    .rowError{
-      grid-column: 1 / -1;
-      display:none;
-      color: var(--danger);
-      font-size:12px;
-      line-height:1.35;
-      margin-top:2px;
-      white-space:pre-wrap;
-    }
-    .rowError.show{ display:block; }
 
     .tag{ display:inline-flex; align-items:center; gap:8px; color:var(--muted); font-size:12px; }
     .tagDot{
@@ -226,6 +205,7 @@
       pointer-events:none;
       transition: opacity .2s ease, transform .2s ease;
       box-shadow: 0 14px 40px rgba(0,0,0,.35);
+      z-index: 9999;
     }
     .toast.show{ opacity:1; transform:translateX(-50%) translateY(-2px); }
 
@@ -405,6 +385,262 @@
     .finalWrap{ padding:10px 2px; text-align:center; }
     .finalTitle{ font-size:18px; font-weight:950; margin:0 0 8px; letter-spacing:.2px; }
     .finalText{ margin:0; color:var(--muted); line-height:1.45; font-size:13px; font-weight:700; }
+
+    /* =========================
+       ✅ Nuevo UI calendario
+       ========================= */
+    .payPlanner{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+    }
+    @media (min-width:860px){
+      .payPlanner{ grid-template-columns: 1.2fr .8fr; }
+    }
+
+    .calCard, .listCard{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#0f1118;
+      padding:12px;
+    }
+
+    .calHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:4px 2px 10px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      margin-bottom:10px;
+    }
+    .calTitle{
+      font-weight:900;
+      letter-spacing:.2px;
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .calTitle .big{ font-size:15px; }
+    .calTitle .small{ font-size:12px; color:var(--muted); font-weight:700; }
+
+    .calNav{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .iconBtn{
+      width:36px;height:36px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#0b0c10;
+      cursor:pointer;
+      font-weight:900;
+      user-select:none;
+    }
+    .iconBtn:hover{
+      border-color: rgba(124,92,255,.6);
+      background: rgba(124,92,255,.08);
+    }
+
+    .dow{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap:8px;
+      padding:0 2px 8px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:800;
+      text-align:center;
+    }
+    .days{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap:8px;
+      padding:2px;
+    }
+    .day{
+      height:44px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.06);
+      background: rgba(255,255,255,.02);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      user-select:none;
+      font-weight:900;
+      font-size:13px;
+      position:relative;
+      transition: transform .06s ease, border-color .2s ease, background .2s ease, opacity .2s ease;
+    }
+    .day:hover{
+      border-color: rgba(124,92,255,.55);
+      background: rgba(124,92,255,.08);
+    }
+    .day:active{ transform: translateY(1px); }
+
+    .day.muted{
+      opacity:.35;
+      cursor:default;
+    }
+    .day.muted:hover{ border-color: rgba(255,255,255,.06); background: rgba(255,255,255,.02); }
+    .day.disabled{
+      opacity:.35;
+      cursor:not-allowed;
+    }
+    .day.disabled:hover{ border-color: rgba(255,255,255,.06); background: rgba(255,255,255,.02); }
+    .day.used{
+      background: rgba(55,214,122,.10);
+      border-color: rgba(55,214,122,.25);
+    }
+    .day.used:hover{
+      background: rgba(55,214,122,.12);
+      border-color: rgba(55,214,122,.35);
+    }
+    .day.used::after{
+      content:"✓";
+      position:absolute;
+      top:7px; right:10px;
+      font-size:11px;
+      color: rgba(55,214,122,.9);
+      font-weight:950;
+    }
+    .day.activePick{
+      border-color: rgba(255,204,0,.55);
+      background: rgba(255,204,0,.06);
+    }
+
+    .listTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+      padding-bottom:10px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .listTitle .t{
+      font-weight:950;
+      font-size:14px;
+    }
+    .listTitle .s{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .payList{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .payItem{
+      border:1px solid rgba(255,255,255,.06);
+      background: rgba(255,255,255,.02);
+      border-radius:14px;
+      padding:10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .payItem.filled{
+      border-color: rgba(124,92,255,.18);
+      background: rgba(124,92,255,.05);
+    }
+    .payTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .payMeta{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .payMeta .n{ font-weight:950; font-size:13px; }
+    .payMeta .v{ color:var(--muted); font-size:12px; font-weight:800; }
+    .payBtns{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .dangerBtn{
+      border-color: rgba(255,77,109,.35);
+      background: rgba(255,77,109,.08);
+    }
+    .dangerBtn:hover{
+      border-color: rgba(255,77,109,.65);
+      background: rgba(255,77,109,.12);
+    }
+
+    .plannerHint{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.4;
+      font-weight:800;
+    }
+
+    /* Modal */
+    .modalOverlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index: 9998;
+    }
+    .modalOverlay.show{ display:flex; }
+    .modal{
+      width:min(520px, 100%);
+      border:1px solid var(--line);
+      border-radius:18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
+      box-shadow: 0 18px 60px rgba(0,0,0,.45);
+      overflow:hidden;
+    }
+    .modalHead{
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .modalHead .h{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .modalHead .h .t{ font-weight:950; letter-spacing:.2px; }
+    .modalHead .h .d{ color:var(--muted); font-size:12px; font-weight:800; }
+    .modalBody{ padding:14px; display:flex; flex-direction:column; gap:10px; }
+    .modalFoot{
+      padding:12px 14px;
+      border-top:1px solid var(--line);
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .linkBtn{
+      border: none !important;
+      background: transparent !important;
+      padding: 0 !important;
+      color: rgba(124,92,255,.95) !important;
+      font-weight: 900 !important;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .linkBtn:hover{ color: rgba(124,92,255,1) !important; background: transparent !important; }
   </style>
 </head>
 
@@ -497,16 +733,58 @@
             <div class="field">
               <label for="numPagos">¿Cuántos pagos vas a querer que sean?</label>
               <input id="numPagos" type="number" min="1" max="50" step="1" placeholder="Ej. 3" inputmode="numeric" />
-              <div class="hint">Al poner un número, se generan los campos de fecha + monto.</div>
+              <div class="hint">Al poner un número, podrás seleccionar fechas en un calendario y capturar el monto por pago.</div>
               <div class="error" id="err_numPagos">Indica un número de pagos (1–50).</div>
             </div>
 
             <div class="field">
-              <div class="tag"><span class="tagDot"></span><span>Vamos a empezar con tu plan de pagos.</span></div>
+              <div class="tag">
+                <span class="tagDot"></span>
+                <span>
+                  Vamos a empezar con tu plan de pagos. <b>Tu primer pago (sin contar el apartado que ya realizaste).</b>
+                </span>
+              </div>
             </div>
 
             <div class="field">
-              <div id="paymentsContainer" class="payments"></div>
+              <div id="paymentsContainer" class="payments">
+                <!-- ✅ Nuevo planner se renderiza aquí -->
+                <div id="payPlanner" class="payPlanner hidden">
+                  <div class="calCard">
+                    <div class="calHeader">
+                      <div class="calTitle">
+                        <div class="big" id="calMonthTitle">—</div>
+                        <div class="small" id="calSubTitle">Selecciona una fecha</div>
+                      </div>
+                      <div class="calNav">
+                        <div class="iconBtn" id="calPrevBtn" title="Mes anterior">←</div>
+                        <div class="iconBtn" id="calNextBtn" title="Mes siguiente">→</div>
+                      </div>
+                    </div>
+
+                    <div class="dow">
+                      <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div>
+                    </div>
+                    <div class="days" id="calDays"></div>
+
+                    <div class="plannerHint" id="plannerHint" style="margin-top:10px;">
+                      Tip: selecciona un día y captura el monto. No se permiten fechas repetidas ni fechas fuera de orden.
+                    </div>
+                  </div>
+
+                  <div class="listCard">
+                    <div class="listTitle">
+                      <div class="t">Tus abonos</div>
+                      <div class="s" id="payListStatus">0 / 0</div>
+                    </div>
+                    <div class="payList" id="payList"></div>
+                  </div>
+                </div>
+
+                <div id="plannerEmpty" class="plannerHint">
+                  Escribe cuántos pagos quieres hacer para habilitar el calendario.
+                </div>
+              </div>
 
               <div class="error" id="err_payments">
                 <div style="font-weight:600; margin-bottom:6px;">Revisa estos pagos:</div>
@@ -689,8 +967,8 @@
             <div class="finalWrap">
               <h2 class="finalTitle">Gracias por tu registro ✅</h2>
               <p class="finalText">
-                En breve recibirás el acuerdo en tu WhatsApp.<br/>
-                Por favor confirma de recibido.
+                En breve recibirás el acuerdo en tu <b>correo</b> (en el transcurso de unos minutos).<br/>
+                Por favor revisa también <b>Spam</b> / <b>Promociones</b>.
               </p>
             </div>
           </div>
@@ -708,6 +986,36 @@
   </div>
 
   <div class="toast" id="toast">Enviado ✅</div>
+
+  <!-- ✅ Modal monto -->
+  <div class="modalOverlay" id="payModalOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Capturar monto">
+      <div class="modalHead">
+        <div class="h">
+          <div class="t" id="payModalTitle">Monto a abonar</div>
+          <div class="d" id="payModalDate">—</div>
+        </div>
+        <button class="small" id="payModalCloseBtn" type="button">Cerrar</button>
+      </div>
+
+      <div class="modalBody">
+        <label for="payModalAmount">¿Cuánto quieres abonar?</label>
+        <input id="payModalAmount" data-role="amount" inputmode="decimal" placeholder="Ej. 2,000" />
+        <div class="hint">Número (sin $). Se formatea automático. Debe ser mayor a 0.</div>
+
+        <div class="hint" id="payModalEditHint" style="display:none;">
+          ¿Quieres cambiar la fecha? <button class="linkBtn" id="payModalChangeDateBtn" type="button">Cambiar fecha</button>
+        </div>
+
+        <div class="error" id="payModalErr">—</div>
+      </div>
+
+      <div class="modalFoot">
+        <button class="small" id="payModalCancelBtn" type="button">Cancelar</button>
+        <button class="small primary" id="payModalSaveBtn" type="button">Guardar</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     // ✅ URL del Apps Script Web App (TUYA - ACTUALIZADA)
@@ -917,116 +1225,6 @@
       return ok;
     }
 
-    function clearRowValidation(row){
-      const d = row.querySelector("input[type='date']");
-      const a = row.querySelector("input[data-role='amount']");
-      const re = row.querySelector(".rowError");
-      d.classList.remove("badField");
-      a.classList.remove("badField");
-      re.classList.remove("show");
-      re.textContent = "";
-    }
-    function appendRowError(row, text){
-      const rowErr = row.querySelector(".rowError");
-      const current = (rowErr.textContent || "").trim();
-      rowErr.textContent = current ? (current + "\n" + text) : text;
-      rowErr.classList.add("show");
-    }
-
-    function validatePaymentRow(row, idx){
-      const dateInput = row.querySelector("input[type='date']");
-      const amtInput  = row.querySelector("input[data-role='amount']");
-      clearRowValidation(row);
-
-      const errors = [];
-      const dateVal = dateInput.value;
-
-      if(!dateVal){
-        errors.push(`Pago ${idx}: Falta la fecha.`);
-        dateInput.classList.add("badField");
-      } else if(!isValidISODate(dateVal)){
-        errors.push(`Pago ${idx}: Fecha inválida (${dateVal}).`);
-        dateInput.classList.add("badField");
-      } else {
-        if(!(dateVal >= MIN_DATE && dateVal <= MAX_DATE)){
-          errors.push(`Pago ${idx}: Fecha fuera de rango (${isoToDMY(dateVal)}). Debe ser ${isoToDMY(MIN_DATE)} a ${isoToDMY(MAX_DATE)}.`);
-          dateInput.classList.add("badField");
-        }
-        if(idx === 1 && dateVal < FIRST_PAY_MIN_DATE){
-          errors.push(`Pago 1: No puede ser hoy. Selecciona desde ${isoToDMY(FIRST_PAY_MIN_DATE)}.`);
-          dateInput.classList.add("badField");
-        }
-      }
-
-      const amount = Number((amtInput.value || "").replace(/,/g,''));
-      if(!(amount > 0)){
-        errors.push(`Pago ${idx}: Monto inválido. Debe ser mayor a 0.`);
-        amtInput.classList.add("badField");
-      }
-
-      if(errors.length){
-        const rowErr = row.querySelector(".rowError");
-        rowErr.textContent = errors.join("\n");
-        rowErr.classList.add("show");
-      }
-      return errors;
-    }
-
-    function validatePaymentsDetailed(){
-      const rows = Array.from(paymentsContainer.querySelectorAll(".payRow"));
-
-      err_payments_list.textContent = "";
-      show(err_payments, false);
-      rows.forEach(r => clearRowValidation(r));
-
-      const allErrors = [];
-
-      for(let i=0;i<rows.length;i++){
-        allErrors.push(...validatePaymentRow(rows[i], i+1));
-      }
-
-      // fechas únicas
-      const dateMap = new Map();
-      for(let i=0;i<rows.length;i++){
-        const dateVal = rows[i].querySelector("input[type='date']").value.trim();
-        if(dateVal && isValidISODate(dateVal)){
-          if(!dateMap.has(dateVal)) dateMap.set(dateVal, []);
-          dateMap.get(dateVal).push(i);
-        }
-      }
-      for(const [dateVal, idxs] of dateMap.entries()){
-        if(idxs.length > 1){
-          allErrors.push(`Fechas repetidas: ${isoToDMY(dateVal)} está repetida en los pagos: ${idxs.map(i=>i+1).join(", ")}.`);
-          idxs.forEach(i=>{
-            const row = rows[i];
-            row.querySelector("input[type='date']").classList.add("badField");
-            appendRowError(row, `Fecha repetida: ${isoToDMY(dateVal)}.`);
-          });
-        }
-      }
-
-      // orden cronológico
-      let prev = null;
-      for(let i=0;i<rows.length;i++){
-        const dateVal = rows[i].querySelector("input[type='date']").value.trim();
-        if(dateVal && isValidISODate(dateVal)){
-          if(prev && dateVal < prev){
-            allErrors.push(`Orden inválido: Pago ${i+1} (${isoToDMY(dateVal)}) no puede ser antes que el pago anterior (${isoToDMY(prev)}).`);
-            rows[i].querySelector("input[type='date']").classList.add("badField");
-            appendRowError(rows[i], `No puede ser antes que ${isoToDMY(prev)}.`);
-          }
-          prev = dateVal;
-        }
-      }
-
-      const ok = allErrors.length === 0;
-      if(!ok){
-        err_payments_list.textContent = allErrors.join("\n");
-        show(err_payments, true);
-      }
-      return { ok, errors: allErrors };
-    }
-
     abonoInicial.addEventListener("input", ()=>{
       const caret = abonoInicial.selectionStart;
       const before = abonoInicial.value;
@@ -1043,68 +1241,542 @@
       show(err_telefono, false);
     });
 
-    function buildPaymentRows(count){
-      paymentsContainer.innerHTML = "";
-      for(let i=1;i<=count;i++){
-        const row = document.createElement("div");
-        row.className = "payRow";
-        row.innerHTML = `
-          <div class="field" style="margin:0;">
-            <label>Fecha a abonar · Pago ${i}</label>
-            <input type="date" />
-            <div class="hint">Rango: ${isoToDMY(MIN_DATE)} a ${isoToDMY(MAX_DATE)}${i===1 ? ` · Pago 1 desde ${isoToDMY(FIRST_PAY_MIN_DATE)}` : ""}</div>
-          </div>
-          <div class="field" style="margin:0;">
-            <label>Monto a abonar</label>
-            <input data-role="amount" inputmode="decimal" placeholder="Ej. 2,000" />
-            <div class="hint">Número (sin $). Se formatea automático.</div>
-          </div>
-          <button type="button" class="small" title="Limpiar este pago">Limpiar</button>
-          <div class="rowError"></div>
-        `;
+    /* =========================================
+       ✅ Planner state (calendario + lista)
+       ========================================= */
+    const payPlanner = document.getElementById("payPlanner");
+    const plannerEmpty = document.getElementById("plannerEmpty");
 
-        const dateInput = row.querySelector("input[type='date']");
-        const amt = row.querySelector("input[data-role='amount']");
-        const btn = row.querySelector("button");
+    const calMonthTitle = document.getElementById("calMonthTitle");
+    const calSubTitle = document.getElementById("calSubTitle");
+    const calDays = document.getElementById("calDays");
+    const calPrevBtn = document.getElementById("calPrevBtn");
+    const calNextBtn = document.getElementById("calNextBtn");
 
-        dateInput.addEventListener("input", ()=>{ show(err_payments,false); updateLiveTotals(); });
-        dateInput.addEventListener("change", ()=>{ show(err_payments,false); updateLiveTotals(); });
+    const payList = document.getElementById("payList");
+    const payListStatus = document.getElementById("payListStatus");
+    const plannerHint = document.getElementById("plannerHint");
 
-        amt.addEventListener("input", ()=>{
-          const caret = amt.selectionStart;
-          const before = amt.value;
-          amt.value = formatCurrencyInput(amt.value);
-          const delta = amt.value.length - before.length;
-          try { amt.setSelectionRange(caret + delta, caret + delta); } catch(e){}
-          show(err_payments,false);
-          updateLiveTotals();
-        });
+    // Modal
+    const payModalOverlay = document.getElementById("payModalOverlay");
+    const payModalCloseBtn = document.getElementById("payModalCloseBtn");
+    const payModalCancelBtn = document.getElementById("payModalCancelBtn");
+    const payModalSaveBtn = document.getElementById("payModalSaveBtn");
+    const payModalTitle = document.getElementById("payModalTitle");
+    const payModalDate = document.getElementById("payModalDate");
+    const payModalAmount = document.getElementById("payModalAmount");
+    const payModalErr = document.getElementById("payModalErr");
+    const payModalEditHint = document.getElementById("payModalEditHint");
+    const payModalChangeDateBtn = document.getElementById("payModalChangeDateBtn");
 
-        btn.addEventListener("click", ()=>{
-          dateInput.value = "";
-          amt.value = "";
-          clearRowValidation(row);
-          show(err_payments,false);
-          updateLiveTotals();
-        });
+    let paymentsCount = 0;
+    // payments: [{fecha:"YYYY-MM-DD", monto:Number}]
+    let payments = [];
 
-        paymentsContainer.appendChild(row);
+    // Calendario (mes en vista)
+    let viewYear = new Date().getFullYear();
+    let viewMonth = new Date().getMonth(); // 0-11
+
+    // Modo selección
+    let selectionMode = "add"; // "add" | "editPickDate"
+    let editIndex = null;
+    let pendingDateISO = null;
+
+    const MONTHS_ES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+    function pad2(n){ return String(n).padStart(2,"0"); }
+    function toISO(y, m0, d){
+      return `${y}-${pad2(m0+1)}-${pad2(d)}`;
+    }
+    function isoToPrettyLong(iso){
+      if(!isValidISODate(iso)) return iso;
+      const [y,m,d] = iso.split("-").map(Number);
+      return `${d}-${MONTHS_ES[m-1]}-${y}`;
+    }
+
+    function openModalForDate(dateISO, opts){
+      // opts: { mode: "add"|"edit", index: number|null, prefillAmount: number|null, allowChangeDate: bool }
+      pendingDateISO = dateISO;
+
+      const isEdit = opts && opts.mode === "edit";
+      payModalTitle.textContent = isEdit ? "Editar pago" : "Monto a abonar";
+      payModalDate.textContent = `Fecha: ${isoToPrettyLong(dateISO)}`;
+      payModalAmount.value = "";
+
+      const pre = (opts && Number.isFinite(opts.prefillAmount)) ? opts.prefillAmount : null;
+      if(pre !== null){
+        payModalAmount.value = formatCurrencyInput(String(pre));
       }
+
+      payModalErr.classList.remove("show");
+      payModalErr.textContent = "";
+
+      if(isEdit){
+        payModalEditHint.style.display = "block";
+      } else {
+        payModalEditHint.style.display = "none";
+      }
+
+      payModalOverlay.classList.add("show");
+      setTimeout(()=>payModalAmount.focus(), 0);
+    }
+
+    function closeModal(){
+      payModalOverlay.classList.remove("show");
+      payModalErr.classList.remove("show");
+      payModalErr.textContent = "";
+      pendingDateISO = null;
+    }
+
+    function usedDateSet(exceptIndex=null){
+      const s = new Set();
+      payments.forEach((p, i)=>{
+        if(i === exceptIndex) return;
+        if(p && p.fecha) s.add(p.fecha);
+      });
+      return s;
+    }
+
+    function getAddMinDate(){
+      if(payments.length === 0) return FIRST_PAY_MIN_DATE;
+      return payments[payments.length-1].fecha; // must be strictly greater than last date
+    }
+
+    function withinGlobalRange(dateISO){
+      if(!isValidISODate(dateISO)) return false;
+      if(!(dateISO >= MIN_DATE && dateISO <= MAX_DATE)) return false;
+      if(payments.length === 0 && dateISO < FIRST_PAY_MIN_DATE) return false;
+      return true;
+    }
+
+    function canPickDateForAdd(dateISO){
+      if(!withinGlobalRange(dateISO)) return false;
+      if(usedDateSet().has(dateISO)) return false;
+      const min = getAddMinDate();
+      if(payments.length === 0){
+        // already enforced by FIRST_PAY_MIN_DATE in withinGlobalRange
+        return true;
+      }
+      // strict after last chosen
+      return dateISO > min;
+    }
+
+    function canPickDateForEdit(dateISO, index){
+      if(!isValidISODate(dateISO)) return false;
+      if(!(dateISO >= MIN_DATE && dateISO <= MAX_DATE)) return false;
+
+      // If editing payment 1, still must be >= FIRST_PAY_MIN_DATE
+      if(index === 0 && dateISO < FIRST_PAY_MIN_DATE) return false;
+
+      // No duplicates (excluding itself)
+      if(usedDateSet(index).has(dateISO)) return false;
+
+      // Must stay between neighbors
+      const prev = index > 0 ? payments[index-1].fecha : null;
+      const next = index < payments.length-1 ? payments[index+1].fecha : null;
+
+      if(prev && !(dateISO > prev)) return false;
+      if(next && !(dateISO < next)) return false;
+
+      return true;
+    }
+
+    function renderCalendar(){
+      // Guardrails: if planner not enabled, do nothing
+      if(paymentsCount <= 0) return;
+
+      calMonthTitle.textContent = `${MONTHS_ES[viewMonth]} ${viewYear}`;
+
+      // Subtitle depends mode
+      if(selectionMode === "editPickDate" && editIndex !== null){
+        calSubTitle.textContent = `Editando Pago ${editIndex+1}: selecciona una nueva fecha (dentro del rango permitido).`;
+        plannerHint.textContent = "Modo edición: selecciona una fecha válida para ese pago. Se respetan orden, rango y no repetición.";
+      } else {
+        calSubTitle.textContent = `Selecciona una fecha para Pago ${payments.length+1} de ${paymentsCount}`;
+        plannerHint.textContent = "Selecciona un día y captura el monto. No se permiten fechas repetidas ni fechas fuera de orden.";
+      }
+
+      const firstDay = new Date(Date.UTC(viewYear, viewMonth, 1));
+      const daysInMonth = new Date(Date.UTC(viewYear, viewMonth+1, 0)).getUTCDate();
+      const startDow = firstDay.getUTCDay(); // 0=Sun, 6=Sat (perfecto)
+
+      calDays.innerHTML = "";
+
+      // placeholders before first day
+      for(let i=0;i<startDow;i++){
+        const el = document.createElement("div");
+        el.className = "day muted";
+        el.textContent = "";
+        calDays.appendChild(el);
+      }
+
+      const used = usedDateSet(selectionMode === "editPickDate" ? editIndex : null);
+
+      for(let d=1; d<=daysInMonth; d++){
+        const iso = toISO(viewYear, viewMonth, d);
+
+        const el = document.createElement("div");
+        el.className = "day";
+        el.textContent = String(d);
+
+        // Mark used
+        if(used.has(iso)){
+          el.classList.add("used");
+        }
+
+        // Enable/disable logic
+        let enabled = true;
+
+        if(selectionMode === "editPickDate" && editIndex !== null){
+          enabled = canPickDateForEdit(iso, editIndex);
+        } else {
+          // add mode
+          if(payments.length >= paymentsCount){
+            enabled = false;
+          } else {
+            enabled = canPickDateForAdd(iso);
+          }
+        }
+
+        if(!enabled){
+          el.classList.add("disabled");
+        }
+
+        // Click
+        el.addEventListener("click", ()=>{
+          if(el.classList.contains("disabled") || el.classList.contains("muted")) return;
+
+          if(selectionMode === "editPickDate" && editIndex !== null){
+            // editing date picked -> open modal prefilled with current amount
+            const currentAmt = Number(payments[editIndex].monto || 0);
+            openModalForDate(iso, { mode:"edit", index: editIndex, prefillAmount: currentAmt, allowChangeDate: true });
+          } else {
+            // add mode -> open modal
+            openModalForDate(iso, { mode:"add", index: null, prefillAmount: null, allowChangeDate: false });
+          }
+        });
+
+        calDays.appendChild(el);
+      }
+    }
+
+    function renderPayList(){
+      payList.innerHTML = "";
+      payListStatus.textContent = `${payments.length} / ${paymentsCount}`;
+
+      for(let i=0; i<paymentsCount; i++){
+        const p = payments[i];
+
+        const item = document.createElement("div");
+        item.className = "payItem" + (p ? " filled" : "");
+        const title = `Pago #${i+1}`;
+
+        if(p){
+          item.innerHTML = `
+            <div class="payTop">
+              <div class="payMeta">
+                <div class="n">${title}</div>
+                <div class="v">${isoToPrettyLong(p.fecha)} | ${money(p.monto)}</div>
+              </div>
+              <div class="payBtns">
+                <button class="small" type="button" data-action="edit" data-index="${i}">Editar</button>
+                <button class="small dangerBtn" type="button" data-action="delete" data-index="${i}">Borrar</button>
+              </div>
+            </div>
+          `;
+        } else {
+          item.innerHTML = `
+            <div class="payTop">
+              <div class="payMeta">
+                <div class="n">${title}</div>
+                <div class="v">Pendiente · Selecciona una fecha en el calendario</div>
+              </div>
+            </div>
+          `;
+        }
+
+        payList.appendChild(item);
+      }
+
+      // Attach actions
+      payList.querySelectorAll("button[data-action='edit']").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          const idx = Number(btn.dataset.index);
+          if(!Number.isInteger(idx) || idx < 0 || idx >= payments.length) return;
+
+          // Open modal for amount; allow change date link
+          editIndex = idx;
+          selectionMode = "add"; // default while editing amount
+          const p = payments[idx];
+          openModalForDate(p.fecha, { mode:"edit", index: idx, prefillAmount: Number(p.monto || 0), allowChangeDate: true });
+        });
+      });
+
+      payList.querySelectorAll("button[data-action='delete']").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          const idx = Number(btn.dataset.index);
+          if(!Number.isInteger(idx) || idx < 0 || idx >= payments.length) return;
+
+          payments.splice(idx, 1);
+
+          // Reset edit mode if needed
+          if(editIndex === idx){
+            editIndex = null;
+            selectionMode = "add";
+          } else if(editIndex !== null && idx < editIndex){
+            editIndex = editIndex - 1;
+          }
+
+          show(err_payments,false);
+          err_payments_list.textContent = "";
+          updateLiveTotals();
+          renderPayList();
+          renderCalendar();
+        });
+      });
+    }
+
+    function enablePlannerUI(enable){
+      if(enable){
+        plannerEmpty.classList.add("hidden");
+        payPlanner.classList.remove("hidden");
+      } else {
+        payPlanner.classList.add("hidden");
+        plannerEmpty.classList.remove("hidden");
+      }
+    }
+
+    function resetPlanner(){
+      paymentsCount = 0;
+      payments = [];
+      selectionMode = "add";
+      editIndex = null;
+      pendingDateISO = null;
+
+      enablePlannerUI(false);
+      renderPayList();
+      renderCalendar();
       updateLiveTotals();
     }
 
+    function setPaymentsCount(n){
+      paymentsCount = n;
+      payments = [];
+      selectionMode = "add";
+      editIndex = null;
+      pendingDateISO = null;
+
+      // reset calendar view to current month
+      viewYear = new Date().getFullYear();
+      viewMonth = new Date().getMonth();
+
+      enablePlannerUI(true);
+      renderPayList();
+      renderCalendar();
+      updateLiveTotals();
+    }
+
+    // Modal input formatting
+    payModalAmount.addEventListener("input", ()=>{
+      const caret = payModalAmount.selectionStart;
+      const before = payModalAmount.value;
+      payModalAmount.value = formatCurrencyInput(payModalAmount.value);
+      const delta = payModalAmount.value.length - before.length;
+      try { payModalAmount.setSelectionRange(caret + delta, caret + delta); } catch(e){}
+      payModalErr.classList.remove("show");
+      payModalErr.textContent = "";
+    });
+
+    function modalError(msg){
+      payModalErr.textContent = msg;
+      payModalErr.classList.add("show");
+    }
+
+    function saveModal(){
+      const amt = Number((payModalAmount.value || "").replace(/,/g,""));
+      if(!(amt > 0)){
+        modalError("Monto inválido. Debe ser mayor a 0.");
+        return;
+      }
+      if(!pendingDateISO || !isValidISODate(pendingDateISO)){
+        modalError("Fecha inválida. Selecciona una fecha válida.");
+        return;
+      }
+
+      // If we are editing (editIndex set AND modal was opened in edit mode)
+      const isEditing = (payModalTitle.textContent || "").toLowerCase().includes("editar") && editIndex !== null;
+
+      if(isEditing){
+        // Validate date within edit constraints
+        if(!canPickDateForEdit(pendingDateISO, editIndex)){
+          modalError("Fecha no válida para este pago (rango/orden/repetición).");
+          return;
+        }
+        payments[editIndex] = { fecha: pendingDateISO, monto: amt };
+
+        // After editing, keep array sorted (should remain valid; still sort to be safe)
+        payments.sort((a,b)=> a.fecha.localeCompare(b.fecha));
+
+        // Recompute editIndex to match same payment? Hard to track; reset edit mode
+        editIndex = null;
+        selectionMode = "add";
+
+        closeModal();
+        show(err_payments,false);
+        err_payments_list.textContent = "";
+        updateLiveTotals();
+        renderPayList();
+        renderCalendar();
+        return;
+      }
+
+      // Add mode
+      if(payments.length >= paymentsCount){
+        modalError("Ya completaste el número de pagos.");
+        return;
+      }
+      if(!canPickDateForAdd(pendingDateISO)){
+        modalError("Fecha no válida (rango/orden/repetición). Selecciona una fecha posterior al último pago.");
+        return;
+      }
+
+      payments.push({ fecha: pendingDateISO, monto: amt });
+      payments.sort((a,b)=> a.fecha.localeCompare(b.fecha)); // should keep order
+
+      closeModal();
+      show(err_payments,false);
+      err_payments_list.textContent = "";
+      updateLiveTotals();
+      renderPayList();
+      renderCalendar();
+    }
+
+    payModalSaveBtn.addEventListener("click", saveModal);
+    payModalCloseBtn.addEventListener("click", ()=>{
+      // If in edit date-pick mode, cancel it too
+      if(selectionMode === "editPickDate"){
+        selectionMode = "add";
+        editIndex = null;
+      }
+      closeModal();
+      renderCalendar();
+    });
+    payModalCancelBtn.addEventListener("click", ()=>{
+      if(selectionMode === "editPickDate"){
+        selectionMode = "add";
+        editIndex = null;
+      }
+      closeModal();
+      renderCalendar();
+    });
+    payModalOverlay.addEventListener("click", (e)=>{
+      if(e.target === payModalOverlay){
+        if(selectionMode === "editPickDate"){
+          selectionMode = "add";
+          editIndex = null;
+        }
+        closeModal();
+        renderCalendar();
+      }
+    });
+
+    payModalChangeDateBtn.addEventListener("click", ()=>{
+      // Switch to "pick date" for the current editIndex
+      if(editIndex === null) return;
+      closeModal();
+      selectionMode = "editPickDate";
+      showToast("Selecciona la nueva fecha en el calendario");
+      renderCalendar();
+    });
+
+    calPrevBtn.addEventListener("click", ()=>{
+      if(paymentsCount <= 0) return;
+      viewMonth--;
+      if(viewMonth < 0){ viewMonth = 11; viewYear--; }
+      renderCalendar();
+    });
+    calNextBtn.addEventListener("click", ()=>{
+      if(paymentsCount <= 0) return;
+      viewMonth++;
+      if(viewMonth > 11){ viewMonth = 0; viewYear++; }
+      renderCalendar();
+    });
+
+    // numPagos => enable planner
     numPagos.addEventListener("input", ()=>{
       const n = Number(numPagos.value);
       show(err_numPagos, false);
       show(err_payments,false);
       err_payments_list.textContent = "";
+
       if(Number.isInteger(n) && n >= 1 && n <= 50){
-        buildPaymentRows(n);
+        setPaymentsCount(n);
       } else {
-        paymentsContainer.innerHTML = "";
+        resetPlanner();
         updateLiveTotals();
       }
     });
+
+    function validatePaymentsDetailed(){
+      err_payments_list.textContent = "";
+      show(err_payments, false);
+
+      const allErrors = [];
+
+      if(!(Number.isInteger(paymentsCount) && paymentsCount >= 1 && paymentsCount <= 50)){
+        allErrors.push("Indica un número de pagos válido (1–50).");
+      }
+
+      if(payments.length !== paymentsCount){
+        allErrors.push(`Faltan pagos por capturar: llevas ${payments.length} de ${paymentsCount}.`);
+      }
+
+      // Validate each payment
+      const dates = new Set();
+      for(let i=0; i<payments.length; i++){
+        const p = payments[i];
+
+        if(!p || !p.fecha){
+          allErrors.push(`Pago ${i+1}: Falta la fecha.`);
+        } else if(!isValidISODate(p.fecha)){
+          allErrors.push(`Pago ${i+1}: Fecha inválida (${p.fecha}).`);
+        } else {
+          if(!(p.fecha >= MIN_DATE && p.fecha <= MAX_DATE)){
+            allErrors.push(`Pago ${i+1}: Fecha fuera de rango (${isoToDMY(p.fecha)}). Debe ser ${isoToDMY(MIN_DATE)} a ${isoToDMY(MAX_DATE)}.`);
+          }
+          if(i === 0 && p.fecha < FIRST_PAY_MIN_DATE){
+            allErrors.push(`Pago 1: No puede ser hoy. Selecciona desde ${isoToDMY(FIRST_PAY_MIN_DATE)}.`);
+          }
+          if(dates.has(p.fecha)){
+            allErrors.push(`Fechas repetidas: ${isoToDMY(p.fecha)} está repetida.`);
+          }
+          dates.add(p.fecha);
+        }
+
+        const amt = Number(p.monto || 0);
+        if(!(amt > 0)){
+          allErrors.push(`Pago ${i+1}: Monto inválido. Debe ser mayor a 0.`);
+        }
+      }
+
+      // Enforce chronological order
+      for(let i=1; i<payments.length; i++){
+        const prev = payments[i-1].fecha;
+        const cur  = payments[i].fecha;
+        if(isValidISODate(prev) && isValidISODate(cur)){
+          if(cur <= prev){
+            allErrors.push(`Orden inválido: Pago ${i+1} (${isoToDMY(cur)}) debe ser después del pago anterior (${isoToDMY(prev)}).`);
+          }
+        }
+      }
+
+      const ok = allErrors.length === 0;
+      if(!ok){
+        err_payments_list.textContent = allErrors.join("\n");
+        show(err_payments, true);
+      }
+      return { ok, errors: allErrors };
+    }
 
     function collectData(){
       const n = Number(numPagos.value);
@@ -1112,13 +1784,12 @@
       const abonoVal = abonoInicial.value.trim();
       const abono = abonoVal === "" ? 0 : (parseAmount(abonoVal) || 0);
 
-      const rows = Array.from(paymentsContainer.querySelectorAll(".payRow"));
-      const pagos = rows.map((row, idx) => {
-        const fecha = row.querySelector("input[type='date']").value;
-        const montoStr = row.querySelector("input[data-role='amount']").value || "";
-        const monto = Number(montoStr.replace(/,/g,'')) || 0;
-        return { num: idx+1, fecha, monto };
-      });
+      // Build pagos from calendar state
+      const pagos = (payments || []).map((p, idx)=>({
+        num: idx+1,
+        fecha: p.fecha,
+        monto: Number(p.monto || 0)
+      }));
 
       const totalPlan = pagos.reduce((acc,p)=>acc + (p.monto || 0), 0);
       const totalPagado = abono + totalPlan;
@@ -1187,12 +1858,12 @@
         summaryGrid.appendChild(el);
       }
 
-      const payList = document.createElement("div");
-      payList.className = "kv";
-      payList.style.gridColumn = "1 / -1";
+      const payListEl = document.createElement("div");
+      payListEl.className = "kv";
+      payListEl.style.gridColumn = "1 / -1";
       const lines = data.plan_pagos.pagos.map(p => `Pago ${p.num}: ${p.fecha ? isoToDMY(p.fecha) : "(sin fecha)"} · ${money(p.monto)}`);
-      payList.innerHTML = `<div class="k">Plan de pagos</div><div class="v">${lines.join("\n")}</div>`;
-      summaryGrid.appendChild(payList);
+      payListEl.innerHTML = `<div class="k">Plan de pagos</div><div class="v">${lines.join("\n")}</div>`;
+      summaryGrid.appendChild(payListEl);
 
       const totals = document.createElement("div");
       totals.className = "kv";
@@ -1287,7 +1958,9 @@ Restante pendiente: ${money(data.ticket.restante)}
       numPagos.value = "";
       signatureName.value = "";
 
-      paymentsContainer.innerHTML = "";
+      // planner
+      resetPlanner();
+
       summaryGrid.innerHTML = "";
       agreementPlanList.innerHTML = "";
       pdfPlanList.innerHTML = "";
@@ -1373,6 +2046,13 @@ Restante pendiente: ${money(data.ticket.restante)}
 
     document.addEventListener("keydown", (e)=>{
       if(e.key === "Enter"){
+        // si modal abierto, Enter guarda
+        if(payModalOverlay.classList.contains("show")){
+          e.preventDefault();
+          saveModal();
+          return;
+        }
+
         const active = steps.find(s => s.classList.contains("active"));
         const stepNum = active ? Number(active.dataset.step) : 1;
 
@@ -1390,6 +2070,17 @@ Restante pendiente: ${money(data.ticket.restante)}
         if(stepNum < steps.length){
           e.preventDefault();
           goNext();
+        }
+      }
+      if(e.key === "Escape"){
+        if(payModalOverlay.classList.contains("show")){
+          e.preventDefault();
+          if(selectionMode === "editPickDate"){
+            selectionMode = "add";
+            editIndex = null;
+          }
+          closeModal();
+          renderCalendar();
         }
       }
     });
@@ -1482,8 +2173,10 @@ Restante pendiente: ${money(data.ticket.restante)}
 
     // init
     abonoHint.textContent = `Número (sin $). Se formatea automático. Máximo ${money(MAX_ABONO_HINT)}.`;
+    resetPlanner();
     setStep(1);
     updateLiveTotals();
   </script>
 </body>
 </html>
+```
