@@ -2129,5 +2129,138 @@ Restante pendiente: ${money(data.ticket.restante)}
     setStep(1);
     updateLiveTotals();
   </script>
+  <!-- ✅ OVERRIDES: MODAL SOLIDO + HINT "LLEVAS ABONADO" (pegar antes de </body>) -->
+<style>
+  /* Overlay más oscuro (no transparente raro) */
+  .modalOverlay,
+  .overlay,
+  .backdrop,
+  [data-overlay="true"]{
+    background: rgba(0,0,0,.72) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Tarjeta del modal: SOLIDA (quita transparencia) */
+  .modal,
+  .modalCard,
+  .dialog,
+  .popup,
+  [role="dialog"]{
+    background: #0b0c10 !important;            /* ← sólido */
+    border: 1px solid rgba(255,255,255,.08) !important;
+    box-shadow: 0 24px 70px rgba(0,0,0,.65) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Si tu modal usa "glass" con gradiente/transparencia, lo aplastamos */
+  .modal::before,
+  .dialog::before,
+  .popup::before{
+    content: none !important;
+  }
+
+  /* Hint pequeño debajo de “Debe ser mayor a 0.” */
+  .hintPaidSoFar{
+    margin-top: 6px;
+    font-size: 12px;
+    opacity: .85;
+    line-height: 1.2;
+  }
+</style>
+
+<script>
+  (function () {
+    // Formateo de dinero (MXN-like, pero sin forzar moneda por si ya tienes formato)
+    function fmtMoney(n){
+      const v = Number(n || 0);
+      try{
+        return v.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }catch(e){
+        return String(v.toFixed(2));
+      }
+    }
+
+    // Detecta el arreglo global de pagos (tu código ya lo trae como payments)
+    function getPaymentsArray(){
+      if (Array.isArray(window.payments)) return window.payments;
+      if (Array.isArray(window.PAYMENTS)) return window.PAYMENTS;
+      if (window.state && Array.isArray(window.state.payments)) return window.state.payments;
+      return null;
+    }
+
+    function sumPaid(){
+      const arr = getPaymentsArray();
+      if (!arr) return 0;
+      return arr.reduce((s, p) => s + Number(p?.monto || p?.amount || 0), 0);
+    }
+
+    // Busca el modal abierto (varios posibles)
+    function getOpenDialog(){
+      // prioridad: role dialog visible
+      const dialogs = Array.from(document.querySelectorAll('[role="dialog"], .modal, .dialog, .popup, .modalCard'));
+      const visible = dialogs.find(el => el && el.offsetParent !== null);
+      return visible || null;
+    }
+
+    // Encuentra el nodo que contiene el texto “Debe ser mayor a 0”
+    function findMustBeGreaterThanZeroNode(root){
+      if (!root) return null;
+
+      // búsqueda rápida por elementos típicos de helper
+      const candidates = root.querySelectorAll('p, small, div, span, label');
+      for (const el of candidates){
+        const t = (el.textContent || '').trim();
+        if (t.includes('Debe ser mayor a 0')) return el;
+      }
+
+      // fallback: tree walk por texto
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+      let node;
+      while ((node = walker.nextNode())){
+        const t = (node.nodeValue || '').trim();
+        if (t.includes('Debe ser mayor a 0')) return node.parentElement;
+      }
+      return null;
+    }
+
+    function injectPaidHint(){
+      const dlg = getOpenDialog();
+      if (!dlg) return;
+
+      const anchor = findMustBeGreaterThanZeroNode(dlg);
+      if (!anchor) return;
+
+      // crea o actualiza hint
+      let hint = dlg.querySelector('#paidSoFarHint');
+      if (!hint){
+        hint = document.createElement('div');
+        hint.id = 'paidSoFarHint';
+        hint.className = 'hintPaidSoFar';
+        anchor.insertAdjacentElement('afterend', hint);
+      }
+
+      hint.textContent = `Llevas abonado hasta ahora: $${fmtMoney(sumPaid())}`;
+    }
+
+    // Re-inyecta cada vez que se abre/cambia el modal (observador)
+    const obs = new MutationObserver(() => {
+      injectPaidHint();
+    });
+
+    obs.observe(document.documentElement, { childList: true, subtree: true });
+
+    // También al cargar
+    window.addEventListener('load', () => {
+      injectPaidHint();
+      // y cuando el usuario escribe (por si tu código recalcula pagos on input)
+      document.addEventListener('input', () => injectPaidHint(), true);
+      document.addEventListener('click', () => injectPaidHint(), true);
+    });
+  })();
+</script>
+<!-- ✅ FIN OVERRIDES -->
+
 </body>
 </html>
