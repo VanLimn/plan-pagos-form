@@ -1,4 +1,3 @@
-```html
 <!doctype html>
 <html lang="es">
 <head>
@@ -924,7 +923,6 @@
             </div>
 
             <!-- ✅ Hidden form post (fallback) -->
-            <!-- Nota: dejo display:none inline para que SIEMPRE sea invisible aunque cambies la clase -->
             <iframe name="hiddenFrame" id="hiddenFrame" style="display:none;"></iframe>
             <form id="postForm" style="display:none;" method="POST" target="hiddenFrame">
               <input type="hidden" name="payload" id="payloadField" />
@@ -1295,7 +1293,6 @@
     }
 
     function openModalForDate(dateISO, opts){
-      // opts: { mode: "add"|"edit", index: number|null, prefillAmount: number|null, allowChangeDate: bool }
       pendingDateISO = dateISO;
 
       const isEdit = opts && opts.mode === "edit";
@@ -1339,7 +1336,7 @@
 
     function getAddMinDate(){
       if(payments.length === 0) return FIRST_PAY_MIN_DATE;
-      return payments[payments.length-1].fecha; // must be strictly greater than last date
+      return payments[payments.length-1].fecha;
     }
 
     function withinGlobalRange(dateISO){
@@ -1353,25 +1350,16 @@
       if(!withinGlobalRange(dateISO)) return false;
       if(usedDateSet().has(dateISO)) return false;
       const min = getAddMinDate();
-      if(payments.length === 0){
-        // already enforced by FIRST_PAY_MIN_DATE in withinGlobalRange
-        return true;
-      }
-      // strict after last chosen
+      if(payments.length === 0) return true;
       return dateISO > min;
     }
 
     function canPickDateForEdit(dateISO, index){
       if(!isValidISODate(dateISO)) return false;
       if(!(dateISO >= MIN_DATE && dateISO <= MAX_DATE)) return false;
-
-      // If editing payment 1, still must be >= FIRST_PAY_MIN_DATE
       if(index === 0 && dateISO < FIRST_PAY_MIN_DATE) return false;
-
-      // No duplicates (excluding itself)
       if(usedDateSet(index).has(dateISO)) return false;
 
-      // Must stay between neighbors
       const prev = index > 0 ? payments[index-1].fecha : null;
       const next = index < payments.length-1 ? payments[index+1].fecha : null;
 
@@ -1382,12 +1370,10 @@
     }
 
     function renderCalendar(){
-      // Guardrails: if planner not enabled, do nothing
       if(paymentsCount <= 0) return;
 
       calMonthTitle.textContent = `${MONTHS_ES[viewMonth]} ${viewYear}`;
 
-      // Subtitle depends mode
       if(selectionMode === "editPickDate" && editIndex !== null){
         calSubTitle.textContent = `Editando Pago ${editIndex+1}: selecciona una nueva fecha (dentro del rango permitido).`;
         plannerHint.textContent = "Modo edición: selecciona una fecha válida para ese pago. Se respetan orden, rango y no repetición.";
@@ -1398,11 +1384,10 @@
 
       const firstDay = new Date(Date.UTC(viewYear, viewMonth, 1));
       const daysInMonth = new Date(Date.UTC(viewYear, viewMonth+1, 0)).getUTCDate();
-      const startDow = firstDay.getUTCDay(); // 0=Sun, 6=Sat (perfecto)
+      const startDow = firstDay.getUTCDay();
 
       calDays.innerHTML = "";
 
-      // placeholders before first day
       for(let i=0;i<startDow;i++){
         const el = document.createElement("div");
         el.className = "day muted";
@@ -1419,18 +1404,13 @@
         el.className = "day";
         el.textContent = String(d);
 
-        // Mark used
-        if(used.has(iso)){
-          el.classList.add("used");
-        }
+        if(used.has(iso)) el.classList.add("used");
 
-        // Enable/disable logic
         let enabled = true;
 
         if(selectionMode === "editPickDate" && editIndex !== null){
           enabled = canPickDateForEdit(iso, editIndex);
         } else {
-          // add mode
           if(payments.length >= paymentsCount){
             enabled = false;
           } else {
@@ -1438,20 +1418,15 @@
           }
         }
 
-        if(!enabled){
-          el.classList.add("disabled");
-        }
+        if(!enabled) el.classList.add("disabled");
 
-        // Click
         el.addEventListener("click", ()=>{
           if(el.classList.contains("disabled") || el.classList.contains("muted")) return;
 
           if(selectionMode === "editPickDate" && editIndex !== null){
-            // editing date picked -> open modal prefilled with current amount
             const currentAmt = Number(payments[editIndex].monto || 0);
             openModalForDate(iso, { mode:"edit", index: editIndex, prefillAmount: currentAmt, allowChangeDate: true });
           } else {
-            // add mode -> open modal
             openModalForDate(iso, { mode:"add", index: null, prefillAmount: null, allowChangeDate: false });
           }
         });
@@ -1498,15 +1473,13 @@
         payList.appendChild(item);
       }
 
-      // Attach actions
       payList.querySelectorAll("button[data-action='edit']").forEach(btn=>{
         btn.addEventListener("click", ()=>{
           const idx = Number(btn.dataset.index);
           if(!Number.isInteger(idx) || idx < 0 || idx >= payments.length) return;
 
-          // Open modal for amount; allow change date link
           editIndex = idx;
-          selectionMode = "add"; // default while editing amount
+          selectionMode = "add";
           const p = payments[idx];
           openModalForDate(p.fecha, { mode:"edit", index: idx, prefillAmount: Number(p.monto || 0), allowChangeDate: true });
         });
@@ -1519,7 +1492,6 @@
 
           payments.splice(idx, 1);
 
-          // Reset edit mode if needed
           if(editIndex === idx){
             editIndex = null;
             selectionMode = "add";
@@ -1566,7 +1538,6 @@
       editIndex = null;
       pendingDateISO = null;
 
-      // reset calendar view to current month
       viewYear = new Date().getFullYear();
       viewMonth = new Date().getMonth();
 
@@ -1576,7 +1547,6 @@
       updateLiveTotals();
     }
 
-    // Modal input formatting
     payModalAmount.addEventListener("input", ()=>{
       const caret = payModalAmount.selectionStart;
       const before = payModalAmount.value;
@@ -1603,21 +1573,15 @@
         return;
       }
 
-      // If we are editing (editIndex set AND modal was opened in edit mode)
       const isEditing = (payModalTitle.textContent || "").toLowerCase().includes("editar") && editIndex !== null;
 
       if(isEditing){
-        // Validate date within edit constraints
         if(!canPickDateForEdit(pendingDateISO, editIndex)){
           modalError("Fecha no válida para este pago (rango/orden/repetición).");
           return;
         }
         payments[editIndex] = { fecha: pendingDateISO, monto: amt };
-
-        // After editing, keep array sorted (should remain valid; still sort to be safe)
         payments.sort((a,b)=> a.fecha.localeCompare(b.fecha));
-
-        // Recompute editIndex to match same payment? Hard to track; reset edit mode
         editIndex = null;
         selectionMode = "add";
 
@@ -1630,7 +1594,6 @@
         return;
       }
 
-      // Add mode
       if(payments.length >= paymentsCount){
         modalError("Ya completaste el número de pagos.");
         return;
@@ -1641,7 +1604,7 @@
       }
 
       payments.push({ fecha: pendingDateISO, monto: amt });
-      payments.sort((a,b)=> a.fecha.localeCompare(b.fecha)); // should keep order
+      payments.sort((a,b)=> a.fecha.localeCompare(b.fecha));
 
       closeModal();
       show(err_payments,false);
@@ -1653,7 +1616,6 @@
 
     payModalSaveBtn.addEventListener("click", saveModal);
     payModalCloseBtn.addEventListener("click", ()=>{
-      // If in edit date-pick mode, cancel it too
       if(selectionMode === "editPickDate"){
         selectionMode = "add";
         editIndex = null;
@@ -1681,7 +1643,6 @@
     });
 
     payModalChangeDateBtn.addEventListener("click", ()=>{
-      // Switch to "pick date" for the current editIndex
       if(editIndex === null) return;
       closeModal();
       selectionMode = "editPickDate";
@@ -1702,7 +1663,6 @@
       renderCalendar();
     });
 
-    // numPagos => enable planner
     numPagos.addEventListener("input", ()=>{
       const n = Number(numPagos.value);
       show(err_numPagos, false);
@@ -1731,7 +1691,6 @@
         allErrors.push(`Faltan pagos por capturar: llevas ${payments.length} de ${paymentsCount}.`);
       }
 
-      // Validate each payment
       const dates = new Set();
       for(let i=0; i<payments.length; i++){
         const p = payments[i];
@@ -1759,7 +1718,6 @@
         }
       }
 
-      // Enforce chronological order
       for(let i=1; i<payments.length; i++){
         const prev = payments[i-1].fecha;
         const cur  = payments[i].fecha;
@@ -1784,7 +1742,6 @@
       const abonoVal = abonoInicial.value.trim();
       const abono = abonoVal === "" ? 0 : (parseAmount(abonoVal) || 0);
 
-      // Build pagos from calendar state
       const pagos = (payments || []).map((p, idx)=>({
         num: idx+1,
         fecha: p.fecha,
@@ -1935,7 +1892,6 @@ Restante pendiente: ${money(data.ticket.restante)}
       return true;
     }
 
-    // ✅ ENVÍO: FORM + IFRAME SIEMPRE (evita CORS / errores de lectura de respuesta)
     async function submitToWebApp(payloadStr){
       if(typeof payloadStr !== "string") payloadStr = JSON.stringify(payloadStr);
 
@@ -1958,7 +1914,6 @@ Restante pendiente: ${money(data.ticket.restante)}
       numPagos.value = "";
       signatureName.value = "";
 
-      // planner
       resetPlanner();
 
       summaryGrid.innerHTML = "";
@@ -1981,9 +1936,9 @@ Restante pendiente: ${money(data.ticket.restante)}
       signatureErr.textContent = "";
       signatureErr.classList.remove("show");
 
-      hide(successBox);
-      hide(sendingBox);
-      failBox.style.display = "none";
+      hide(document.getElementById("successBox"));
+      hide(document.getElementById("sendingBox"));
+      document.getElementById("failBox").style.display = "none";
 
       toAgreementBtn.disabled = false;
       sendBtn.disabled = false;
@@ -2046,7 +2001,6 @@ Restante pendiente: ${money(data.ticket.restante)}
 
     document.addEventListener("keydown", (e)=>{
       if(e.key === "Enter"){
-        // si modal abierto, Enter guarda
         if(payModalOverlay.classList.contains("show")){
           e.preventDefault();
           saveModal();
@@ -2168,10 +2122,8 @@ Restante pendiente: ${money(data.ticket.restante)}
         console.error("No se pudo enviar:", result);
         return;
       }
-      // ✅ éxito real lo marca el "load" del iframe.
     });
 
-    // init
     abonoHint.textContent = `Número (sin $). Se formatea automático. Máximo ${money(MAX_ABONO_HINT)}.`;
     resetPlanner();
     setStep(1);
@@ -2179,4 +2131,3 @@ Restante pendiente: ${money(data.ticket.restante)}
   </script>
 </body>
 </html>
-```
