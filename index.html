@@ -17,7 +17,6 @@
   <meta name="twitter:title" content="Acuerdo de Financiamiento" />
   <meta name="twitter:description" content="Captura tus abonos y programa los pagos que mejor te queden." />
   <meta name="twitter:image" content="https://vanlimn.github.io/plan-pagos-form/og-image.png" />
-
   <link rel="icon" href="og-image.png" type="image/png" />
 
   <style>
@@ -31,14 +30,18 @@
       --danger:#ff4d6d;
       --ok:#37d67a;
       --warn:#ffcc00;
+      --solid:#0f1118;
+      --solid2:#11131a;
     }
+
     *{box-sizing:border-box}
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      background: radial-gradient(1200px 700px at 20% -10%, rgba(124,92,255,.35), transparent 55%),
-                  radial-gradient(900px 600px at 90% 0%, rgba(55,214,122,.18), transparent 50%),
-                  var(--bg);
+      background:
+        radial-gradient(1200px 700px at 20% -10%, rgba(124,92,255,.35), transparent 55%),
+        radial-gradient(900px 600px at 90% 0%, rgba(55,214,122,.18), transparent 50%),
+        var(--bg);
       color:var(--text);
       min-height:100vh;
       display:flex;
@@ -46,6 +49,14 @@
       justify-content:center;
       padding:20px;
     }
+    body.modalOpen{
+      overflow:hidden;
+      position:fixed;
+      width:100%;
+      left:0;
+      right:0;
+    }
+
     .wrap{ width:min(920px, 100%); display:grid; grid-template-columns: 1fr; gap:14px; }
     .card{
       background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
@@ -97,7 +108,7 @@
 
     label{ font-size:13px; color:#d7dbe5; }
     input, select{
-      background:#0f1118;
+      background: var(--solid);
       color:var(--text);
       border:1px solid var(--line);
       border-radius:12px;
@@ -132,7 +143,7 @@
     .btns{ display:flex; gap:10px; flex-wrap:wrap; }
     button{
       border:1px solid var(--line);
-      background:#0f1118;
+      background: var(--solid);
       color:var(--text);
       border-radius:999px;
       padding:10px 14px;
@@ -158,8 +169,6 @@
     }
     .blackBtn:hover{ background:#000 !important; border-color:#000 !important; }
 
-    .payments{ display:flex; flex-direction:column; gap:10px; margin-top:6px; }
-
     .tag{ display:inline-flex; align-items:center; gap:8px; color:var(--muted); font-size:12px; }
     .tagDot{
       width:8px;height:8px;border-radius:999px;background: var(--accent);
@@ -179,7 +188,7 @@
     @media (min-width:720px){ .summaryGrid{grid-template-columns: 1fr 1fr;} }
     .kv{
       border:1px solid var(--line);
-      background:#0f1118;
+      background: var(--solid);
       border-radius:12px;
       padding:12px;
       overflow-wrap:anywhere;
@@ -194,7 +203,7 @@
       bottom:18px;
       left:50%;
       transform:translateX(-50%);
-      background:#0f1118;
+      background: var(--solid);
       border:1px solid var(--line);
       border-radius:999px;
       padding:10px 14px;
@@ -233,6 +242,235 @@
     }
     .hidden{ display:none !important; }
 
+    /* =========================
+       ✅ Planner (Calendario)
+       ========================= */
+    .payPlanner{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+    }
+    @media (min-width:860px){
+      .payPlanner{ grid-template-columns: 1.15fr .85fr; }
+    }
+
+    .calCard, .listCard{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background: var(--solid);
+      padding:12px;
+    }
+
+    .calHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:4px 2px 10px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      margin-bottom:10px;
+    }
+    .calTitle{
+      font-weight:900;
+      letter-spacing:.2px;
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .calTitle .big{ font-size:15px; }
+    .calTitle .small{ font-size:12px; color:var(--muted); font-weight:800; }
+
+    .calNav{ display:flex; gap:8px; align-items:center; }
+    .iconBtn{
+      width:36px;height:36px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#0b0c10;
+      cursor:pointer;
+      font-weight:950;
+      user-select:none;
+    }
+    .iconBtn:hover{ border-color: rgba(124,92,255,.6); background: rgba(124,92,255,.08); }
+
+    .dow{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap:8px;
+      padding:0 2px 8px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:900;
+      text-align:center;
+    }
+    .days{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap:8px;
+      padding:2px;
+    }
+    .day{
+      height:44px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.08);
+      background: var(--solid2); /* ✅ sólido: evita “transparencias raras” */
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      user-select:none;
+      font-weight:950;
+      font-size:13px;
+      position:relative;
+      transition: transform .06s ease, border-color .2s ease, background .2s ease, opacity .2s ease;
+    }
+    .day:hover{ border-color: rgba(124,92,255,.55); background: rgba(124,92,255,.10); }
+    .day:active{ transform: translateY(1px); }
+
+    .day.muted{
+      opacity:.25;
+      cursor:default;
+      background: #0c0e14;
+    }
+    .day.muted:hover{ border-color: rgba(255,255,255,.08); background:#0c0e14; }
+
+    .day.disabled{
+      opacity:.25;
+      cursor:not-allowed;
+      background: #0c0e14;
+    }
+    .day.disabled:hover{ border-color: rgba(255,255,255,.08); background:#0c0e14; }
+
+    .day.used{
+      background: rgba(55,214,122,.12);
+      border-color: rgba(55,214,122,.28);
+    }
+    .day.used:hover{
+      background: rgba(55,214,122,.14);
+      border-color: rgba(55,214,122,.38);
+    }
+    .day.used::after{
+      content:"✓";
+      position:absolute;
+      top:7px; right:10px;
+      font-size:11px;
+      color: rgba(55,214,122,.92);
+      font-weight:950;
+    }
+
+    .listTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+      padding-bottom:10px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .listTitle .t{ font-weight:950; font-size:14px; }
+    .listTitle .s{ color:var(--muted); font-size:12px; font-weight:900; }
+
+    .payList{ display:flex; flex-direction:column; gap:10px; }
+    .payItem{
+      border:1px solid rgba(255,255,255,.08);
+      background: #0c0e14;
+      border-radius:14px;
+      padding:10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .payItem.filled{
+      border-color: rgba(124,92,255,.22);
+      background: rgba(124,92,255,.06);
+    }
+    .payTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .payMeta{ display:flex; flex-direction:column; gap:4px; }
+    .payMeta .n{ font-weight:950; font-size:13px; }
+    .payMeta .v{ color:var(--muted); font-size:12px; font-weight:900; }
+    .payBtns{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .dangerBtn{
+      border-color: rgba(255,77,109,.35);
+      background: rgba(255,77,109,.08);
+    }
+    .dangerBtn:hover{
+      border-color: rgba(255,77,109,.65);
+      background: rgba(255,77,109,.12);
+    }
+
+    .plannerHint{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.4;
+      font-weight:800;
+      margin-top:10px;
+    }
+
+    /* Modal (Pop-up) */
+    .modalOverlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.62);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index: 9998;
+    }
+    .modalOverlay.show{ display:flex; }
+    .modal{
+      width:min(520px, 100%);
+      border:1px solid var(--line);
+      border-radius:18px;
+      background: var(--solid);
+      box-shadow: 0 18px 60px rgba(0,0,0,.45);
+      overflow:hidden;
+    }
+    .modalHead{
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .modalHead .h{ display:flex; flex-direction:column; gap:4px; }
+    .modalHead .h .t{ font-weight:950; letter-spacing:.2px; }
+    .modalHead .h .d{ color:var(--muted); font-size:12px; font-weight:900; }
+    .modalBody{ padding:14px; display:flex; flex-direction:column; gap:10px; }
+    .modalFoot{
+      padding:12px 14px;
+      border-top:1px solid var(--line);
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .linkBtn{
+      border:none !important;
+      background:transparent !important;
+      padding:0 !important;
+      color: rgba(124,92,255,.95) !important;
+      font-weight: 900 !important;
+      cursor:pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .linkBtn:hover{ color: rgba(124,92,255,1) !important; background: transparent !important; }
+
+    /* Agreement */
     .agreementHeader{
       display:flex;
       align-items:flex-start;
@@ -241,11 +479,7 @@
       flex-wrap:wrap;
       padding:4px 0 8px;
     }
-    .agreementHeaderLeft{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
+    .agreementHeaderLeft{ display:flex; flex-direction:column; gap:6px; }
     .agreementTitle{
       font-size:30px;
       line-height:1.05;
@@ -259,21 +493,10 @@
       font-weight:850;
       color:#dfe3ee;
     }
-    .agreementSub span{
-      font-weight:500;
-      color:#c9cfdd;
-    }
-    .agreementSectionTitle{
-      margin:10px 0 6px;
-      font-size:16px;
-      font-weight:900;
-    }
-    .checkList{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      margin-top:10px;
-    }
+    .agreementSub span{ font-weight:500; color:#c9cfdd; }
+    .agreementSectionTitle{ margin:10px 0 6px; font-size:16px; font-weight:900; }
+
+    .checkList{ display:flex; flex-direction:column; gap:10px; margin-top:10px; }
     .checkItem{
       display:grid;
       grid-template-columns: 30px 1fr;
@@ -306,15 +529,11 @@
     .planBlock{
       margin-top:12px;
       border:1px solid var(--line);
-      background:#0f1118;
+      background: var(--solid);
       border-radius:14px;
       padding:14px;
     }
-    .planBlock .label{
-      font-weight:950;
-      margin:0 0 10px;
-      font-size:15px;
-    }
+    .planBlock .label{ font-weight:950; margin:0 0 10px; font-size:15px; }
     .planList{
       margin:0;
       padding-left:18px;
@@ -358,7 +577,7 @@
     .signatureErr{
       font-size:13px;
       color: var(--danger);
-      font-weight:800;
+      font-weight:900;
       display:none;
       max-width: 560px;
       white-space:pre-wrap;
@@ -383,263 +602,7 @@
 
     .finalWrap{ padding:10px 2px; text-align:center; }
     .finalTitle{ font-size:18px; font-weight:950; margin:0 0 8px; letter-spacing:.2px; }
-    .finalText{ margin:0; color:var(--muted); line-height:1.45; font-size:13px; font-weight:700; }
-
-    /* =========================
-       ✅ Nuevo UI calendario
-       ========================= */
-    .payPlanner{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:12px;
-    }
-    @media (min-width:860px){
-      .payPlanner{ grid-template-columns: 1.2fr .8fr; }
-    }
-
-    .calCard, .listCard{
-      border:1px solid var(--line);
-      border-radius:14px;
-      background:#0f1118;
-      padding:12px;
-    }
-
-    .calHeader{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding:4px 2px 10px;
-      border-bottom:1px solid rgba(255,255,255,.06);
-      margin-bottom:10px;
-    }
-    .calTitle{
-      font-weight:900;
-      letter-spacing:.2px;
-      display:flex;
-      flex-direction:column;
-      gap:2px;
-    }
-    .calTitle .big{ font-size:15px; }
-    .calTitle .small{ font-size:12px; color:var(--muted); font-weight:700; }
-
-    .calNav{
-      display:flex;
-      gap:8px;
-      align-items:center;
-    }
-    .iconBtn{
-      width:36px;height:36px;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:#0b0c10;
-      cursor:pointer;
-      font-weight:900;
-      user-select:none;
-    }
-    .iconBtn:hover{
-      border-color: rgba(124,92,255,.6);
-      background: rgba(124,92,255,.08);
-    }
-
-    .dow{
-      display:grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap:8px;
-      padding:0 2px 8px;
-      color:var(--muted);
-      font-size:12px;
-      font-weight:800;
-      text-align:center;
-    }
-    .days{
-      display:grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap:8px;
-      padding:2px;
-    }
-    .day{
-      height:44px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.06);
-      background: rgba(255,255,255,.02);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      cursor:pointer;
-      user-select:none;
-      font-weight:900;
-      font-size:13px;
-      position:relative;
-      transition: transform .06s ease, border-color .2s ease, background .2s ease, opacity .2s ease;
-    }
-    .day:hover{
-      border-color: rgba(124,92,255,.55);
-      background: rgba(124,92,255,.08);
-    }
-    .day:active{ transform: translateY(1px); }
-
-    .day.muted{
-      opacity:.35;
-      cursor:default;
-    }
-    .day.muted:hover{ border-color: rgba(255,255,255,.06); background: rgba(255,255,255,.02); }
-    .day.disabled{
-      opacity:.35;
-      cursor:not-allowed;
-    }
-    .day.disabled:hover{ border-color: rgba(255,255,255,.06); background: rgba(255,255,255,.02); }
-    .day.used{
-      background: rgba(55,214,122,.10);
-      border-color: rgba(55,214,122,.25);
-    }
-    .day.used:hover{
-      background: rgba(55,214,122,.12);
-      border-color: rgba(55,214,122,.35);
-    }
-    .day.used::after{
-      content:"✓";
-      position:absolute;
-      top:7px; right:10px;
-      font-size:11px;
-      color: rgba(55,214,122,.9);
-      font-weight:950;
-    }
-    .day.activePick{
-      border-color: rgba(255,204,0,.55);
-      background: rgba(255,204,0,.06);
-    }
-
-    .listTitle{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:10px;
-      padding-bottom:10px;
-      border-bottom:1px solid rgba(255,255,255,.06);
-    }
-    .listTitle .t{
-      font-weight:950;
-      font-size:14px;
-    }
-    .listTitle .s{
-      color:var(--muted);
-      font-size:12px;
-      font-weight:800;
-    }
-
-    .payList{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-    .payItem{
-      border:1px solid rgba(255,255,255,.06);
-      background: rgba(255,255,255,.02);
-      border-radius:14px;
-      padding:10px;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-    }
-    .payItem.filled{
-      border-color: rgba(124,92,255,.18);
-      background: rgba(124,92,255,.05);
-    }
-    .payTop{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
-    }
-    .payMeta{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-    }
-    .payMeta .n{ font-weight:950; font-size:13px; }
-    .payMeta .v{ color:var(--muted); font-size:12px; font-weight:800; }
-    .payBtns{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-    }
-    .dangerBtn{
-      border-color: rgba(255,77,109,.35);
-      background: rgba(255,77,109,.08);
-    }
-    .dangerBtn:hover{
-      border-color: rgba(255,77,109,.65);
-      background: rgba(255,77,109,.12);
-    }
-
-    .plannerHint{
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.4;
-      font-weight:800;
-    }
-
-    /* Modal */
-    .modalOverlay{
-      position:fixed;
-      inset:0;
-      background: rgba(0,0,0,.55);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding:18px;
-      z-index: 9998;
-    }
-    .modalOverlay.show{ display:flex; }
-    .modal{
-      width:min(520px, 100%);
-      border:1px solid var(--line);
-      border-radius:18px;
-      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
-      box-shadow: 0 18px 60px rgba(0,0,0,.45);
-      overflow:hidden;
-    }
-    .modalHead{
-      padding:14px 14px 10px;
-      border-bottom:1px solid var(--line);
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
-    }
-    .modalHead .h{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-    }
-    .modalHead .h .t{ font-weight:950; letter-spacing:.2px; }
-    .modalHead .h .d{ color:var(--muted); font-size:12px; font-weight:800; }
-    .modalBody{ padding:14px; display:flex; flex-direction:column; gap:10px; }
-    .modalFoot{
-      padding:12px 14px;
-      border-top:1px solid var(--line);
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .linkBtn{
-      border: none !important;
-      background: transparent !important;
-      padding: 0 !important;
-      color: rgba(124,92,255,.95) !important;
-      font-weight: 900 !important;
-      cursor: pointer;
-      text-decoration: underline;
-      text-underline-offset: 3px;
-    }
-    .linkBtn:hover{ color: rgba(124,92,255,1) !important; background: transparent !important; }
+    .finalText{ margin:0; color:var(--muted); line-height:1.45; font-size:13px; font-weight:800; }
   </style>
 </head>
 
@@ -732,61 +695,59 @@
             <div class="field">
               <label for="numPagos">¿Cuántos pagos vas a querer que sean?</label>
               <input id="numPagos" type="number" min="1" max="50" step="1" placeholder="Ej. 3" inputmode="numeric" />
-              <div class="hint">Al poner un número, podrás seleccionar fechas en un calendario y capturar el monto por pago.</div>
+              <div class="hint">Se habilita un calendario. Selecciona fecha (pop-up) y captura el monto.</div>
               <div class="error" id="err_numPagos">Indica un número de pagos (1–50).</div>
             </div>
 
             <div class="field">
               <div class="tag">
                 <span class="tagDot"></span>
-                <span>
-                  Vamos a empezar con tu plan de pagos. <b>Tu primer pago (sin contar el apartado que ya realizaste).</b>
-                </span>
+                <span>Vamos a empezar con tu plan de pagos. <b>Tu primer pago (sin contar el apartado).</b></span>
               </div>
             </div>
 
             <div class="field">
-              <div id="paymentsContainer" class="payments">
-                <!-- ✅ Nuevo planner se renderiza aquí -->
-                <div id="payPlanner" class="payPlanner hidden">
-                  <div class="calCard">
-                    <div class="calHeader">
-                      <div class="calTitle">
-                        <div class="big" id="calMonthTitle">—</div>
-                        <div class="small" id="calSubTitle">Selecciona una fecha</div>
-                      </div>
-                      <div class="calNav">
-                        <div class="iconBtn" id="calPrevBtn" title="Mes anterior">←</div>
-                        <div class="iconBtn" id="calNextBtn" title="Mes siguiente">→</div>
-                      </div>
-                    </div>
+              <div id="plannerEmpty" class="summaryBox">
+                <div class="tag"><span class="tagDot"></span><span>Plan de pagos</span></div>
+                <div class="hint">Primero escribe cuántos pagos serán (arriba). Luego selecciona fechas en el calendario.</div>
+              </div>
 
-                    <div class="dow">
-                      <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div>
+              <div id="payPlanner" class="payPlanner hidden">
+                <div class="calCard">
+                  <div class="calHeader">
+                    <div class="calTitle">
+                      <div class="big" id="calMonthTitle">Mes</div>
+                      <div class="small" id="calSubTitle">Selecciona una fecha…</div>
                     </div>
-                    <div class="days" id="calDays"></div>
-
-                    <div class="plannerHint" id="plannerHint" style="margin-top:10px;">
-                      Tip: selecciona un día y captura el monto. No se permiten fechas repetidas ni fechas fuera de orden.
+                    <div class="calNav">
+                      <div class="iconBtn" id="calPrevBtn" aria-label="Mes anterior">‹</div>
+                      <div class="iconBtn" id="calNextBtn" aria-label="Mes siguiente">›</div>
                     </div>
                   </div>
 
-                  <div class="listCard">
-                    <div class="listTitle">
-                      <div class="t">Tus abonos</div>
-                      <div class="s" id="payListStatus">0 / 0</div>
-                    </div>
-                    <div class="payList" id="payList"></div>
+                  <div class="dow">
+                    <div>Do</div><div>Lu</div><div>Ma</div><div>Mi</div><div>Ju</div><div>Vi</div><div>Sá</div>
                   </div>
+                  <div class="days" id="calDays"></div>
+
+                  <div class="plannerHint" id="plannerHint"></div>
                 </div>
 
-                <div id="plannerEmpty" class="plannerHint">
-                  Escribe cuántos pagos quieres hacer para habilitar el calendario.
+                <div class="listCard">
+                  <div class="listTitle">
+                    <div>
+                      <div class="t">Tus pagos</div>
+                      <div class="s" id="payListStatus">0 / 0</div>
+                    </div>
+                    <div class="tag"><span class="tagDot"></span><span>Editar / borrar</span></div>
+                  </div>
+
+                  <div id="payList" class="payList"></div>
                 </div>
               </div>
 
               <div class="error" id="err_payments">
-                <div style="font-weight:600; margin-bottom:6px;">Revisa estos pagos:</div>
+                <div style="font-weight:900; margin-bottom:6px;">Revisa estos pagos:</div>
                 <div id="err_payments_list" style="white-space:pre-wrap; line-height:1.4;"></div>
               </div>
 
@@ -818,7 +779,7 @@
         <!-- STEP 5 (Resumen) -->
         <section class="step" data-step="5">
           <div class="summaryBox">
-            <div class="tag"><span class="tagDot"></span><span>Resumen final | Por favor revisa que todos tus datos estén correctos · Número de teléfono principalmente.</span></div>
+            <div class="tag"><span class="tagDot"></span><span>Resumen final | Revisa que todos tus datos estén correctos (teléfono principalmente).</span></div>
             <div class="summaryGrid" id="summaryGrid"></div>
 
             <div class="warning hidden" id="validationBox"></div>
@@ -895,7 +856,7 @@
           </div>
         </section>
 
-        <!-- STEP 9 -->
+        <!-- STEP 9 (Firma) -->
         <section class="step" data-step="9">
           <div class="agreementHeader">
             <div class="agreementHeaderLeft">
@@ -929,7 +890,7 @@
             </form>
           </div>
 
-          <!-- ✅ PDF interno oculto (se manda en payload para Apps Script) -->
+          <!-- ✅ PDF interno oculto -->
           <div id="pdfAgreementTemplate">
             <h2>ACUERDO DE<br/>FINANCIAMIENTO</h2>
             <div class="sub">&gt; brand lab x ab | Febrero 2026</div>
@@ -965,8 +926,8 @@
             <div class="finalWrap">
               <h2 class="finalTitle">Gracias por tu registro ✅</h2>
               <p class="finalText">
-                En breve recibirás el acuerdo en tu <b>correo</b> (en el transcurso de unos minutos).<br/>
-                Por favor revisa también <b>Spam</b> / <b>Promociones</b>.
+                En breve recibirás el acuerdo en tu WhatsApp.<br/>
+                Por favor confirma de recibido.
               </p>
             </div>
           </div>
@@ -983,31 +944,24 @@
     </div>
   </div>
 
-  <div class="toast" id="toast">Enviado ✅</div>
-
-  <!-- ✅ Modal monto -->
+  <!-- ✅ Modal para capturar monto (fecha viene del click en calendario) -->
   <div class="modalOverlay" id="payModalOverlay" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-label="Capturar monto">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="payModalTitle">
       <div class="modalHead">
         <div class="h">
-          <div class="t" id="payModalTitle">Monto a abonar</div>
-          <div class="d" id="payModalDate">—</div>
+          <div class="t" id="payModalTitle">Agregar pago</div>
+          <div class="d" id="payModalDesc">Fecha: —</div>
         </div>
         <button class="small" id="payModalCloseBtn" type="button">Cerrar</button>
       </div>
-
       <div class="modalBody">
-        <label for="payModalAmount">¿Cuánto quieres abonar?</label>
-        <input id="payModalAmount" data-role="amount" inputmode="decimal" placeholder="Ej. 2,000" />
-        <div class="hint">Número (sin $). Se formatea automático. Debe ser mayor a 0.</div>
-
-        <div class="hint" id="payModalEditHint" style="display:none;">
-          ¿Quieres cambiar la fecha? <button class="linkBtn" id="payModalChangeDateBtn" type="button">Cambiar fecha</button>
+        <div class="field" style="margin:0;">
+          <label for="payModalAmount">Monto a abonar</label>
+          <input id="payModalAmount" inputmode="decimal" placeholder="Ej. 2,000" />
+          <div class="hint">Número (sin $). Se formatea automático.</div>
+          <div class="error" id="payModalErr"></div>
         </div>
-
-        <div class="error" id="payModalErr">—</div>
       </div>
-
       <div class="modalFoot">
         <button class="small" id="payModalCancelBtn" type="button">Cancelar</button>
         <button class="small primary" id="payModalSaveBtn" type="button">Guardar</button>
@@ -1015,8 +969,10 @@
     </div>
   </div>
 
+  <div class="toast" id="toast">Enviado ✅</div>
+
   <script>
-    // ✅ URL del Apps Script Web App (TUYA - ACTUALIZADA)
+    // ✅ URL del Apps Script Web App (TUYA)
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxFalrNH2FAI4dSG1LMmx9WlzpZZ6dzDX0VT8deZQOykNCLF6OglDTRCjzGKeBvY6eVXg/exec";
 
     // Reglas
@@ -1024,6 +980,9 @@
     const MAX_DATE = "2026-11-30";
     const MAX_ABONO = 49999.99;
     const MAX_ABONO_HINT = 49000;
+    const REMAINING_TOL = 0.01;
+
+    const MONTHS_ES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
     function todayISO(){
       const d = new Date();
@@ -1047,6 +1006,13 @@
       if(!m) return iso;
       return `${m[3]}/${m[2]}/${m[1]}`;
     }
+    function isoToPrettyLong(iso){
+      if(!iso) return "-";
+      const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if(!m) return iso;
+      const y = Number(m[1]), mo = Number(m[2]) - 1, d = Number(m[3]);
+      return `${d} ${MONTHS_ES[mo]} ${y}`;
+    }
     function isValidISODate(dateStr){
       if(!dateStr || typeof dateStr !== "string") return false;
       const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -1055,11 +1021,41 @@
       const dt = new Date(Date.UTC(y, mo - 1, d));
       return dt.getUTCFullYear() === y && (dt.getUTCMonth()+1) === mo && dt.getUTCDate() === d;
     }
+    function toISO(y, m, d){
+      const mm = String(m+1).padStart(2,"0");
+      const dd = String(d).padStart(2,"0");
+      return `${y}-${mm}-${dd}`;
+    }
 
     const MIN_DATE = todayISO();
     const FIRST_PAY_MIN_DATE = addDaysISO(MIN_DATE, 1);
-    const REMAINING_TOL = 0.01;
 
+    function parseAmount(str){
+      const cleaned = (str || "").toString().replace(/,/g,'').trim();
+      if(cleaned === "") return NaN;
+      const n = Number(cleaned);
+      return Number.isFinite(n) ? n : NaN;
+    }
+
+    function formatCurrencyInput(value){
+      const cleaned = (value || "").toString().replace(/[^\d.]/g,'');
+      if(cleaned === "") return "";
+      const parts = cleaned.split(".");
+      const intPart = parts[0].replace(/^0+(?=\d)/, "");
+      const formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      return parts.length > 1 ? `${formatted}.${parts[1].slice(0,2)}` : formatted;
+    }
+
+    function money(n){
+      const x = Number(n || 0);
+      return x.toLocaleString("es-MX", { style:"currency", currency:"MXN" });
+    }
+
+    function remainingIsZero(restante){
+      return Math.abs(Number(restante || 0)) <= REMAINING_TOL;
+    }
+
+    // Steps
     const steps = Array.from(document.querySelectorAll(".step"));
     let currentStep = 1;
 
@@ -1077,7 +1073,6 @@
     const abonoInicial = document.getElementById("abonoInicial");
     const abonoHint = document.getElementById("abonoHint");
     const numPagos = document.getElementById("numPagos");
-    const paymentsContainer = document.getElementById("paymentsContainer");
 
     const err_nombres = document.getElementById("err_nombres");
     const err_apellidos = document.getElementById("err_apellidos");
@@ -1115,14 +1110,50 @@
     const pdfPlanList = document.getElementById("pdfPlanList");
     const pdfSignature = document.getElementById("pdfSignature");
 
-    // ✅ flag para convertir BACK en reinicio después de enviar
+    // Planner UI refs
+    const plannerEmpty = document.getElementById("plannerEmpty");
+    const payPlanner = document.getElementById("payPlanner");
+    const calMonthTitle = document.getElementById("calMonthTitle");
+    const calSubTitle = document.getElementById("calSubTitle");
+    const calDays = document.getElementById("calDays");
+    const calPrevBtn = document.getElementById("calPrevBtn");
+    const calNextBtn = document.getElementById("calNextBtn");
+    const plannerHint = document.getElementById("plannerHint");
+
+    const payList = document.getElementById("payList");
+    const payListStatus = document.getElementById("payListStatus");
+
+    // Modal
+    const payModalOverlay = document.getElementById("payModalOverlay");
+    const payModalTitle = document.getElementById("payModalTitle");
+    const payModalDesc = document.getElementById("payModalDesc");
+    const payModalAmount = document.getElementById("payModalAmount");
+    const payModalErr = document.getElementById("payModalErr");
+    const payModalSaveBtn = document.getElementById("payModalSaveBtn");
+    const payModalCloseBtn = document.getElementById("payModalCloseBtn");
+    const payModalCancelBtn = document.getElementById("payModalCancelBtn");
+
+    // state
     let lockAfterSubmit = false;
+
+    // Planner state
+    let paymentsCount = 0;
+    let payments = []; // [{fecha:'YYYY-MM-DD', monto:number}]
+    let viewYear = new Date().getFullYear();
+    let viewMonth = new Date().getMonth();
+    let pendingDateISO = null;
+    let editingIndex = null; // number | null
+    let bodyScrollY = 0;
 
     function showToast(msg){
       toast.textContent = msg;
       toast.classList.add("show");
       setTimeout(()=>toast.classList.remove("show"), 1100);
     }
+
+    function show(el, yes){ el.classList.toggle("show", !!yes); }
+    function hide(el){ el.classList.add("hidden"); }
+    function unhide(el){ el.classList.remove("hidden"); }
 
     function syncNextButtonRules(){
       nextBtn.disabled = false;
@@ -1163,39 +1194,17 @@
       const focusMap = {1:nombres, 2:email, 3:abonoInicial, 4:numPagos, 9:signatureName};
       if(focusMap[currentStep]) focusMap[currentStep].focus();
 
-      if(currentStep === 4) updateLiveTotals();
+      if(currentStep === 4){
+        renderCalendar();
+        renderPayList();
+        updateLiveTotals();
+      }
+
       syncNextButtonRules();
     }
 
+    // Validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    function show(el, yes){ el.classList.toggle("show", !!yes); }
-    function hide(el){ el.classList.add("hidden"); }
-    function unhide(el){ el.classList.remove("hidden"); }
-
-    function parseAmount(str){
-      const cleaned = (str || "").toString().replace(/,/g,'').trim();
-      if(cleaned === "") return NaN;
-      const n = Number(cleaned);
-      return Number.isFinite(n) ? n : NaN;
-    }
-
-    function formatCurrencyInput(value){
-      const cleaned = (value || "").toString().replace(/[^\d.]/g,'');
-      if(cleaned === "") return "";
-      const parts = cleaned.split(".");
-      const intPart = parts[0].replace(/^0+(?=\d)/, "");
-      const formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-      return parts.length > 1 ? `${formatted}.${parts[1].slice(0,2)}` : formatted;
-    }
-
-    function money(n){
-      const x = Number(n || 0);
-      return x.toLocaleString("es-MX", { style:"currency", currency:"MXN" });
-    }
-
-    function remainingIsZero(restante){
-      return Math.abs(Number(restante || 0)) <= REMAINING_TOL;
-    }
 
     function validateStep1(){
       const okN = nombres.value.trim().length > 0;
@@ -1223,6 +1232,65 @@
       return ok;
     }
 
+    function validatePlannerDetailed(){
+      show(err_payments,false);
+      err_payments_list.textContent = "";
+
+      const errors = [];
+
+      if(!(Number.isInteger(paymentsCount) && paymentsCount >= 1 && paymentsCount <= 50)){
+        errors.push("Cantidad de pagos inválida (1–50).");
+      }
+
+      if(payments.length !== paymentsCount){
+        errors.push(`Faltan pagos por completar: llevas ${payments.length} de ${paymentsCount}.`);
+      }
+
+      // Validación por pago
+      const used = new Set();
+      const sorted = [...payments].sort((a,b)=> (a.fecha||"").localeCompare(b.fecha||""));
+
+      for(let i=0;i<sorted.length;i++){
+        const p = sorted[i];
+        const idxHuman = i + 1;
+
+        if(!p || !p.fecha || !isValidISODate(p.fecha)){
+          errors.push(`Pago ${idxHuman}: fecha inválida.`);
+          continue;
+        }
+        if(!(p.fecha >= MIN_DATE && p.fecha <= MAX_DATE)){
+          errors.push(`Pago ${idxHuman}: fecha fuera de rango (${isoToDMY(p.fecha)}).`);
+        }
+        if(i === 0 && p.fecha < FIRST_PAY_MIN_DATE){
+          errors.push(`Pago 1: no puede ser hoy. Selecciona desde ${isoToDMY(FIRST_PAY_MIN_DATE)}.`);
+        }
+        if(used.has(p.fecha)){
+          errors.push(`Fechas repetidas: ${isoToDMY(p.fecha)}.`);
+        }
+        used.add(p.fecha);
+
+        const amt = Number(p.monto || 0);
+        if(!(amt > 0)){
+          errors.push(`Pago ${idxHuman}: monto inválido (debe ser mayor a 0).`);
+        }
+
+        if(i > 0){
+          const prev = sorted[i-1].fecha;
+          if(prev && p.fecha <= prev){
+            errors.push(`Orden inválido: Pago ${idxHuman} (${isoToDMY(p.fecha)}) debe ser después de ${isoToDMY(prev)}.`);
+          }
+        }
+      }
+
+      const ok = errors.length === 0;
+      if(!ok){
+        err_payments_list.textContent = errors.join("\n");
+        show(err_payments, true);
+      }
+      return { ok, errors };
+    }
+
+    // Inputs formatting
     abonoInicial.addEventListener("input", ()=>{
       const caret = abonoInicial.selectionStart;
       const before = abonoInicial.value;
@@ -1239,147 +1307,104 @@
       show(err_telefono, false);
     });
 
-    /* =========================================
-       ✅ Planner state (calendario + lista)
-       ========================================= */
-    const payPlanner = document.getElementById("payPlanner");
-    const plannerEmpty = document.getElementById("plannerEmpty");
-
-    const calMonthTitle = document.getElementById("calMonthTitle");
-    const calSubTitle = document.getElementById("calSubTitle");
-    const calDays = document.getElementById("calDays");
-    const calPrevBtn = document.getElementById("calPrevBtn");
-    const calNextBtn = document.getElementById("calNextBtn");
-
-    const payList = document.getElementById("payList");
-    const payListStatus = document.getElementById("payListStatus");
-    const plannerHint = document.getElementById("plannerHint");
-
-    // Modal
-    const payModalOverlay = document.getElementById("payModalOverlay");
-    const payModalCloseBtn = document.getElementById("payModalCloseBtn");
-    const payModalCancelBtn = document.getElementById("payModalCancelBtn");
-    const payModalSaveBtn = document.getElementById("payModalSaveBtn");
-    const payModalTitle = document.getElementById("payModalTitle");
-    const payModalDate = document.getElementById("payModalDate");
-    const payModalAmount = document.getElementById("payModalAmount");
-    const payModalErr = document.getElementById("payModalErr");
-    const payModalEditHint = document.getElementById("payModalEditHint");
-    const payModalChangeDateBtn = document.getElementById("payModalChangeDateBtn");
-
-    let paymentsCount = 0;
-    // payments: [{fecha:"YYYY-MM-DD", monto:Number}]
-    let payments = [];
-
-    // Calendario (mes en vista)
-    let viewYear = new Date().getFullYear();
-    let viewMonth = new Date().getMonth(); // 0-11
-
-    // Modo selección
-    let selectionMode = "add"; // "add" | "editPickDate"
-    let editIndex = null;
-    let pendingDateISO = null;
-
-    const MONTHS_ES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-
-    function pad2(n){ return String(n).padStart(2,"0"); }
-    function toISO(y, m0, d){
-      return `${y}-${pad2(m0+1)}-${pad2(d)}`;
-    }
-    function isoToPrettyLong(iso){
-      if(!isValidISODate(iso)) return iso;
-      const [y,m,d] = iso.split("-").map(Number);
-      return `${d}-${MONTHS_ES[m-1]}-${y}`;
-    }
-
-    function openModalForDate(dateISO, opts){
-      pendingDateISO = dateISO;
-
-      const isEdit = opts && opts.mode === "edit";
-      payModalTitle.textContent = isEdit ? "Editar pago" : "Monto a abonar";
-      payModalDate.textContent = `Fecha: ${isoToPrettyLong(dateISO)}`;
-      payModalAmount.value = "";
-
-      const pre = (opts && Number.isFinite(opts.prefillAmount)) ? opts.prefillAmount : null;
-      if(pre !== null){
-        payModalAmount.value = formatCurrencyInput(String(pre));
-      }
-
-      payModalErr.classList.remove("show");
-      payModalErr.textContent = "";
-
-      if(isEdit){
-        payModalEditHint.style.display = "block";
+    // Planner helpers
+    function enablePlannerUI(enable){
+      if(enable){
+        plannerEmpty.classList.add("hidden");
+        payPlanner.classList.remove("hidden");
       } else {
-        payModalEditHint.style.display = "none";
+        payPlanner.classList.add("hidden");
+        plannerEmpty.classList.remove("hidden");
       }
-
-      payModalOverlay.classList.add("show");
-      setTimeout(()=>payModalAmount.focus(), 0);
     }
 
-    function closeModal(){
-      payModalOverlay.classList.remove("show");
-      payModalErr.classList.remove("show");
-      payModalErr.textContent = "";
+    function resetPlanner(){
+      paymentsCount = 0;
+      payments = [];
+      viewYear = new Date().getFullYear();
+      viewMonth = new Date().getMonth();
       pendingDateISO = null;
+      editingIndex = null;
+      enablePlannerUI(false);
+      renderPayList();
+      renderCalendar();
+      updateLiveTotals();
     }
 
-    function usedDateSet(exceptIndex=null){
+    function setPaymentsCount(n){
+      paymentsCount = n;
+      payments = [];
+      viewYear = new Date().getFullYear();
+      viewMonth = new Date().getMonth();
+      pendingDateISO = null;
+      editingIndex = null;
+      enablePlannerUI(true);
+      renderPayList();
+      renderCalendar();
+      updateLiveTotals();
+    }
+
+    function usedDateSet(excludeIndex=null){
       const s = new Set();
       payments.forEach((p, i)=>{
-        if(i === exceptIndex) return;
-        if(p && p.fecha) s.add(p.fecha);
+        if(!p || !p.fecha) return;
+        if(excludeIndex !== null && i === excludeIndex) return;
+        s.add(p.fecha);
       });
       return s;
     }
 
-    function getAddMinDate(){
-      if(payments.length === 0) return FIRST_PAY_MIN_DATE;
-      return payments[payments.length-1].fecha;
-    }
-
-    function withinGlobalRange(dateISO){
-      if(!isValidISODate(dateISO)) return false;
-      if(!(dateISO >= MIN_DATE && dateISO <= MAX_DATE)) return false;
-      if(payments.length === 0 && dateISO < FIRST_PAY_MIN_DATE) return false;
-      return true;
+    function lastPaymentDate(){
+      if(payments.length === 0) return null;
+      const sorted = [...payments].sort((a,b)=> a.fecha.localeCompare(b.fecha));
+      return sorted[sorted.length-1].fecha;
     }
 
     function canPickDateForAdd(dateISO){
-      if(!withinGlobalRange(dateISO)) return false;
+      if(!isValidISODate(dateISO)) return false;
+      if(!(dateISO >= MIN_DATE && dateISO <= MAX_DATE)) return false;
+      if(payments.length === 0){
+        if(dateISO < FIRST_PAY_MIN_DATE) return false;
+      } else {
+        const last = lastPaymentDate();
+        if(last && dateISO <= last) return false;
+      }
       if(usedDateSet().has(dateISO)) return false;
-      const min = getAddMinDate();
-      if(payments.length === 0) return true;
-      return dateISO > min;
+      return true;
     }
 
     function canPickDateForEdit(dateISO, index){
       if(!isValidISODate(dateISO)) return false;
       if(!(dateISO >= MIN_DATE && dateISO <= MAX_DATE)) return false;
       if(index === 0 && dateISO < FIRST_PAY_MIN_DATE) return false;
+
       if(usedDateSet(index).has(dateISO)) return false;
 
-      const prev = index > 0 ? payments[index-1].fecha : null;
-      const next = index < payments.length-1 ? payments[index+1].fecha : null;
-
-      if(prev && !(dateISO > prev)) return false;
-      if(next && !(dateISO < next)) return false;
-
+      // mantener orden relativo si ya hay otros
+      const sorted = [...payments].sort((a,b)=> a.fecha.localeCompare(b.fecha));
+      // para simplificar: validamos contra fechas existentes (sin permitir romper orden)
+      // (si editas, al guardar reordenamos por fecha)
       return true;
     }
 
+    // Calendar render
     function renderCalendar(){
-      if(paymentsCount <= 0) return;
+      if(paymentsCount <= 0){
+        calDays.innerHTML = "";
+        calMonthTitle.textContent = "—";
+        calSubTitle.textContent = "Escribe cuántos pagos serán.";
+        plannerHint.textContent = "";
+        return;
+      }
 
       calMonthTitle.textContent = `${MONTHS_ES[viewMonth]} ${viewYear}`;
 
-      if(selectionMode === "editPickDate" && editIndex !== null){
-        calSubTitle.textContent = `Editando Pago ${editIndex+1}: selecciona una nueva fecha (dentro del rango permitido).`;
-        plannerHint.textContent = "Modo edición: selecciona una fecha válida para ese pago. Se respetan orden, rango y no repetición.";
+      if(editingIndex !== null){
+        calSubTitle.textContent = `Editando Pago ${editingIndex+1}: selecciona una nueva fecha.`;
+        plannerHint.textContent = "Modo edición: selecciona una fecha válida. No repetida, dentro del rango.";
       } else {
         calSubTitle.textContent = `Selecciona una fecha para Pago ${payments.length+1} de ${paymentsCount}`;
-        plannerHint.textContent = "Selecciona un día y captura el monto. No se permiten fechas repetidas ni fechas fuera de orden.";
+        plannerHint.textContent = "Selecciona un día y captura el monto. No se permiten fechas repetidas ni fuera de orden.";
       }
 
       const firstDay = new Date(Date.UTC(viewYear, viewMonth, 1));
@@ -1395,7 +1420,7 @@
         calDays.appendChild(el);
       }
 
-      const used = usedDateSet(selectionMode === "editPickDate" ? editIndex : null);
+      const used = usedDateSet(editingIndex);
 
       for(let d=1; d<=daysInMonth; d++){
         const iso = toISO(viewYear, viewMonth, d);
@@ -1407,9 +1432,8 @@
         if(used.has(iso)) el.classList.add("used");
 
         let enabled = true;
-
-        if(selectionMode === "editPickDate" && editIndex !== null){
-          enabled = canPickDateForEdit(iso, editIndex);
+        if(editingIndex !== null){
+          enabled = canPickDateForEdit(iso, editingIndex);
         } else {
           if(payments.length >= paymentsCount){
             enabled = false;
@@ -1417,18 +1441,13 @@
             enabled = canPickDateForAdd(iso);
           }
         }
-
         if(!enabled) el.classList.add("disabled");
 
         el.addEventListener("click", ()=>{
           if(el.classList.contains("disabled") || el.classList.contains("muted")) return;
 
-          if(selectionMode === "editPickDate" && editIndex !== null){
-            const currentAmt = Number(payments[editIndex].monto || 0);
-            openModalForDate(iso, { mode:"edit", index: editIndex, prefillAmount: currentAmt, allowChangeDate: true });
-          } else {
-            openModalForDate(iso, { mode:"add", index: null, prefillAmount: null, allowChangeDate: false });
-          }
+          pendingDateISO = iso;
+          openPayModal();
         });
 
         calDays.appendChild(el);
@@ -1441,7 +1460,6 @@
 
       for(let i=0; i<paymentsCount; i++){
         const p = payments[i];
-
         const item = document.createElement("div");
         item.className = "payItem" + (p ? " filled" : "");
         const title = `Pago #${i+1}`;
@@ -1477,11 +1495,10 @@
         btn.addEventListener("click", ()=>{
           const idx = Number(btn.dataset.index);
           if(!Number.isInteger(idx) || idx < 0 || idx >= payments.length) return;
-
-          editIndex = idx;
-          selectionMode = "add";
-          const p = payments[idx];
-          openModalForDate(p.fecha, { mode:"edit", index: idx, prefillAmount: Number(p.monto || 0), allowChangeDate: true });
+          editingIndex = idx;
+          pendingDateISO = payments[idx].fecha;
+          openPayModal(payments[idx].monto);
+          renderCalendar();
         });
       });
 
@@ -1489,16 +1506,8 @@
         btn.addEventListener("click", ()=>{
           const idx = Number(btn.dataset.index);
           if(!Number.isInteger(idx) || idx < 0 || idx >= payments.length) return;
-
           payments.splice(idx, 1);
-
-          if(editIndex === idx){
-            editIndex = null;
-            selectionMode = "add";
-          } else if(editIndex !== null && idx < editIndex){
-            editIndex = editIndex - 1;
-          }
-
+          if(editingIndex === idx) editingIndex = null;
           show(err_payments,false);
           err_payments_list.textContent = "";
           updateLiveTotals();
@@ -1508,43 +1517,46 @@
       });
     }
 
-    function enablePlannerUI(enable){
-      if(enable){
-        plannerEmpty.classList.add("hidden");
-        payPlanner.classList.remove("hidden");
-      } else {
-        payPlanner.classList.add("hidden");
-        plannerEmpty.classList.remove("hidden");
-      }
+    // Modal open/close
+    function lockBodyScroll(){
+      bodyScrollY = window.scrollY || 0;
+      document.body.classList.add("modalOpen");
+      document.body.style.top = `-${bodyScrollY}px`;
+    }
+    function unlockBodyScroll(){
+      document.body.classList.remove("modalOpen");
+      const top = document.body.style.top;
+      document.body.style.top = "";
+      const y = top ? Number(top.replace("px","")) * -1 : bodyScrollY;
+      window.scrollTo(0, y || 0);
     }
 
-    function resetPlanner(){
-      paymentsCount = 0;
-      payments = [];
-      selectionMode = "add";
-      editIndex = null;
-      pendingDateISO = null;
-
-      enablePlannerUI(false);
-      renderPayList();
-      renderCalendar();
-      updateLiveTotals();
+    function modalError(msg){
+      payModalErr.textContent = msg;
+      payModalErr.classList.add("show");
     }
 
-    function setPaymentsCount(n){
-      paymentsCount = n;
-      payments = [];
-      selectionMode = "add";
-      editIndex = null;
+    function openPayModal(prefillAmount=null){
+      payModalErr.textContent = "";
+      payModalErr.classList.remove("show");
+
+      const isEdit = (editingIndex !== null);
+      payModalTitle.textContent = isEdit ? `Editar pago ${editingIndex+1}` : `Agregar pago ${payments.length+1}`;
+      payModalDesc.textContent = `Fecha: ${isoToPrettyLong(pendingDateISO)}`;
+
+      payModalAmount.value = prefillAmount ? formatCurrencyInput(String(prefillAmount)) : "";
+      payModalOverlay.classList.add("show");
+      payModalOverlay.setAttribute("aria-hidden","false");
+      lockBodyScroll();
+
+      setTimeout(()=>payModalAmount.focus(), 50);
+    }
+
+    function closePayModal(){
+      payModalOverlay.classList.remove("show");
+      payModalOverlay.setAttribute("aria-hidden","true");
+      unlockBodyScroll();
       pendingDateISO = null;
-
-      viewYear = new Date().getFullYear();
-      viewMonth = new Date().getMonth();
-
-      enablePlannerUI(true);
-      renderPayList();
-      renderCalendar();
-      updateLiveTotals();
     }
 
     payModalAmount.addEventListener("input", ()=>{
@@ -1557,12 +1569,7 @@
       payModalErr.textContent = "";
     });
 
-    function modalError(msg){
-      payModalErr.textContent = msg;
-      payModalErr.classList.add("show");
-    }
-
-    function saveModal(){
+    function savePayModal(){
       const amt = Number((payModalAmount.value || "").replace(/,/g,""));
       if(!(amt > 0)){
         modalError("Monto inválido. Debe ser mayor a 0.");
@@ -1573,19 +1580,16 @@
         return;
       }
 
-      const isEditing = (payModalTitle.textContent || "").toLowerCase().includes("editar") && editIndex !== null;
-
-      if(isEditing){
-        if(!canPickDateForEdit(pendingDateISO, editIndex)){
-          modalError("Fecha no válida para este pago (rango/orden/repetición).");
+      if(editingIndex !== null){
+        if(!canPickDateForEdit(pendingDateISO, editingIndex)){
+          modalError("Fecha no válida para este pago.");
           return;
         }
-        payments[editIndex] = { fecha: pendingDateISO, monto: amt };
+        payments[editingIndex] = { fecha: pendingDateISO, monto: amt };
         payments.sort((a,b)=> a.fecha.localeCompare(b.fecha));
-        editIndex = null;
-        selectionMode = "add";
+        editingIndex = null;
 
-        closeModal();
+        closePayModal();
         show(err_payments,false);
         err_payments_list.textContent = "";
         updateLiveTotals();
@@ -1606,7 +1610,7 @@
       payments.push({ fecha: pendingDateISO, monto: amt });
       payments.sort((a,b)=> a.fecha.localeCompare(b.fecha));
 
-      closeModal();
+      closePayModal();
       show(err_payments,false);
       err_payments_list.textContent = "";
       updateLiveTotals();
@@ -1614,41 +1618,10 @@
       renderCalendar();
     }
 
-    payModalSaveBtn.addEventListener("click", saveModal);
-    payModalCloseBtn.addEventListener("click", ()=>{
-      if(selectionMode === "editPickDate"){
-        selectionMode = "add";
-        editIndex = null;
-      }
-      closeModal();
-      renderCalendar();
-    });
-    payModalCancelBtn.addEventListener("click", ()=>{
-      if(selectionMode === "editPickDate"){
-        selectionMode = "add";
-        editIndex = null;
-      }
-      closeModal();
-      renderCalendar();
-    });
-    payModalOverlay.addEventListener("click", (e)=>{
-      if(e.target === payModalOverlay){
-        if(selectionMode === "editPickDate"){
-          selectionMode = "add";
-          editIndex = null;
-        }
-        closeModal();
-        renderCalendar();
-      }
-    });
-
-    payModalChangeDateBtn.addEventListener("click", ()=>{
-      if(editIndex === null) return;
-      closeModal();
-      selectionMode = "editPickDate";
-      showToast("Selecciona la nueva fecha en el calendario");
-      renderCalendar();
-    });
+    payModalSaveBtn.addEventListener("click", savePayModal);
+    payModalCloseBtn.addEventListener("click", ()=>{ editingIndex=null; closePayModal(); renderCalendar(); });
+    payModalCancelBtn.addEventListener("click", ()=>{ editingIndex=null; closePayModal(); renderCalendar(); });
+    payModalOverlay.addEventListener("click", (e)=>{ if(e.target===payModalOverlay){ editingIndex=null; closePayModal(); renderCalendar(); }});
 
     calPrevBtn.addEventListener("click", ()=>{
       if(paymentsCount <= 0) return;
@@ -1673,76 +1646,18 @@
         setPaymentsCount(n);
       } else {
         resetPlanner();
-        updateLiveTotals();
       }
     });
 
-    function validatePaymentsDetailed(){
-      err_payments_list.textContent = "";
-      show(err_payments, false);
-
-      const allErrors = [];
-
-      if(!(Number.isInteger(paymentsCount) && paymentsCount >= 1 && paymentsCount <= 50)){
-        allErrors.push("Indica un número de pagos válido (1–50).");
-      }
-
-      if(payments.length !== paymentsCount){
-        allErrors.push(`Faltan pagos por capturar: llevas ${payments.length} de ${paymentsCount}.`);
-      }
-
-      const dates = new Set();
-      for(let i=0; i<payments.length; i++){
-        const p = payments[i];
-
-        if(!p || !p.fecha){
-          allErrors.push(`Pago ${i+1}: Falta la fecha.`);
-        } else if(!isValidISODate(p.fecha)){
-          allErrors.push(`Pago ${i+1}: Fecha inválida (${p.fecha}).`);
-        } else {
-          if(!(p.fecha >= MIN_DATE && p.fecha <= MAX_DATE)){
-            allErrors.push(`Pago ${i+1}: Fecha fuera de rango (${isoToDMY(p.fecha)}). Debe ser ${isoToDMY(MIN_DATE)} a ${isoToDMY(MAX_DATE)}.`);
-          }
-          if(i === 0 && p.fecha < FIRST_PAY_MIN_DATE){
-            allErrors.push(`Pago 1: No puede ser hoy. Selecciona desde ${isoToDMY(FIRST_PAY_MIN_DATE)}.`);
-          }
-          if(dates.has(p.fecha)){
-            allErrors.push(`Fechas repetidas: ${isoToDMY(p.fecha)} está repetida.`);
-          }
-          dates.add(p.fecha);
-        }
-
-        const amt = Number(p.monto || 0);
-        if(!(amt > 0)){
-          allErrors.push(`Pago ${i+1}: Monto inválido. Debe ser mayor a 0.`);
-        }
-      }
-
-      for(let i=1; i<payments.length; i++){
-        const prev = payments[i-1].fecha;
-        const cur  = payments[i].fecha;
-        if(isValidISODate(prev) && isValidISODate(cur)){
-          if(cur <= prev){
-            allErrors.push(`Orden inválido: Pago ${i+1} (${isoToDMY(cur)}) debe ser después del pago anterior (${isoToDMY(prev)}).`);
-          }
-        }
-      }
-
-      const ok = allErrors.length === 0;
-      if(!ok){
-        err_payments_list.textContent = allErrors.join("\n");
-        show(err_payments, true);
-      }
-      return { ok, errors: allErrors };
-    }
-
+    // Collect data
     function collectData(){
       const n = Number(numPagos.value);
 
       const abonoVal = abonoInicial.value.trim();
       const abono = abonoVal === "" ? 0 : (parseAmount(abonoVal) || 0);
 
-      const pagos = (payments || []).map((p, idx)=>({
+      const pagosSorted = [...payments].sort((a,b)=> a.fecha.localeCompare(b.fecha));
+      const pagos = pagosSorted.map((p, idx)=>({
         num: idx+1,
         fecha: p.fecha,
         monto: Number(p.monto || 0)
@@ -1769,7 +1684,7 @@
         },
         plan_pagos: { cantidad_pagos: n, pagos, total_programado: totalPlan },
         reglas: { min_fecha: MIN_DATE, max_fecha: MAX_DATE, min_fecha_pago1: FIRST_PAY_MIN_DATE, max_abono: MAX_ABONO },
-        meta: { created_at_iso: new Date().toISOString(), source: "formulario_plan_pagos_agreement_split_v1_no_logo" }
+        meta: { created_at_iso: new Date().toISOString(), source: "formulario_plan_pagos_calendar_modal_v1" }
       };
     }
 
@@ -1815,12 +1730,12 @@
         summaryGrid.appendChild(el);
       }
 
-      const payListEl = document.createElement("div");
-      payListEl.className = "kv";
-      payListEl.style.gridColumn = "1 / -1";
+      const payListBlock = document.createElement("div");
+      payListBlock.className = "kv";
+      payListBlock.style.gridColumn = "1 / -1";
       const lines = data.plan_pagos.pagos.map(p => `Pago ${p.num}: ${p.fecha ? isoToDMY(p.fecha) : "(sin fecha)"} · ${money(p.monto)}`);
-      payListEl.innerHTML = `<div class="k">Plan de pagos</div><div class="v">${lines.join("\n")}</div>`;
-      summaryGrid.appendChild(payListEl);
+      payListBlock.innerHTML = `<div class="k">Plan de pagos</div><div class="v">${lines.join("\n")}</div>`;
+      summaryGrid.appendChild(payListBlock);
 
       const totals = document.createElement("div");
       totals.className = "kv";
@@ -1842,7 +1757,6 @@ Restante pendiente: ${money(data.ticket.restante)}
         validationBox.textContent = restante > 0
           ? `Hey, hay algo raro aquí: con tu abono + tu plan de pagos aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`
           : `Hey, hay algo raro aquí: vas con exceso de ${money(Math.abs(restante))} sobre el total.`;
-
         toAgreementBtn.disabled = true;
       } else {
         hide(validationBox);
@@ -1892,6 +1806,7 @@ Restante pendiente: ${money(data.ticket.restante)}
       return true;
     }
 
+    // ✅ ENVÍO: FORM + IFRAME
     async function submitToWebApp(payloadStr){
       if(typeof payloadStr !== "string") payloadStr = JSON.stringify(payloadStr);
 
@@ -1936,9 +1851,9 @@ Restante pendiente: ${money(data.ticket.restante)}
       signatureErr.textContent = "";
       signatureErr.classList.remove("show");
 
-      hide(document.getElementById("successBox"));
-      hide(document.getElementById("sendingBox"));
-      document.getElementById("failBox").style.display = "none";
+      hide(successBox);
+      hide(sendingBox);
+      failBox.style.display = "none";
 
       toAgreementBtn.disabled = false;
       sendBtn.disabled = false;
@@ -1964,7 +1879,11 @@ Restante pendiente: ${money(data.ticket.restante)}
       if(currentStep === 1 && !validateStep1()) return;
       if(currentStep === 2 && !validateStep2()) return;
       if(currentStep === 3 && !validateStep3()) return;
-      if(currentStep === 4 && !validatePaymentsDetailed().ok) return;
+
+      if(currentStep === 4){
+        const v = validatePlannerDetailed();
+        if(!v.ok) return;
+      }
 
       if(currentStep === 5){
         const data = collectData();
@@ -2001,12 +1920,6 @@ Restante pendiente: ${money(data.ticket.restante)}
 
     document.addEventListener("keydown", (e)=>{
       if(e.key === "Enter"){
-        if(payModalOverlay.classList.contains("show")){
-          e.preventDefault();
-          saveModal();
-          return;
-        }
-
         const active = steps.find(s => s.classList.contains("active"));
         const stepNum = active ? Number(active.dataset.step) : 1;
 
@@ -2015,32 +1928,21 @@ Restante pendiente: ${money(data.ticket.restante)}
           validateSignature();
           return;
         }
-
         if(stepNum === 5 && nextBtn.disabled){
           e.preventDefault();
           return;
         }
-
         if(stepNum < steps.length){
           e.preventDefault();
           goNext();
         }
       }
-      if(e.key === "Escape"){
-        if(payModalOverlay.classList.contains("show")){
-          e.preventDefault();
-          if(selectionMode === "editPickDate"){
-            selectionMode = "add";
-            editIndex = null;
-          }
-          closeModal();
-          renderCalendar();
-        }
-      }
     });
 
     toAgreementBtn.addEventListener("click", ()=>{
-      if(!validatePaymentsDetailed().ok) { setStep(4); return; }
+      const v = validatePlannerDetailed();
+      if(!v.ok) { setStep(4); return; }
+
       const data = collectData();
       if(!(Number(data.ticket.abono_inicial) <= MAX_ABONO)){ setStep(3); return; }
       if(!remainingIsZero(data.ticket.restante)){
@@ -2074,7 +1976,9 @@ Restante pendiente: ${money(data.ticket.restante)}
         setStep(3);
         return;
       }
-      if(!validatePaymentsDetailed().ok){
+
+      const v = validatePlannerDetailed();
+      if(!v.ok){
         setStep(4);
         return;
       }
@@ -2122,221 +2026,14 @@ Restante pendiente: ${money(data.ticket.restante)}
         console.error("No se pudo enviar:", result);
         return;
       }
+      // ✅ éxito real lo marca el "load" del iframe.
     });
 
+    // init
     abonoHint.textContent = `Número (sin $). Se formatea automático. Máximo ${money(MAX_ABONO_HINT)}.`;
     resetPlanner();
     setStep(1);
     updateLiveTotals();
   </script>
-  <!-- ✅ OVERRIDE v4 (VISIBLE-DIALOG ONLY + BLUR 50%) -->
-<style id="vxab-overrides-v4">
-  /* Quitar “Multi-paso con Back/Next.” */
-  .subtitulo, .subtitle, .header-subtitle { display:none !important; }
-
-  /* Backdrop SOLO cuando el script le ponga la clase.
-     50% “decente” (menos negro) */
-  .vxab-modal-backdrop {
-    background: rgba(0,0,0,.35) !important; /* <- antes estaba muy oscuro */
-    -webkit-backdrop-filter: blur(12px) !important;
-    backdrop-filter: blur(12px) !important;
-  }
-
-  /* Caja del modal sólida para que no se vea “transparente” */
-  .vxab-dialog {
-    background: rgba(12,14,20,.90) !important;
-    border: 1px solid rgba(255,255,255,.10) !important;
-  }
-
-  /* iPhone: mismo blur (Safari a veces se pone intenso) */
-  @supports (-webkit-touch-callout: none){
-    .vxab-modal-backdrop {
-      background: rgba(0,0,0,.30) !important; /* un pelín más light en iOS */
-      -webkit-backdrop-filter: blur(12px) !important;
-      backdrop-filter: blur(12px) !important;
-    }
-  }
-</style>
-
-<script>
-(() => {
-
-  const isVisible = (el) => {
-    if (!el) return false;
-    // Visible real (no hidden / display:none)
-    if (el.offsetParent !== null) return true;
-    // Algunos modales usan position:fixed; offsetParent puede ser null
-    return (el.getClientRects && el.getClientRects().length > 0);
-  };
-
-  // SOLO dialog visible + aria-modal=true
-  const findOpenDialog = () => {
-    const dialogs = Array.from(document.querySelectorAll('[role="dialog"]'));
-    return dialogs.find(d => {
-      const aria = (d.getAttribute('aria-modal') || '').toLowerCase() === 'true';
-      return aria && isVisible(d);
-    }) || null;
-  };
-
-  // Backdrop real del dialog (parent / wrappers comunes)
-  const findBackdropFor = (dlg) => {
-    if (!dlg) return null;
-
-    const looksBackdrop = (node) => {
-      const s = ((node.id || '') + ' ' + (node.className || '')).toLowerCase();
-      // OJO: aquí NO tocamos ".overlay" genérico en CSS, solo lo detectamos como contenedor.
-      return /backdrop|modal-backdrop|dialog-backdrop|overlay|modal-overlay/.test(s);
-    };
-
-    let n = dlg.parentElement;
-    for (let i = 0; i < 5 && n; i++) {
-      if (looksBackdrop(n)) return n;
-      n = n.parentElement;
-    }
-    return null;
-  };
-
-  const clearMarks = () => {
-    document.querySelectorAll('.vxab-modal-backdrop')
-      .forEach(el => el.classList.remove('vxab-modal-backdrop'));
-    document.querySelectorAll('.vxab-dialog')
-      .forEach(el => el.classList.remove('vxab-dialog'));
-  };
-
-  const apply = () => {
-    clearMarks();
-
-    const dlg = findOpenDialog();
-    if (!dlg) return;
-
-    dlg.classList.add('vxab-dialog');
-
-    const bd = findBackdropFor(dlg);
-    if (bd) bd.classList.add('vxab-modal-backdrop');
-  };
-
-  // Hooks ligeros
-  const rafApply = () => requestAnimationFrame(apply);
-
-  window.addEventListener('load', rafApply, { passive:true });
-  document.addEventListener('click', rafApply, true);
-  document.addEventListener('input', rafApply, true);
-
-  // Observer mínimo (sin subtree) para detectar que aparezca/desaparezca modal
-  const obs = new MutationObserver(rafApply);
-  obs.observe(document.body, { childList:true, attributes:true });
-
-})();
-</script>
-<!-- ✅ FIN OVERRIDE v4 -->
-<!-- ✅ ADD-ON: Arreglar "Pago 4 de 3" (cuando X > Y) -->
-<script>
-(() => {
-  const RX = /Selecciona una fecha para Pago\s+(\d+)\s+de\s+(\d+)/i;
-
-  const fixPagoXdeY = () => {
-    // Buscamos textos cortos donde normalmente aparece esa línea
-    const candidates = document.querySelectorAll('p, span, div, small, strong, em, label');
-
-    candidates.forEach(el => {
-      const t = (el.textContent || '').trim();
-      const m = t.match(RX);
-      if (!m) return;
-
-      const x = Number(m[1]);
-      const y = Number(m[2]);
-
-      // Guardar original para poder restaurar si el usuario cambia el número de pagos
-      if (!el.dataset.vxabOrig) el.dataset.vxabOrig = t;
-
-      if (Number.isFinite(x) && Number.isFinite(y) && x > y) {
-        el.textContent = 'Pagos completos ✅';
-      } else {
-        // Si ya no está rebasado, restauramos el texto original
-        el.textContent = el.dataset.vxabOrig;
-      }
-    });
-  };
-
-  // Correr al load + cuando cambie el DOM (calendario / pagos)
-  const schedule = () => requestAnimationFrame(fixPagoXdeY);
-
-  window.addEventListener('load', schedule, { passive:true });
-  document.addEventListener('click', schedule, true);
-  document.addEventListener('input', schedule, true);
-
-  const obs = new MutationObserver(schedule);
-  obs.observe(document.body, { childList:true, subtree:true, characterData:true });
-})();
-</script>
-<!-- ✅ FIN ADD-ON -->
- <!-- ✅ ADD-ON v2: Ocultar "Selecciona una fecha para Pago X de Y" cuando X > Y -->
-<script>
-(() => {
-  // Match flexible: soporta saltos de línea, espacios múltiples, NBSP, etc.
-  const RX = /Selecciona\s+una\s+fecha[\s\S]*?Pago\s*(\d+)\s*de\s*(\d+)/i;
-
-  // Encontrar el elemento más "chico" que contiene ese texto (para no ocultar contenedores grandes)
-  const findLeafTargets = () => {
-    const all = Array.from(document.querySelectorAll('div, p, span, small, label, strong, em, h1, h2, h3, h4'));
-    const targets = [];
-
-    for (const el of all) {
-      const t = (el.textContent || '').replace(/\u00A0/g, ' ').trim(); // NBSP -> espacio
-      if (!RX.test(t)) continue;
-
-      // Si algún hijo también hace match, preferimos el hijo (leaf-most)
-      const childHit = Array.from(el.querySelectorAll('div, p, span, small, label, strong, em'))
-        .some(ch => RX.test(((ch.textContent || '').replace(/\u00A0/g,' ').trim())));
-
-      if (!childHit) targets.push(el);
-    }
-    return targets;
-  };
-
-  const applyFix = () => {
-    const targets = findLeafTargets();
-    targets.forEach(el => {
-      const raw = (el.textContent || '').replace(/\u00A0/g, ' ').trim();
-      const m = raw.match(RX);
-      if (!m) return;
-
-      const x = Number(m[1]);
-      const y = Number(m[2]);
-
-      // Guardamos el display original para restaurar si deja de rebasarse
-      if (!el.dataset.vxabDisp) el.dataset.vxabDisp = (el.style.display || '');
-
-      if (Number.isFinite(x) && Number.isFinite(y) && x > y) {
-        // Ocultamos SOLO la leyenda, sin tocar layout general
-        el.style.display = 'none';
-      } else {
-        // Restaurar si ya no está rebasado
-        el.style.display = el.dataset.vxabDisp;
-      }
-    });
-  };
-
-  // Ejecutar en momentos clave + cuando el DOM cambia (calendario se re-renderiza)
-  let raf = null;
-  const schedule = () => {
-    if (raf) return;
-    raf = requestAnimationFrame(() => {
-      raf = null;
-      applyFix();
-    });
-  };
-
-  window.addEventListener('load', schedule, { passive:true });
-  document.addEventListener('click', schedule, true);
-  document.addEventListener('input', schedule, true);
-
-  const obs = new MutationObserver(schedule);
-  obs.observe(document.body, { childList:true, subtree:true, characterData:true });
-})();
-</script>
-<!-- ✅ FIN ADD-ON v2 -->
-
-
 </body>
 </html>
