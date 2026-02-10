@@ -1305,6 +1305,39 @@ input::placeholder, textarea::placeholder{
 #pdfAgreementTemplate .divider{
   background: #E7E3DC !important;
 }
+/* =========================
+   Paso 6 · Acuerdo LEGIBLE
+   ========================= */
+
+/* Todo el Step 6 sin transparencias */
+#stepAgreement, 
+#stepAgreement *{
+  opacity: 1 !important;
+  color: #0B0C10 !important;
+  filter: none !important;
+}
+
+/* Títulos y subtítulos */
+#stepAgreement .agreementTitle{
+  color:#0B0C10 !important;
+}
+#stepAgreement .agreementSub{
+  color:#3C3F46 !important;
+  opacity:1 !important;
+}
+
+/* Bloque “Estoy de acuerdo…” */
+#stepAgreement .agreementSectionTitle{
+  color:#0B0C10 !important;
+  font-weight:700 !important;
+}
+
+/* Texto de cada checkbox */
+#stepAgreement .checkText{
+  color:#0B0C10 !important;
+  opacity:1 !important;
+  font-weight:500 !important;
+}
 
 
     </style>
@@ -1516,7 +1549,7 @@ input::placeholder, textarea::placeholder{
                 </section>
 
                 <!-- STEP 6 -->
-                <section class="step" data-step="6">
+                <section class="step" data-step="6" id="stepAgreement">
                     <div class="agreementHeader">
                         <div class="agreementHeaderLeft">
                             <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
