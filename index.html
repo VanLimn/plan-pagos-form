@@ -48,7 +48,7 @@
         body {
             margin: 0;
             font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-            background: var(--bg);
+            background: #FBFAF7;
             color: var(--text);
             min-height: 100vh;
             display: flex;
@@ -1178,6 +1178,73 @@
             background: #000000 !important;
             border-color: #000000 !important;
         }
+        /* =========================
+   SOFT PREMIUM (Brand Lab)
+   Jerarquía: label > placeholder
+   ========================= */
+
+/* Fondo general cremita */
+body{ background:#FBFAF7 !important; }
+
+/* Labels / títulos de campos: más visibles */
+label{ 
+  color:#0B0C10 !important;
+  font-weight:650 !important;
+}
+
+/* Texto escrito por el usuario */
+input, select, textarea{
+  color:#0B0C10 !important;
+}
+
+/* Placeholder MÁS tenue que el label */
+input::placeholder, textarea::placeholder{
+  color:#A3AAB6 !important;
+  font-weight:400 !important;
+}
+
+/* Hints / notas */
+.hint{
+  color:#6B7280 !important;
+}
+/* =========================
+   Calendario: flechas visibles siempre
+   ========================= */
+
+/* Botones circulares de navegación (los que tienes al lado del mes) */
+.calNav button,
+.calNav .navBtn,
+.calHeader button,
+.calHeader .navBtn{
+  background:#FFFFFF !important;
+  border:1px solid #0B0C10 !important;
+  color:#0B0C10 !important;
+  opacity:1 !important;
+}
+
+/* El símbolo de flecha (si está en span) */
+.calNav button span,
+.calHeader button span{
+  color:#0B0C10 !important;
+  font-weight:800 !important;
+}
+
+/* Hover en laptop */
+.calNav button:hover,
+.calHeader button:hover{
+  background:#0B0C10 !important;
+  color:#FFFFFF !important;
+}
+
+/* Evitar depender de hover en móvil */
+@media (hover: none){
+  .calNav button,
+  .calHeader button{
+    background:#FFFFFF !important;
+    color:#0B0C10 !important;
+  }
+}
+
     </style>
 </head>
 
