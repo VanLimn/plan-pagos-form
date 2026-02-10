@@ -926,9 +926,11 @@
             <div class="finalWrap">
               <h2 class="finalTitle">Gracias por tu registro ✅</h2>
               <p class="finalText">
-                En breve recibirás el acuerdo en tu WhatsApp.<br/>
-                Por favor confirma de recibido.
-              </p>
+                 En breve recibirás más notas en tu correo.<br/>
+                 Por favor revisa <b>Inbox</b>, <b>Spam</b> y <b>Promociones</b>.<br/>
+                 Por favor confirma de recibido.
+                </p>
+
             </div>
           </div>
         </section>
@@ -959,6 +961,7 @@
           <label for="payModalAmount">Monto a abonar</label>
           <input id="payModalAmount" inputmode="decimal" placeholder="Ej. 2,000" />
           <div class="hint">Número (sin $). Se formatea automático.</div>
+          <div class="hint hidden" id="payModalProgressLine" style="font-weight:900;"></div>
           <div class="error" id="payModalErr"></div>
         </div>
       </div>
@@ -1129,6 +1132,8 @@
     const payModalDesc = document.getElementById("payModalDesc");
     const payModalAmount = document.getElementById("payModalAmount");
     const payModalErr = document.getElementById("payModalErr");
+    const payModalProgressLine = document.getElementById("payModalProgressLine");
+
     const payModalSaveBtn = document.getElementById("payModalSaveBtn");
     const payModalCloseBtn = document.getElementById("payModalCloseBtn");
     const payModalCancelBtn = document.getElementById("payModalCancelBtn");
@@ -1403,8 +1408,14 @@
         calSubTitle.textContent = `Editando Pago ${editingIndex+1}: selecciona una nueva fecha.`;
         plannerHint.textContent = "Modo edición: selecciona una fecha válida. No repetida, dentro del rango.";
       } else {
+     // ✅ Si ya está completo, NO mostrar "Pago 6 de 5"
+       if(payments.length >= paymentsCount){
+         calSubTitle.textContent = "Plan completo ✅ Si necesitas ajustar algo, usa Editar en el pago correspondiente.";
+         plannerHint.textContent = "El calendario queda bloqueado porque ya completaste todos los pagos.";
+       } else {
         calSubTitle.textContent = `Selecciona una fecha para Pago ${payments.length+1} de ${paymentsCount}`;
         plannerHint.textContent = "Selecciona un día y captura el monto. No se permiten fechas repetidas ni fuera de orden.";
+       }
       }
 
       const firstDay = new Date(Date.UTC(viewYear, viewMonth, 1));
@@ -1537,20 +1548,51 @@
     }
 
     function openPayModal(prefillAmount=null){
-      payModalErr.textContent = "";
-      payModalErr.classList.remove("show");
+    payModalErr.textContent = "";
+    payModalErr.classList.remove("show");
 
-      const isEdit = (editingIndex !== null);
-      payModalTitle.textContent = isEdit ? `Editar pago ${editingIndex+1}` : `Agregar pago ${payments.length+1}`;
-      payModalDesc.textContent = `Fecha: ${isoToPrettyLong(pendingDateISO)}`;
+     // ✅ limpia la línea de progreso
+    payModalProgressLine.textContent = "";
+    payModalProgressLine.classList.add("hidden");
 
-      payModalAmount.value = prefillAmount ? formatCurrencyInput(String(prefillAmount)) : "";
-      payModalOverlay.classList.add("show");
-      payModalOverlay.setAttribute("aria-hidden","false");
-      lockBodyScroll();
+    const isEdit = (editingIndex !== null);
 
-      setTimeout(()=>payModalAmount.focus(), 50);
+     // Número de pago (humano) que se está capturando
+    const payNumber = isEdit ? (editingIndex + 1) : (payments.length + 1);
+
+    payModalTitle.textContent = isEdit ? `Editar pago ${payNumber}` : `Agregar pago ${payNumber}`;
+    payModalDesc.textContent = `Fecha: ${isoToPrettyLong(pendingDateISO)}`;
+
+  // ✅ Calcula "llevas abonado" antes de este pago (útil en teléfono)
+  // - Incluye abono inicial
+  // - Incluye pagos ya guardados
+  // - En edición: excluye el pago que estás editando para no “duplicar”
+    const abonoVal = abonoInicial.value.trim();
+    const abono = abonoVal === "" ? 0 : (parseAmount(abonoVal) || 0);
+
+    let sumPagos = 0;
+    for(let i=0; i<payments.length; i++){
+      if(isEdit && i === editingIndex) continue;
+      sumPagos += Number(payments[i]?.monto || 0);
     }
+
+    const totalAntes = abono + sumPagos;
+    const pendienteAntes = TICKET_TOTAL - totalAntes;
+
+  // ✅ Solo desde el Pago 2 en adelante
+    if(payNumber >= 2){
+      payModalProgressLine.textContent = `Llevas abonado: ${money(totalAntes)} · Pendiente: ${money(pendienteAntes)}`;
+      payModalProgressLine.classList.remove("hidden");
+    }
+
+    payModalAmount.value = prefillAmount ? formatCurrencyInput(String(prefillAmount)) : "";
+    payModalOverlay.classList.add("show");
+    payModalOverlay.setAttribute("aria-hidden","false");
+    lockBodyScroll();
+
+    setTimeout(()=>payModalAmount.focus(), 50);
+  }
+
 
     function closePayModal(){
       payModalOverlay.classList.remove("show");
