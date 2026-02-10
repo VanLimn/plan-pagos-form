@@ -1244,6 +1244,68 @@ input::placeholder, textarea::placeholder{
     color:#0B0C10 !important;
   }
 }
+/* =========================
+   Calendario: iconBtn como flechas visibles
+   ========================= */
+.iconBtn{
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 999px !important;
+
+  background: #FFFFFF !important;
+  border: 1px solid #0B0C10 !important;
+
+  color: #0B0C10 !important;
+  font-size: 20px !important;
+  font-weight: 900 !important;
+
+  display: grid !important;
+  place-items: center !important;
+
+  line-height: 1 !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+  user-select: none !important;
+}
+
+.iconBtn:hover{
+  background: #0B0C10 !important;
+  color: #FFFFFF !important;
+}
+
+/* =========================
+   Paso 6 · ACUERDO legible (fix contraste)
+   ========================= */
+
+/* Todo el acuerdo en negro real y sin transparencia */
+#pdfAgreementTemplate,
+#pdfAgreementTemplate *{
+  color: #0B0C10 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/* Subtítulos / metadata: gris oscuro pero legible */
+#pdfAgreementTemplate .sub,
+#pdfAgreementTemplate .muted,
+#pdfAgreementTemplate .meta{
+  color: #3C3F46 !important;
+  opacity: 1 !important;
+}
+
+/* Filas / bullets del acuerdo */
+#pdfAgreementTemplate .row,
+#pdfAgreementTemplate .row *{
+  color: #0B0C10 !important;
+  opacity: 1 !important;
+  font-weight: 500 !important;
+}
+
+/* Divisor suave */
+#pdfAgreementTemplate .divider{
+  background: #E7E3DC !important;
+}
+
 
     </style>
 </head>
@@ -1254,7 +1316,7 @@ input::placeholder, textarea::placeholder{
             <div class="header">
                 <div class="title">
                     <h1>Formulario · Plan de Pagos</h1>
-                    <p>Captura de datos + calendarización de pagos. Multi-paso con Back/Next.</p>
+                    <p>Captura de datos + calendarización de pagos.</p>
                 </div>
                 <div class="progress">
                     <div class="stepLabel" id="stepLabel">Paso 1 de 10</div>
@@ -1374,9 +1436,10 @@ input::placeholder, textarea::placeholder{
                                             <div class="small" id="calSubTitle">Selecciona una fecha…</div>
                                         </div>
                                         <div class="calNav">
-                                            <div class="iconBtn" id="calPrevBtn" aria-label="Mes anterior">‹</div>
-                                            <div class="iconBtn" id="calNextBtn" aria-label="Mes siguiente">›</div>
-                                        </div>
+  <button class="iconBtn" id="calPrevBtn" type="button" aria-label="Mes anterior">‹</button>
+  <button class="iconBtn" id="calNextBtn" type="button" aria-label="Mes siguiente">›</button>
+</div>
+
                                     </div>
 
                                     <div class="dow">
