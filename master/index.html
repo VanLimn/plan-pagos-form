@@ -1820,8 +1820,17 @@ input::placeholder, textarea::placeholder{
     <div class="toast" id="toast">Enviado ✅</div>
 
     <script>
+        
+        function getEventoFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const ev = (params.get("evento") || "skills").trim().toLowerCase();
+  // solo permitimos los que manejas
+  if (!["skills", "stage", "boost"].includes(ev)) return "skills";
+  return ev;
+}
+
         // ✅ URL del Apps Script Web App (TUYA)
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxFalrNH2FAI4dSG1LMmx9WlzpZZ6dzDX0VT8deZQOykNCLF6OglDTRCjzGKeBvY6eVXg/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzuNTaLIi65EbNzM9V35HO6d8AsGKjMbpX7ZK1x3DuX_c0FBDl8gsv-T3Ui9xIbFb_GHw/exec";
 
         // Reglas
         const TICKET_TOTAL = 50000;
@@ -2881,13 +2890,15 @@ Restante pendiente: ${money(data.ticket.restante)}
             pdfSignature.textContent = data.firma.nombre_firma;
 
             const payload = JSON.stringify({
-                ...data,
-                target_sheet: {
-                    url: "https://docs.google.com/spreadsheets/d/1v-z87VzlcBtrYMdNFmEYmtjoHFg5W1YlRZtzBaJszRw/edit?usp=sharing",
-                    id: "1v-z87VzlcBtrYMdNFmEYmtjoHFg5W1YlRZtzBaJszRw"
-                },
-                pdf_html: document.getElementById("pdfAgreementTemplate").outerHTML
-            });
+  evento: getEventoFromURL(),
+  ...data,
+  target_sheet: {
+    url: "https://docs.google.com/spreadsheets/d/193FboWwyrT7ahzGXqXk2EWCWG5HdjVVts2zpPXQoNCw/edit",
+    id: "193FboWwyrT7ahzGXqXk2EWCWG5HdjVVts2zpPXQoNCw"
+  },
+  pdf_html: document.getElementById("pdfAgreementTemplate").outerHTML
+});
+
 
             failBox.style.display = "none";
             hide(successBox);
