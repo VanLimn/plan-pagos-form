@@ -32,10 +32,11 @@
     --line2:#2B323D;
 
     /* Skills Green */
-    --accent:#34F28B;       /* verde neon suave */
-    --accent2:#20D475;      /* hover */
-    --accentSoft: rgba(52,242,139,.12);
-    --accentGlow: rgba(52,242,139,.22);
+    /* SKILLS NEON INTENSIFIED */
+--accent:#39FF14;                    /* neon real */
+--accent2:#1FFF0A;                   /* hover más brillante */
+--accentSoft: rgba(57,255,20,.18);    /* foco más visible */
+--accentGlow: rgba(57,255,20,.45);    /* glow real */
 
     --danger:#FF4D6D;
     --ok: var(--accent);
@@ -242,14 +243,17 @@
 
   /* Primary = Skills Green */
   .primary{
-    border-color: rgba(52,242,139,.75);
-    background: linear-gradient(90deg, rgba(52,242,139,.22), rgba(52,242,139,.10));
-    box-shadow: 0 0 0 1px rgba(52,242,139,.08), 0 10px 30px rgba(0,0,0,.35);
+    border-color: rgba(57,255,20,.85);
+    background: linear-gradient(90deg, rgba(57,255,20,.30), rgba(57,255,20,.14));
+    box-shadow:
+  0 0 0 1px rgba(57,255,20,.25),
+  0 0 22px rgba(57,255,20,.45),
+  0 12px 45px rgba(0,0,0,.55);
   }
   .primary:hover{
-    background: linear-gradient(90deg, rgba(52,242,139,.30), rgba(52,242,139,.14));
-    border-color: rgba(52,242,139,.95);
-  }
+    background: linear-gradient(90deg, rgba(57,255,20,.40), rgba(57,255,20,.18));
+    border-color: rgba(57,255,20,1);
+}
 
   /* Enviar (blackBtn) -> Skills */
   .blackBtn{
