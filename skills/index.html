@@ -1376,7 +1376,79 @@ input::placeholder, textarea::placeholder{
   opacity: 1 !important;
   font-weight: 800 !important;
 }
+/* =========================
+   SKILLS THEME (Override FINAL)
+   Pegar al final del <style>
+   ========================= */
+:root{
+  --accent: #2563EB;        /* Skills blue */
+  --accentHover: #1D4ED8;
+  --accentSoft: rgba(37, 99, 235, .10);
+}
 
+/* Barra de progreso */
+.bar>div{ background: var(--accent) !important; }
+
+/* Focus */
+input:focus, select:focus{
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accentSoft) !important;
+}
+
+/* Botones */
+button{
+  border-color: var(--accent) !important;
+}
+button:hover{
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color:#fff !important;
+}
+.primary{
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+.primary:hover{
+  background: var(--accentHover) !important;
+  border-color: var(--accentHover) !important;
+}
+
+/* Tag dot */
+.tagDot{
+  background: var(--accent) !important;
+}
+
+/* Calendario */
+.day:hover{
+  border-color: var(--accent) !important;
+  background: var(--accentSoft) !important;
+}
+.day.used{
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #fff !important;
+}
+
+/* Flechas calendario */
+.iconBtn{
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+.iconBtn:hover{
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #fff !important;
+}
+
+/* Botón Enviar (blackBtn) ahora “Skills” */
+.blackBtn{
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+.blackBtn:hover{
+  background: var(--accentHover) !important;
+  border-color: var(--accentHover) !important;
+}
     </style>
 </head>
 
@@ -1385,8 +1457,8 @@ input::placeholder, textarea::placeholder{
         <div class="card">
             <div class="header">
                 <div class="title">
-                    <h1>Formulario · Plan de Pagos</h1>
-                    <p>Captura de datos + calendarización de pagos.</p>
+                    <h1>Skills · Plan de Pagos</h1>
+<p>Captura tus datos y programa tus abonos.</p>
                 </div>
                 <div class="progress">
                     <div class="stepLabel" id="stepLabel">Paso 1 de 10</div>
@@ -1590,7 +1662,7 @@ input::placeholder, textarea::placeholder{
                     <div class="agreementHeader">
                         <div class="agreementHeaderLeft">
                             <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
-                            <div class="agreementSub">&gt; <b>brand lab x ab</b> <span>| Mayo 2026</span></div>
+                            <div class="agreementSub">&gt; <b>skills x ab</b> <span>| Septiembre 2026</span></div>
                         </div>
                     </div>
 
@@ -1627,7 +1699,7 @@ input::placeholder, textarea::placeholder{
                     <div class="agreementHeader">
                         <div class="agreementHeaderLeft">
                             <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
-                            <div class="agreementSub">&gt; <b>brand lab x ab</b> <span>| Mayo 2026</span></div>
+                            <div class="agreementSub">&gt; <b>skills x ab</b> <span>| Septiembre 2026</span></div>
                         </div>
                     </div>
 
@@ -1659,7 +1731,7 @@ input::placeholder, textarea::placeholder{
                     <div class="agreementHeader">
                         <div class="agreementHeaderLeft">
                             <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
-                            <div class="agreementSub">&gt; <b>brand lab x ab</b> <span>| Mayo 2026</span></div>
+                            <div class="agreementSub">&gt; <b>skills x ab</b> <span>| Septiembre 2026</span></div>
                         </div>
                     </div>
 
@@ -1696,7 +1768,7 @@ input::placeholder, textarea::placeholder{
                     <div class="agreementHeader">
                         <div class="agreementHeaderLeft">
                             <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
-                            <div class="agreementSub">&gt; <b>brand lab x ab</b> <span>| Mayo 2026</span></div>
+                            <div class="agreementSub">&gt; <b>skills x ab</b> <span>| Septiembre 2026</span></div>
                         </div>
                     </div>
 
@@ -1732,7 +1804,7 @@ input::placeholder, textarea::placeholder{
                     <!-- ✅ PDF interno oculto -->
                     <div id="pdfAgreementTemplate">
                         <h2>ACUERDO DE<br />FINANCIAMIENTO</h2>
-                        <div class="sub">&gt; brand lab x ab | Mayo 2026</div>
+                        <div class="sub">&gt; skills x ab | Septiembre 2026</div>
                         <div class="divider"></div>
 
                         <div class="sec">Estoy de acuerdo con que la empresa</div>
