@@ -1377,77 +1377,123 @@ input::placeholder, textarea::placeholder{
   font-weight: 800 !important;
 }
 /* =========================
-   SKILLS THEME (Override FINAL)
+   SKILLS THEME (Override FINAL) · NEON GREEN + BLACK
    Pegar al final del <style>
    ========================= */
 :root{
-  --accent: #2563EB;        /* Skills blue */
-  --accentHover: #1D4ED8;
-  --accentSoft: rgba(37, 99, 235, .10);
+  /* Neon premium (no “radioactivo feo”) */
+  --accent: #39FF14;                /* neon green */
+  --accentHover: #2EEA10;
+  --accentSoft: rgba(57, 255, 20, .14);
+
+  /* Base neutrals (para asegurar consistencia) */
+  --text: #0B0C10;
+  --muted: #6B7280;
+  --line: #E7E3DC;
+  --solid: #FFFFFF;
+  --solid2: #FFFFFF;
 }
 
 /* Barra de progreso */
-.bar>div{ background: var(--accent) !important; }
+.bar>div{
+  background: linear-gradient(90deg, var(--accent), rgba(11, 12, 16, .95)) !important;
+}
 
-/* Focus */
+/* Focus (inputs/select) */
 input:focus, select:focus{
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 3px var(--accentSoft) !important;
 }
 
-/* Botones */
-button{
-  border-color: var(--accent) !important;
-}
-button:hover{
-  background: var(--accent) !important;
-  border-color: var(--accent) !important;
-  color:#fff !important;
-}
-.primary{
-  background: var(--accent) !important;
-  border-color: var(--accent) !important;
-}
-.primary:hover{
-  background: var(--accentHover) !important;
-  border-color: var(--accentHover) !important;
+/* Estados (errores) – mantiene rojo, pero sin morado */
+.badField{
+  border-color: rgba(255, 77, 109, .85) !important;
+  box-shadow: 0 0 0 3px rgba(255, 77, 109, .12) !important;
 }
 
-/* Tag dot */
+/* Botones */
+button{
+  border-color: #0B0C10 !important;
+  background: #FFFFFF !important;
+  color: #0B0C10 !important;
+}
+button:hover{
+  background: #0B0C10 !important;
+  color: #FFFFFF !important;
+  border-color: #0B0C10 !important;
+}
+
+/* Primary = negro con “edge” neón sutil */
+.primary{
+  background: #0B0C10 !important;
+  color: #FFFFFF !important;
+  border-color: #0B0C10 !important;
+  box-shadow: 0 0 0 3px rgba(57, 255, 20, .10) !important;
+}
+.primary:hover{
+  background: #000000 !important;
+  border-color: #000000 !important;
+  box-shadow: 0 0 0 3px rgba(57, 255, 20, .16) !important;
+}
+
+/* Tag dot (accent real) */
 .tagDot{
   background: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(57, 255, 20, .10) !important;
 }
 
 /* Calendario */
 .day:hover{
-  border-color: var(--accent) !important;
-  background: var(--accentSoft) !important;
+  border-color: #0B0C10 !important;
+  background: rgba(57, 255, 20, .10) !important;
 }
 .day.used{
-  background: var(--accent) !important;
-  border-color: var(--accent) !important;
-  color: #fff !important;
+  background: #0B0C10 !important;
+  border-color: #0B0C10 !important;
+  color: #FFFFFF !important;
+}
+.day.used::after{
+  color: var(--accent) !important;   /* check en neón, se ve brutal */
 }
 
-/* Flechas calendario */
+/* Flechas calendario (iconBtn) */
 .iconBtn{
-  border-color: var(--accent) !important;
-  color: var(--accent) !important;
+  background: #FFFFFF !important;
+  border: 1px solid #0B0C10 !important;
+  color: #0B0C10 !important;
 }
 .iconBtn:hover{
-  background: var(--accent) !important;
-  border-color: var(--accent) !important;
-  color: #fff !important;
+  background: #0B0C10 !important;
+  border-color: #0B0C10 !important;
+  color: var(--accent) !important;
 }
 
-/* Botón Enviar (blackBtn) ahora “Skills” */
+/* Link button (subrayado) en neón */
+.linkBtn{
+  color: rgba(57, 255, 20, .95) !important;
+}
+.linkBtn:hover{
+  color: rgba(57, 255, 20, 1) !important;
+}
+
+/* Firma input: borde neón, limpio */
+.signatureInput{
+  border: 2px solid rgba(57, 255, 20, .80) !important;
+  box-shadow: 0 0 0 4px rgba(57, 255, 20, .12) !important;
+}
+
+/* Botón “Enviar” (blackBtn) = negro + glow neón */
 .blackBtn{
-  background: var(--accent) !important;
-  border-color: var(--accent) !important;
+  background: #0B0C10 !important;
+  border-color: #0B0C10 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 0 0 3px rgba(57, 255, 20, .14) !important;
 }
 .blackBtn:hover{
-  background: var(--accentHover) !important;
-  border-color: var(--accentHover) !important;
+  background: #000000 !important;
+  border-color: #000000 !important;
+  color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(57, 255, 20, .22) !important;
 }
     </style>
 </head>
