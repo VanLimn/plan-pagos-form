@@ -1397,702 +1397,668 @@
 
   <div class="toast" id="toast">Enviado ✅</div>
 
-  <script>
-    function getEventoFromURL() {
-      const params = new URLSearchParams(window.location.search);
-      const ev = (params.get("evento") || "skills").trim().toLowerCase();
-      if (!["skills", "stage", "boost"].includes(ev)) return "skills";
-      return ev;
+<script>
+  function getEventoFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const ev = (params.get("evento") || "skills").trim().toLowerCase();
+    if (!["skills", "stage", "boost"].includes(ev)) return "skills";
+    return ev;
+  }
+
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzuNTaLIi65EbNzM9V35HO6d8AsGKjMbpX7ZK1x3DuX_c0FBDl8gsv-T3Ui9xIbFb_GHw/exec";
+
+  let TICKET_TOTAL = 50000;
+  const MAX_DATE = "2026-11-30";
+  const MAX_ABONO = 49999.99;
+  const MAX_ABONO_HINT = 49000;
+  const REMAINING_TOL = 0.01;
+
+  const MONTHS_ES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+  function todayISO() {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  function addDaysISO(iso, days) {
+    const [y, m, d] = iso.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    dt.setUTCDate(dt.getUTCDate() + days);
+    const yy = dt.getUTCFullYear();
+    const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(dt.getUTCDate()).padStart(2, "0");
+    return `${yy}-${mm}-${dd}`;
+  }
+
+  function isoToDMY(iso) {
+    if (!iso || typeof iso !== "string") return iso;
+    const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return iso;
+    return `${m[3]}/${m[2]}/${m[1]}`;
+  }
+
+  function isoToPrettyLong(iso) {
+    if (!iso) return "-";
+    const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return iso;
+    const y = Number(m[1]), mo = Number(m[2]) - 1, d = Number(m[3]);
+    return `${d} ${MONTHS_ES[mo]} ${y}`;
+  }
+
+  function isValidISODate(dateStr) {
+    if (!dateStr || typeof dateStr !== "string") return false;
+    const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return false;
+    const y = Number(m[1]), mo = Number(m[2]), d = Number(m[3]);
+    const dt = new Date(Date.UTC(y, mo - 1, d));
+    return dt.getUTCFullYear() === y && (dt.getUTCMonth() + 1) === mo && dt.getUTCDate() === d;
+  }
+
+  function toISO(y, m, d) {
+    const mm = String(m + 1).padStart(2, "0");
+    const dd = String(d).padStart(2, "0");
+    return `${y}-${mm}-${dd}`;
+  }
+
+  const MIN_DATE = todayISO();
+  const FIRST_PAY_MIN_DATE = addDaysISO(MIN_DATE, 1);
+
+  function parseAmount(str) {
+    const cleaned = (str || "").toString().replace(/,/g, '').trim();
+    if (cleaned === "") return NaN;
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : NaN;
+  }
+
+  function formatCurrencyInput(value) {
+    const cleaned = (value || "").toString().replace(/[^\d.]/g, '');
+    if (cleaned === "") return "";
+    const parts = cleaned.split(".");
+    const intPart = parts[0].replace(/^0+(?=\d)/, "");
+    const formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return parts.length > 1 ? `${formatted}.${parts[1].slice(0, 2)}` : formatted;
+  }
+
+  function money(n) {
+    const x = Number(n || 0);
+    return x.toLocaleString("es-MX", { style: "currency", currency: "MXN" });
+  }
+
+  function remainingIsZero(restante) {
+    return Math.abs(Number(restante || 0)) <= REMAINING_TOL;
+  }
+
+  const steps = Array.from(document.querySelectorAll(".step"));
+  let currentStep = 1;
+
+  const stepLabel = document.getElementById("stepLabel");
+  const barFill = document.getElementById("barFill");
+  const backBtn = document.getElementById("backBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const footerHint = document.getElementById("footerHint");
+
+  const nombres = document.getElementById("nombres");
+  const apellidos = document.getElementById("apellidos");
+  const email = document.getElementById("email");
+  const lada = document.getElementById("lada");
+  const telefono = document.getElementById("telefono");
+  const abonoInicial = document.getElementById("abonoInicial");
+  const abonoHint = document.getElementById("abonoHint");
+  const numPagos = document.getElementById("numPagos");
+
+  const ticketElegidoEl = document.getElementById("ticketElegido");
+  const faseAutoEl = document.getElementById("faseAuto");
+  const ticketTotalEl = document.getElementById("ticketTotal");
+  const ticketErrEl = document.getElementById("ticketErr");
+
+  const err_nombres = document.getElementById("err_nombres");
+  const err_apellidos = document.getElementById("err_apellidos");
+  const err_email = document.getElementById("err_email");
+  const err_telefono = document.getElementById("err_telefono");
+  const err_abonoInicial = document.getElementById("err_abonoInicial");
+  const err_numPagos = document.getElementById("err_numPagos");
+  const err_payments = document.getElementById("err_payments");
+  const err_payments_list = document.getElementById("err_payments_list");
+
+  const summaryGrid = document.getElementById("summaryGrid");
+  const validationBox = document.getElementById("validationBox");
+  const toAgreementBtn = document.getElementById("toAgreementBtn");
+
+  const liveTotalPaidEl = document.getElementById("liveTotalPaid");
+  const liveTicketTotalEl = document.getElementById("liveTicketTotal");
+  const liveRemainingEl = document.getElementById("liveRemaining");
+  const liveWarn = document.getElementById("liveWarn");
+
+  const agreementPlanList = document.getElementById("agreementPlanList");
+  const sendBtn = document.getElementById("sendBtn");
+  const successBox = document.getElementById("successBox");
+  const sendingBox = document.getElementById("sendingBox");
+  const failBox = document.getElementById("failBox");
+
+  const signatureName = document.getElementById("signatureName");
+  const signatureErr = document.getElementById("signatureErr");
+
+  const toast = document.getElementById("toast");
+  const postForm = document.getElementById("postForm");
+  const payloadField = document.getElementById("payloadField");
+
+  const pdfPlanList = document.getElementById("pdfPlanList");
+  const pdfSignature = document.getElementById("pdfSignature");
+
+  const plannerEmpty = document.getElementById("plannerEmpty");
+  const payPlanner = document.getElementById("payPlanner");
+  const calMonthTitle = document.getElementById("calMonthTitle");
+  const calSubTitle = document.getElementById("calSubTitle");
+  const calDays = document.getElementById("calDays");
+  const calPrevBtn = document.getElementById("calPrevBtn");
+  const calNextBtn = document.getElementById("calNextBtn");
+  const plannerHint = document.getElementById("plannerHint");
+
+  const payList = document.getElementById("payList");
+  const payListStatus = document.getElementById("payListStatus");
+
+  const payModalOverlay = document.getElementById("payModalOverlay");
+  const payModalTitle = document.getElementById("payModalTitle");
+  const payModalDesc = document.getElementById("payModalDesc");
+  const payModalAmount = document.getElementById("payModalAmount");
+  const payModalErr = document.getElementById("payModalErr");
+  const payModalProgressLine = document.getElementById("payModalProgressLine");
+
+  const payModalSaveBtn = document.getElementById("payModalSaveBtn");
+  const payModalCloseBtn = document.getElementById("payModalCloseBtn");
+  const payModalCancelBtn = document.getElementById("payModalCancelBtn");
+
+  let lockAfterSubmit = false;
+
+  let paymentsCount = 0;
+  let payments = [];
+  let viewYear = new Date().getFullYear();
+  let viewMonth = new Date().getMonth();
+  let pendingDateISO = null;
+  let editingIndex = null;
+  let bodyScrollY = 0;
+  let sendingInProgress = false;
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 1100);
+  }
+
+  function show(el, yes) { el.classList.toggle("show", !!yes); }
+  function hide(el) { el.classList.add("hidden"); }
+  function unhide(el) { el.classList.remove("hidden"); }
+
+  function syncNextButtonRules() {
+    nextBtn.disabled = false;
+    nextBtn.style.display = "inline-flex";
+
+    if (currentStep === steps.length) {
+      nextBtn.style.display = "none";
+      return;
+    }
+    if (currentStep === 10) {
+      nextBtn.disabled = true;
+      nextBtn.style.display = "none";
+      return;
+    }
+    if (currentStep === 6) {
+      nextBtn.disabled = !!toAgreementBtn.disabled;
+    }
+  }
+
+  function setStep(n) {
+    currentStep = n;
+    steps.forEach(s => s.classList.toggle("active", Number(s.dataset.step) === currentStep));
+
+    const total = steps.length;
+    stepLabel.textContent = `Paso ${currentStep} de ${total}`;
+    barFill.style.width = `${Math.round((currentStep - 1) / (total - 1) * 100)}%`;
+
+    backBtn.disabled = currentStep === 1;
+
+    if (currentStep === total) {
+      footerHint.textContent = "Listo. Puedes cerrar esta ventana.";
+    } else if (currentStep === 10) {
+      footerHint.textContent = "Para finalizar, firma y presiona Enviar.";
+    } else {
+      footerHint.textContent = "Tip: Enter también avanza cuando es válido.";
     }
 
-    // ✅ URL del Apps Script Web App (TUYA)
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzuNTaLIi65EbNzM9V35HO6d8AsGKjMbpX7ZK1x3DuX_c0FBDl8gsv-T3Ui9xIbFb_GHw/exec";
+    const focusMap = {
+      1: nombres,
+      2: email,
+      3: ticketElegidoEl,
+      4: abonoInicial,
+      5: numPagos,
+      10: signatureName
+    };
+    if (focusMap[currentStep]) focusMap[currentStep].focus();
 
-    // Reglas
-    let TICKET_TOTAL = 50000; // ✅ dinámico con ticket + fase
-    const MAX_DATE = "2026-11-30";
-    const MAX_ABONO = 49999.99;
-    const MAX_ABONO_HINT = 49000;
-    const REMAINING_TOL = 0.01;
-
-    const MONTHS_ES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-
-    function todayISO() {
-      const d = new Date();
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, "0");
-      const dd = String(d.getDate()).padStart(2, "0");
-      return `${yyyy}-${mm}-${dd}`;
-    }
-    function addDaysISO(iso, days) {
-      const [y, m, d] = iso.split("-").map(Number);
-      const dt = new Date(Date.UTC(y, m - 1, d));
-      dt.setUTCDate(dt.getUTCDate() + days);
-      const yy = dt.getUTCFullYear();
-      const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");
-      const dd = String(dt.getUTCDate()).padStart(2, "0");
-      return `${yy}-${mm}-${dd}`;
-    }
-    function isoToDMY(iso) {
-      if (!iso || typeof iso !== "string") return iso;
-      const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if (!m) return iso;
-      return `${m[3]}/${m[2]}/${m[1]}`;
-    }
-    function isoToPrettyLong(iso) {
-      if (!iso) return "-";
-      const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if (!m) return iso;
-      const y = Number(m[1]), mo = Number(m[2]) - 1, d = Number(m[3]);
-      return `${d} ${MONTHS_ES[mo]} ${y}`;
-    }
-    function isValidISODate(dateStr) {
-      if (!dateStr || typeof dateStr !== "string") return false;
-      const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if (!m) return false;
-      const y = Number(m[1]), mo = Number(m[2]), d = Number(m[3]);
-      const dt = new Date(Date.UTC(y, mo - 1, d));
-      return dt.getUTCFullYear() === y && (dt.getUTCMonth() + 1) === mo && dt.getUTCDate() === d;
-    }
-    function toISO(y, m, d) {
-      const mm = String(m + 1).padStart(2, "0");
-      const dd = String(d).padStart(2, "0");
-      return `${y}-${mm}-${dd}`;
-    }
-
-    const MIN_DATE = todayISO();
-    const FIRST_PAY_MIN_DATE = addDaysISO(MIN_DATE, 1);
-
-    function parseAmount(str) {
-      const cleaned = (str || "").toString().replace(/,/g, '').trim();
-      if (cleaned === "") return NaN;
-      const n = Number(cleaned);
-      return Number.isFinite(n) ? n : NaN;
-    }
-
-    function formatCurrencyInput(value) {
-      const cleaned = (value || "").toString().replace(/[^\d.]/g, '');
-      if (cleaned === "") return "";
-      const parts = cleaned.split(".");
-      const intPart = parts[0].replace(/^0+(?=\d)/, "");
-      const formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-      return parts.length > 1 ? `${formatted}.${parts[1].slice(0, 2)}` : formatted;
-    }
-
-    function money(n) {
-      const x = Number(n || 0);
-      return x.toLocaleString("es-MX", { style: "currency", currency: "MXN" });
-    }
-
-    function remainingIsZero(restante) {
-      return Math.abs(Number(restante || 0)) <= REMAINING_TOL;
-    }
-
-    // Steps
-    const steps = Array.from(document.querySelectorAll(".step"));
-    let currentStep = 1;
-
-    const stepLabel = document.getElementById("stepLabel");
-    const barFill = document.getElementById("barFill");
-    const backBtn = document.getElementById("backBtn");
-    const nextBtn = document.getElementById("nextBtn");
-    const footerHint = document.getElementById("footerHint");
-
-    const nombres = document.getElementById("nombres");
-    const apellidos = document.getElementById("apellidos");
-    const email = document.getElementById("email");
-    const lada = document.getElementById("lada");
-    const telefono = document.getElementById("telefono");
-    const abonoInicial = document.getElementById("abonoInicial");
-    const abonoHint = document.getElementById("abonoHint");
-    const numPagos = document.getElementById("numPagos");
-
-    // Ticket step refs
-    const ticketElegidoEl = document.getElementById("ticketElegido");
-    const faseAutoEl = document.getElementById("faseAuto");
-    const ticketTotalEl = document.getElementById("ticketTotal");
-    const ticketErrEl = document.getElementById("ticketErr");
-
-    const err_nombres = document.getElementById("err_nombres");
-    const err_apellidos = document.getElementById("err_apellidos");
-    const err_email = document.getElementById("err_email");
-    const err_telefono = document.getElementById("err_telefono");
-    const err_abonoInicial = document.getElementById("err_abonoInicial");
-    const err_numPagos = document.getElementById("err_numPagos");
-    const err_payments = document.getElementById("err_payments");
-    const err_payments_list = document.getElementById("err_payments_list");
-
-    const summaryGrid = document.getElementById("summaryGrid");
-    const validationBox = document.getElementById("validationBox");
-    const toAgreementBtn = document.getElementById("toAgreementBtn");
-
-    const liveTotalPaidEl = document.getElementById("liveTotalPaid");
-    const liveTicketTotalEl = document.getElementById("liveTicketTotal");
-    const liveRemainingEl = document.getElementById("liveRemaining");
-    const liveWarn = document.getElementById("liveWarn");
-
-    const agreementPlanList = document.getElementById("agreementPlanList");
-    const sendBtn = document.getElementById("sendBtn");
-    const successBox = document.getElementById("successBox");
-    const sendingBox = document.getElementById("sendingBox");
-    const failBox = document.getElementById("failBox");
-
-    const signatureName = document.getElementById("signatureName");
-    const signatureErr = document.getElementById("signatureErr");
-
-    const toast = document.getElementById("toast");
-    const postForm = document.getElementById("postForm");
-    const payloadField = document.getElementById("payloadField");
-    const hiddenFrame = document.getElementById("hiddenFrame");
-
-    // pdf oculto
-    const pdfPlanList = document.getElementById("pdfPlanList");
-    const pdfSignature = document.getElementById("pdfSignature");
-
-    // Planner UI refs
-    const plannerEmpty = document.getElementById("plannerEmpty");
-    const payPlanner = document.getElementById("payPlanner");
-    const calMonthTitle = document.getElementById("calMonthTitle");
-    const calSubTitle = document.getElementById("calSubTitle");
-    const calDays = document.getElementById("calDays");
-    const calPrevBtn = document.getElementById("calPrevBtn");
-    const calNextBtn = document.getElementById("calNextBtn");
-    const plannerHint = document.getElementById("plannerHint");
-
-    const payList = document.getElementById("payList");
-    const payListStatus = document.getElementById("payListStatus");
-
-    // Modal
-    const payModalOverlay = document.getElementById("payModalOverlay");
-    const payModalTitle = document.getElementById("payModalTitle");
-    const payModalDesc = document.getElementById("payModalDesc");
-    const payModalAmount = document.getElementById("payModalAmount");
-    const payModalErr = document.getElementById("payModalErr");
-    const payModalProgressLine = document.getElementById("payModalProgressLine");
-
-    const payModalSaveBtn = document.getElementById("payModalSaveBtn");
-    const payModalCloseBtn = document.getElementById("payModalCloseBtn");
-    const payModalCancelBtn = document.getElementById("payModalCancelBtn");
-
-    // state
-    let lockAfterSubmit = false;
-
-    // Planner state
-    let paymentsCount = 0;
-    let payments = []; // [{fecha:'YYYY-MM-DD', monto:number}]
-    let viewYear = new Date().getFullYear();
-    let viewMonth = new Date().getMonth();
-    let pendingDateISO = null;
-    let editingIndex = null; // number | null
-    let bodyScrollY = 0;
-
-    function showToast(msg) {
-      toast.textContent = msg;
-      toast.classList.add("show");
-      setTimeout(() => toast.classList.remove("show"), 1100);
-    }
-
-    function show(el, yes) { el.classList.toggle("show", !!yes); }
-    function hide(el) { el.classList.add("hidden"); }
-    function unhide(el) { el.classList.remove("hidden"); }
-
-    function syncNextButtonRules() {
-      nextBtn.disabled = false;
-      nextBtn.style.display = "inline-flex";
-
-      if (currentStep === steps.length) {
-        nextBtn.style.display = "none";
-        return;
-      }
-      // Firma es Paso 10
-      if (currentStep === 10) {
-        nextBtn.disabled = true;
-        nextBtn.style.display = "none";
-        return;
-      }
-      // Resumen es Paso 6
-      if (currentStep === 6) {
-        nextBtn.disabled = !!toAgreementBtn.disabled;
-      }
-    }
-
-    function setStep(n) {
-      currentStep = n;
-      steps.forEach(s => s.classList.toggle("active", Number(s.dataset.step) === currentStep));
-
-      const total = steps.length;
-      stepLabel.textContent = `Paso ${currentStep} de ${total}`;
-      barFill.style.width = `${Math.round((currentStep - 1) / (total - 1) * 100)}%`;
-
-      backBtn.disabled = currentStep === 1;
-
-      if (currentStep === total) {
-        footerHint.textContent = "Listo. Puedes cerrar esta ventana.";
-      } else if (currentStep === 10) {
-        footerHint.textContent = "Para finalizar, firma y presiona Enviar.";
-      } else {
-        footerHint.textContent = "Tip: Enter también avanza cuando es válido.";
-      }
-
-      const focusMap = {
-        1: nombres,
-        2: email,
-        3: ticketElegidoEl,
-        4: abonoInicial,
-        5: numPagos,
-        10: signatureName
-      };
-      if (focusMap[currentStep]) focusMap[currentStep].focus();
-
-      // Planner es Paso 5
-      if (currentStep === 5) {
-        renderCalendar();
-        renderPayList();
-        updateLiveTotals();
-      }
-
-      syncNextButtonRules();
-    }
-
-    // Validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    function validateStep1() {
-      const okN = nombres.value.trim().length > 0;
-      const okA = apellidos.value.trim().length > 0;
-      show(err_nombres, !okN);
-      show(err_apellidos, !okA);
-      return okN && okA;
-    }
-
-    function validateStep2() {
-      const okE = emailRegex.test(email.value.trim());
-      const digits = telefono.value.replace(/\D/g, '');
-      const okT = digits.length === 10;
-      show(err_email, !okE);
-      show(err_telefono, !okT);
-      return okE && okT;
-    }
-
-    // Abono (Paso 4)
-    function validateStep3() {
-      const val = abonoInicial.value.trim();
-      const n = val === "" ? 0 : parseAmount(val);
-      const ok = Number.isFinite(n) && n >= 0 && n <= MAX_ABONO;
-      show(err_abonoInicial, !ok);
-      if (!ok) abonoInicial.classList.add("badField"); else abonoInicial.classList.remove("badField");
-      return ok;
-    }
-
-    // Ticket (Paso 3)
-    function validateTicketStep() {
-      const ok = ticketElegidoEl && ticketElegidoEl.value && ticketElegidoEl.value.trim() !== "";
-      if (!ok) {
-        ticketErrEl && ticketErrEl.classList.add("show");
-        ticketElegidoEl && ticketElegidoEl.classList.add("badField");
-      } else {
-        ticketErrEl && ticketErrEl.classList.remove("show");
-        ticketElegidoEl && ticketElegidoEl.classList.remove("badField");
-      }
-      return ok;
-    }
-
-    function validatePlannerDetailed() {
-      show(err_payments, false);
-      err_payments_list.textContent = "";
-
-      const errors = [];
-
-      if (!(Number.isInteger(paymentsCount) && paymentsCount >= 1 && paymentsCount <= 50)) {
-        errors.push("Cantidad de pagos inválida (1–50).");
-      }
-
-      if (payments.length !== paymentsCount) {
-        errors.push(`Faltan pagos por completar: llevas ${payments.length} de ${paymentsCount}.`);
-      }
-
-      const used = new Set();
-      const sorted = [...payments].sort((a, b) => (a.fecha || "").localeCompare(b.fecha || ""));
-
-      for (let i = 0; i < sorted.length; i++) {
-        const p = sorted[i];
-        const idxHuman = i + 1;
-
-        if (!p || !p.fecha || !isValidISODate(p.fecha)) {
-          errors.push(`Pago ${idxHuman}: fecha inválida.`);
-          continue;
-        }
-        if (!(p.fecha >= MIN_DATE && p.fecha <= MAX_DATE)) {
-          errors.push(`Pago ${idxHuman}: fecha fuera de rango (${isoToDMY(p.fecha)}).`);
-        }
-        if (i === 0 && p.fecha < FIRST_PAY_MIN_DATE) {
-          errors.push(`Pago 1: no puede ser hoy. Selecciona desde ${isoToDMY(FIRST_PAY_MIN_DATE)}.`);
-        }
-        if (used.has(p.fecha)) {
-          errors.push(`Fechas repetidas: ${isoToDMY(p.fecha)}.`);
-        }
-        used.add(p.fecha);
-
-        const amt = Number(p.monto || 0);
-        if (!(amt > 0)) {
-          errors.push(`Pago ${idxHuman}: monto inválido (debe ser mayor a 0).`);
-        }
-
-        if (i > 0) {
-          const prev = sorted[i - 1].fecha;
-          if (prev && p.fecha <= prev) {
-            errors.push(`Orden inválido: Pago ${idxHuman} (${isoToDMY(p.fecha)}) debe ser después de ${isoToDMY(prev)}.`);
-          }
-        }
-      }
-
-      const ok = errors.length === 0;
-      if (!ok) {
-        err_payments_list.textContent = errors.join("\n");
-        show(err_payments, true);
-      }
-      return { ok, errors };
-    }
-
-    // Inputs formatting
-    abonoInicial.addEventListener("input", () => {
-      const caret = abonoInicial.selectionStart;
-      const before = abonoInicial.value;
-      abonoInicial.value = formatCurrencyInput(abonoInicial.value);
-      const delta = abonoInicial.value.length - before.length;
-      try { abonoInicial.setSelectionRange(caret + delta, caret + delta); } catch (e) { }
-      show(err_abonoInicial, false);
-      abonoInicial.classList.remove("badField");
-      updateLiveTotals();
-    });
-
-    telefono.addEventListener("input", () => {
-      telefono.value = telefono.value.replace(/[^\d]/g, '').slice(0, 10);
-      show(err_telefono, false);
-    });
-
-    // Planner helpers
-    function enablePlannerUI(enable) {
-      if (enable) {
-        plannerEmpty.classList.add("hidden");
-        payPlanner.classList.remove("hidden");
-      } else {
-        payPlanner.classList.add("hidden");
-        plannerEmpty.classList.remove("hidden");
-      }
-    }
-
-    function resetPlanner() {
-      paymentsCount = 0;
-      payments = [];
-      viewYear = new Date().getFullYear();
-      viewMonth = new Date().getMonth();
-      pendingDateISO = null;
-      editingIndex = null;
-      enablePlannerUI(false);
-      renderPayList();
+    if (currentStep === 5) {
       renderCalendar();
-      updateLiveTotals();
-    }
-
-    function setPaymentsCount(n) {
-      paymentsCount = n;
-      payments = [];
-      viewYear = new Date().getFullYear();
-      viewMonth = new Date().getMonth();
-      pendingDateISO = null;
-      editingIndex = null;
-      enablePlannerUI(true);
       renderPayList();
-      renderCalendar();
       updateLiveTotals();
     }
 
-    function usedDateSet(excludeIndex = null) {
-      const s = new Set();
-      payments.forEach((p, i) => {
-        if (!p || !p.fecha) return;
-        if (excludeIndex !== null && i === excludeIndex) return;
-        s.add(p.fecha);
-      });
-      return s;
+    syncNextButtonRules();
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function validateStep1() {
+    const okN = nombres.value.trim().length > 0;
+    const okA = apellidos.value.trim().length > 0;
+    show(err_nombres, !okN);
+    show(err_apellidos, !okA);
+    return okN && okA;
+  }
+
+  function validateStep2() {
+    const okE = emailRegex.test(email.value.trim());
+    const digits = telefono.value.replace(/\D/g, '');
+    const okT = digits.length === 10;
+    show(err_email, !okE);
+    show(err_telefono, !okT);
+    return okE && okT;
+  }
+
+  function validateStep3() {
+    const val = abonoInicial.value.trim();
+    const n = val === "" ? 0 : parseAmount(val);
+    const ok = Number.isFinite(n) && n >= 0 && n <= MAX_ABONO;
+    show(err_abonoInicial, !ok);
+    if (!ok) abonoInicial.classList.add("badField"); else abonoInicial.classList.remove("badField");
+    return ok;
+  }
+
+  function validateTicketStep() {
+    const ok = ticketElegidoEl && ticketElegidoEl.value && ticketElegidoEl.value.trim() !== "";
+    if (!ok) {
+      ticketErrEl && ticketErrEl.classList.add("show");
+      ticketElegidoEl && ticketElegidoEl.classList.add("badField");
+    } else {
+      ticketErrEl && ticketErrEl.classList.remove("show");
+      ticketElegidoEl && ticketElegidoEl.classList.remove("badField");
+    }
+    return ok;
+  }
+
+  function validatePlannerDetailed() {
+    show(err_payments, false);
+    err_payments_list.textContent = "";
+
+    const errors = [];
+
+    if (!(Number.isInteger(paymentsCount) && paymentsCount >= 1 && paymentsCount <= 50)) {
+      errors.push("Cantidad de pagos inválida (1–50).");
     }
 
-    function lastPaymentDate() {
-      if (payments.length === 0) return null;
-      const sorted = [...payments].sort((a, b) => a.fecha.localeCompare(b.fecha));
-      return sorted[sorted.length - 1].fecha;
+    if (payments.length !== paymentsCount) {
+      errors.push(`Faltan pagos por completar: llevas ${payments.length} de ${paymentsCount}.`);
     }
 
-    function canPickDateForAdd(dateISO) {
-      if (!isValidISODate(dateISO)) return false;
-      if (!(dateISO >= MIN_DATE && dateISO <= MAX_DATE)) return false;
-      if (payments.length === 0) {
-        if (dateISO < FIRST_PAY_MIN_DATE) return false;
+    const used = new Set();
+    const sorted = [...payments].sort((a, b) => (a.fecha || "").localeCompare(b.fecha || ""));
+
+    for (let i = 0; i < sorted.length; i++) {
+      const p = sorted[i];
+      const idxHuman = i + 1;
+
+      if (!p || !p.fecha || !isValidISODate(p.fecha)) {
+        errors.push(`Pago ${idxHuman}: fecha inválida.`);
+        continue;
+      }
+      if (!(p.fecha >= MIN_DATE && p.fecha <= MAX_DATE)) {
+        errors.push(`Pago ${idxHuman}: fecha fuera de rango (${isoToDMY(p.fecha)}).`);
+      }
+      if (i === 0 && p.fecha < FIRST_PAY_MIN_DATE) {
+        errors.push(`Pago 1: no puede ser hoy. Selecciona desde ${isoToDMY(FIRST_PAY_MIN_DATE)}.`);
+      }
+      if (used.has(p.fecha)) {
+        errors.push(`Fechas repetidas: ${isoToDMY(p.fecha)}.`);
+      }
+      used.add(p.fecha);
+
+      const amt = Number(p.monto || 0);
+      if (!(amt > 0)) {
+        errors.push(`Pago ${idxHuman}: monto inválido (debe ser mayor a 0).`);
+      }
+
+      if (i > 0) {
+        const prev = sorted[i - 1].fecha;
+        if (prev && p.fecha <= prev) {
+          errors.push(`Orden inválido: Pago ${idxHuman} (${isoToDMY(p.fecha)}) debe ser después de ${isoToDMY(prev)}.`);
+        }
+      }
+    }
+
+    const ok = errors.length === 0;
+    if (!ok) {
+      err_payments_list.textContent = errors.join("\n");
+      show(err_payments, true);
+    }
+    return { ok, errors };
+  }
+
+  abonoInicial.addEventListener("input", () => {
+    const caret = abonoInicial.selectionStart;
+    const before = abonoInicial.value;
+    abonoInicial.value = formatCurrencyInput(abonoInicial.value);
+    const delta = abonoInicial.value.length - before.length;
+    try { abonoInicial.setSelectionRange(caret + delta, caret + delta); } catch (e) {}
+    show(err_abonoInicial, false);
+    abonoInicial.classList.remove("badField");
+    updateLiveTotals();
+  });
+
+  telefono.addEventListener("input", () => {
+    telefono.value = telefono.value.replace(/[^\d]/g, '').slice(0, 10);
+    show(err_telefono, false);
+  });
+
+  function enablePlannerUI(enable) {
+    if (enable) {
+      plannerEmpty.classList.add("hidden");
+      payPlanner.classList.remove("hidden");
+    } else {
+      payPlanner.classList.add("hidden");
+      plannerEmpty.classList.remove("hidden");
+    }
+  }
+
+  function resetPlanner() {
+    paymentsCount = 0;
+    payments = [];
+    viewYear = new Date().getFullYear();
+    viewMonth = new Date().getMonth();
+    pendingDateISO = null;
+    editingIndex = null;
+    enablePlannerUI(false);
+    renderPayList();
+    renderCalendar();
+    updateLiveTotals();
+  }
+
+  function setPaymentsCount(n) {
+    paymentsCount = n;
+    payments = [];
+    viewYear = new Date().getFullYear();
+    viewMonth = new Date().getMonth();
+    pendingDateISO = null;
+    editingIndex = null;
+    enablePlannerUI(true);
+    renderPayList();
+    renderCalendar();
+    updateLiveTotals();
+  }
+
+  function usedDateSet(excludeIndex = null) {
+    const s = new Set();
+    payments.forEach((p, i) => {
+      if (!p || !p.fecha) return;
+      if (excludeIndex !== null && i === excludeIndex) return;
+      s.add(p.fecha);
+    });
+    return s;
+  }
+
+  function lastPaymentDate() {
+    if (payments.length === 0) return null;
+    const sorted = [...payments].sort((a, b) => a.fecha.localeCompare(b.fecha));
+    return sorted[sorted.length - 1].fecha;
+  }
+
+  function canPickDateForAdd(dateISO) {
+    if (!isValidISODate(dateISO)) return false;
+    if (!(dateISO >= MIN_DATE && dateISO <= MAX_DATE)) return false;
+    if (payments.length === 0) {
+      if (dateISO < FIRST_PAY_MIN_DATE) return false;
+    } else {
+      const last = lastPaymentDate();
+      if (last && dateISO <= last) return false;
+    }
+    if (usedDateSet().has(dateISO)) return false;
+    return true;
+  }
+
+  function canPickDateForEdit(dateISO, index) {
+    if (!isValidISODate(dateISO)) return false;
+    if (!(dateISO >= MIN_DATE && dateISO <= MAX_DATE)) return false;
+    if (index === 0 && dateISO < FIRST_PAY_MIN_DATE) return false;
+    if (usedDateSet(index).has(dateISO)) return false;
+    return true;
+  }
+
+  function renderCalendar() {
+    if (paymentsCount <= 0) {
+      calDays.innerHTML = "";
+      calMonthTitle.textContent = "—";
+      calSubTitle.textContent = "Escribe cuántos pagos serán.";
+      plannerHint.textContent = "";
+      return;
+    }
+
+    calMonthTitle.textContent = `${MONTHS_ES[viewMonth]} ${viewYear}`;
+
+    if (editingIndex !== null) {
+      calSubTitle.textContent = `Editando Pago ${editingIndex + 1}: selecciona una nueva fecha.`;
+      plannerHint.textContent = "Modo edición: selecciona una fecha válida. No repetida, dentro del rango.";
+    } else {
+      if (payments.length >= paymentsCount) {
+        calSubTitle.textContent = "Plan completo ✅ Si necesitas ajustar algo, usa Editar en el pago correspondiente.";
+        plannerHint.textContent = "El calendario queda bloqueado porque ya completaste todos los pagos.";
       } else {
-        const last = lastPaymentDate();
-        if (last && dateISO <= last) return false;
+        calSubTitle.textContent = `Selecciona una fecha para Pago ${payments.length + 1} de ${paymentsCount}`;
+        plannerHint.textContent = "Selecciona un día y captura el monto. No se permiten fechas repetidas ni fuera de orden.";
       }
-      if (usedDateSet().has(dateISO)) return false;
-      return true;
     }
 
-    function canPickDateForEdit(dateISO, index) {
-      if (!isValidISODate(dateISO)) return false;
-      if (!(dateISO >= MIN_DATE && dateISO <= MAX_DATE)) return false;
-      if (index === 0 && dateISO < FIRST_PAY_MIN_DATE) return false;
-      if (usedDateSet(index).has(dateISO)) return false;
-      return true;
+    const firstDay = new Date(Date.UTC(viewYear, viewMonth, 1));
+    const daysInMonth = new Date(Date.UTC(viewYear, viewMonth + 1, 0)).getUTCDate();
+    const startDow = firstDay.getUTCDay();
+
+    calDays.innerHTML = "";
+
+    for (let i = 0; i < startDow; i++) {
+      const el = document.createElement("div");
+      el.className = "day muted";
+      el.textContent = "";
+      calDays.appendChild(el);
     }
 
-    // Calendar render
-    function renderCalendar() {
-      if (paymentsCount <= 0) {
-        calDays.innerHTML = "";
-        calMonthTitle.textContent = "—";
-        calSubTitle.textContent = "Escribe cuántos pagos serán.";
-        plannerHint.textContent = "";
-        return;
-      }
+    const used = usedDateSet(editingIndex);
 
-      calMonthTitle.textContent = `${MONTHS_ES[viewMonth]} ${viewYear}`;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const iso = toISO(viewYear, viewMonth, d);
 
+      const el = document.createElement("div");
+      el.className = "day";
+      el.textContent = String(d);
+
+      if (used.has(iso)) el.classList.add("used");
+
+      let enabled = true;
       if (editingIndex !== null) {
-        calSubTitle.textContent = `Editando Pago ${editingIndex + 1}: selecciona una nueva fecha.`;
-        plannerHint.textContent = "Modo edición: selecciona una fecha válida. No repetida, dentro del rango.";
+        enabled = canPickDateForEdit(iso, editingIndex);
       } else {
         if (payments.length >= paymentsCount) {
-          calSubTitle.textContent = "Plan completo ✅ Si necesitas ajustar algo, usa Editar en el pago correspondiente.";
-          plannerHint.textContent = "El calendario queda bloqueado porque ya completaste todos los pagos.";
+          enabled = false;
         } else {
-          calSubTitle.textContent = `Selecciona una fecha para Pago ${payments.length + 1} de ${paymentsCount}`;
-          plannerHint.textContent = "Selecciona un día y captura el monto. No se permiten fechas repetidas ni fuera de orden.";
+          enabled = canPickDateForAdd(iso);
         }
       }
+      if (!enabled) el.classList.add("disabled");
 
-      const firstDay = new Date(Date.UTC(viewYear, viewMonth, 1));
-      const daysInMonth = new Date(Date.UTC(viewYear, viewMonth + 1, 0)).getUTCDate();
-      const startDow = firstDay.getUTCDay();
-
-      calDays.innerHTML = "";
-
-      for (let i = 0; i < startDow; i++) {
-        const el = document.createElement("div");
-        el.className = "day muted";
-        el.textContent = "";
-        calDays.appendChild(el);
-      }
-
-      const used = usedDateSet(editingIndex);
-
-      for (let d = 1; d <= daysInMonth; d++) {
-        const iso = toISO(viewYear, viewMonth, d);
-
-        const el = document.createElement("div");
-        el.className = "day";
-        el.textContent = String(d);
-
-        if (used.has(iso)) el.classList.add("used");
-
-        let enabled = true;
-        if (editingIndex !== null) {
-          enabled = canPickDateForEdit(iso, editingIndex);
-        } else {
-          if (payments.length >= paymentsCount) {
-            enabled = false;
-          } else {
-            enabled = canPickDateForAdd(iso);
-          }
-        }
-        if (!enabled) el.classList.add("disabled");
-
-        el.addEventListener("click", () => {
-          if (el.classList.contains("disabled") || el.classList.contains("muted")) return;
-          pendingDateISO = iso;
-          openPayModal();
-        });
-
-        calDays.appendChild(el);
-      }
-    }
-
-    function renderPayList() {
-      payList.innerHTML = "";
-      payListStatus.textContent = `${payments.length} / ${paymentsCount}`;
-
-      for (let i = 0; i < paymentsCount; i++) {
-        const p = payments[i];
-        const item = document.createElement("div");
-        item.className = "payItem" + (p ? " filled" : "");
-        const title = `Pago #${i + 1}`;
-
-        if (p) {
-          item.innerHTML = `
-            <div class="payTop">
-              <div class="payMeta">
-                <div class="n">${title}</div>
-                <div class="v">${isoToPrettyLong(p.fecha)} | ${money(p.monto)}</div>
-              </div>
-              <div class="payBtns">
-                <button class="small" type="button" data-action="edit" data-index="${i}">Editar</button>
-                <button class="small dangerBtn" type="button" data-action="delete" data-index="${i}">Borrar</button>
-              </div>
-            </div>
-          `;
-        } else {
-          item.innerHTML = `
-            <div class="payTop">
-              <div class="payMeta">
-                <div class="n">${title}</div>
-                <div class="v">Pendiente · Selecciona una fecha en el calendario</div>
-              </div>
-            </div>
-          `;
-        }
-
-        payList.appendChild(item);
-      }
-
-      payList.querySelectorAll("button[data-action='edit']").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const idx = Number(btn.dataset.index);
-          if (!Number.isInteger(idx) || idx < 0 || idx >= payments.length) return;
-          editingIndex = idx;
-          pendingDateISO = payments[idx].fecha;
-          openPayModal(payments[idx].monto);
-          renderCalendar();
-        });
+      el.addEventListener("click", () => {
+        if (el.classList.contains("disabled") || el.classList.contains("muted")) return;
+        pendingDateISO = iso;
+        openPayModal();
       });
 
-      payList.querySelectorAll("button[data-action='delete']").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const idx = Number(btn.dataset.index);
-          if (!Number.isInteger(idx) || idx < 0 || idx >= payments.length) return;
-          payments.splice(idx, 1);
-          if (editingIndex === idx) editingIndex = null;
-          show(err_payments, false);
-          err_payments_list.textContent = "";
-          updateLiveTotals();
-          renderPayList();
-          renderCalendar();
-        });
+      calDays.appendChild(el);
+    }
+  }
+
+  function renderPayList() {
+    payList.innerHTML = "";
+    payListStatus.textContent = `${payments.length} / ${paymentsCount}`;
+
+    for (let i = 0; i < paymentsCount; i++) {
+      const p = payments[i];
+      const item = document.createElement("div");
+      item.className = "payItem" + (p ? " filled" : "");
+      const title = `Pago #${i + 1}`;
+
+      if (p) {
+        item.innerHTML = `
+          <div class="payTop">
+            <div class="payMeta">
+              <div class="n">${title}</div>
+              <div class="v">${isoToPrettyLong(p.fecha)} | ${money(p.monto)}</div>
+            </div>
+            <div class="payBtns">
+              <button class="small" type="button" data-action="edit" data-index="${i}">Editar</button>
+              <button class="small dangerBtn" type="button" data-action="delete" data-index="${i}">Borrar</button>
+            </div>
+          </div>
+        `;
+      } else {
+        item.innerHTML = `
+          <div class="payTop">
+            <div class="payMeta">
+              <div class="n">${title}</div>
+              <div class="v">Pendiente · Selecciona una fecha en el calendario</div>
+            </div>
+          </div>
+        `;
+      }
+
+      payList.appendChild(item);
+    }
+
+    payList.querySelectorAll("button[data-action='edit']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = Number(btn.dataset.index);
+        if (!Number.isInteger(idx) || idx < 0 || idx >= payments.length) return;
+        editingIndex = idx;
+        pendingDateISO = payments[idx].fecha;
+        openPayModal(payments[idx].monto);
+        renderCalendar();
       });
-    }
-
-    // Modal open/close
-    function lockBodyScroll() {
-      bodyScrollY = window.scrollY || 0;
-      document.body.classList.add("modalOpen");
-      document.body.style.top = `-${bodyScrollY}px`;
-    }
-    function unlockBodyScroll() {
-      document.body.classList.remove("modalOpen");
-      const top = document.body.style.top;
-      document.body.style.top = "";
-      const y = top ? Number(top.replace("px", "")) * -1 : bodyScrollY;
-      window.scrollTo(0, y || 0);
-    }
-
-    function modalError(msg) {
-      payModalErr.textContent = msg;
-      payModalErr.classList.add("show");
-    }
-
-    function openPayModal(prefillAmount = null) {
-      payModalErr.textContent = "";
-      payModalErr.classList.remove("show");
-
-      payModalProgressLine.textContent = "";
-      payModalProgressLine.classList.add("hidden");
-
-      const isEdit = (editingIndex !== null);
-      const payNumber = isEdit ? (editingIndex + 1) : (payments.length + 1);
-
-      payModalTitle.textContent = isEdit ? `Editar pago ${payNumber}` : `Agregar pago ${payNumber}`;
-      payModalDesc.textContent = `Fecha: ${isoToPrettyLong(pendingDateISO)}`;
-
-      const abonoVal = abonoInicial.value.trim();
-      const abono = abonoVal === "" ? 0 : (parseAmount(abonoVal) || 0);
-
-      let sumPagos = 0;
-      for (let i = 0; i < payments.length; i++) {
-        if (isEdit && i === editingIndex) continue;
-        sumPagos += Number(payments[i]?.monto || 0);
-      }
-
-      const totalAntes = abono + sumPagos;
-      const pendienteAntes = TICKET_TOTAL - totalAntes;
-
-      if (payNumber >= 2) {
-        payModalProgressLine.textContent = `Llevas abonado: ${money(totalAntes)} · Pendiente: ${money(pendienteAntes)}`;
-        payModalProgressLine.classList.remove("hidden");
-      }
-
-      payModalAmount.value = prefillAmount ? formatCurrencyInput(String(prefillAmount)) : "";
-      payModalOverlay.classList.add("show");
-      payModalOverlay.setAttribute("aria-hidden", "false");
-      lockBodyScroll();
-
-      setTimeout(() => payModalAmount.focus(), 50);
-    }
-
-    function closePayModal() {
-      payModalOverlay.classList.remove("show");
-      payModalOverlay.setAttribute("aria-hidden", "true");
-      unlockBodyScroll();
-      pendingDateISO = null;
-    }
-
-    payModalAmount.addEventListener("input", () => {
-      const caret = payModalAmount.selectionStart;
-      const before = payModalAmount.value;
-      payModalAmount.value = formatCurrencyInput(payModalAmount.value);
-      const delta = payModalAmount.value.length - before.length;
-      try { payModalAmount.setSelectionRange(caret + delta, caret + delta); } catch (e) { }
-      payModalErr.classList.remove("show");
-      payModalErr.textContent = "";
     });
 
-    function savePayModal() {
-      const amt = Number((payModalAmount.value || "").replace(/,/g, ""));
-      if (!(amt > 0)) {
-        modalError("Monto inválido. Debe ser mayor a 0.");
-        return;
-      }
-      if (!pendingDateISO || !isValidISODate(pendingDateISO)) {
-        modalError("Fecha inválida. Selecciona una fecha válida.");
-        return;
-      }
-
-      if (editingIndex !== null) {
-        if (!canPickDateForEdit(pendingDateISO, editingIndex)) {
-          modalError("Fecha no válida para este pago.");
-          return;
-        }
-        payments[editingIndex] = { fecha: pendingDateISO, monto: amt };
-        payments.sort((a, b) => a.fecha.localeCompare(b.fecha));
-        editingIndex = null;
-
-        closePayModal();
+    payList.querySelectorAll("button[data-action='delete']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = Number(btn.dataset.index);
+        if (!Number.isInteger(idx) || idx < 0 || idx >= payments.length) return;
+        payments.splice(idx, 1);
+        if (editingIndex === idx) editingIndex = null;
         show(err_payments, false);
         err_payments_list.textContent = "";
         updateLiveTotals();
         renderPayList();
         renderCalendar();
-        return;
-      }
+      });
+    });
+  }
 
-      if (payments.length >= paymentsCount) {
-        modalError("Ya completaste el número de pagos.");
-        return;
-      }
-      if (!canPickDateForAdd(pendingDateISO)) {
-        modalError("Fecha no válida (rango/orden/repetición). Selecciona una fecha posterior al último pago.");
-        return;
-      }
+  function lockBodyScroll() {
+    bodyScrollY = window.scrollY || 0;
+    document.body.classList.add("modalOpen");
+    document.body.style.top = `-${bodyScrollY}px`;
+  }
 
-      payments.push({ fecha: pendingDateISO, monto: amt });
+  function unlockBodyScroll() {
+    document.body.classList.remove("modalOpen");
+    const top = document.body.style.top;
+    document.body.style.top = "";
+    const y = top ? Number(top.replace("px", "")) * -1 : bodyScrollY;
+    window.scrollTo(0, y || 0);
+  }
+
+  function modalError(msg) {
+    payModalErr.textContent = msg;
+    payModalErr.classList.add("show");
+  }
+
+  function openPayModal(prefillAmount = null) {
+    payModalErr.textContent = "";
+    payModalErr.classList.remove("show");
+
+    payModalProgressLine.textContent = "";
+    payModalProgressLine.classList.add("hidden");
+
+    const isEdit = (editingIndex !== null);
+    const payNumber = isEdit ? (editingIndex + 1) : (payments.length + 1);
+
+    payModalTitle.textContent = isEdit ? `Editar pago ${payNumber}` : `Agregar pago ${payNumber}`;
+    payModalDesc.textContent = `Fecha: ${isoToPrettyLong(pendingDateISO)}`;
+
+    const abonoVal = abonoInicial.value.trim();
+    const abono = abonoVal === "" ? 0 : (parseAmount(abonoVal) || 0);
+
+    let sumPagos = 0;
+    for (let i = 0; i < payments.length; i++) {
+      if (isEdit && i === editingIndex) continue;
+      sumPagos += Number(payments[i]?.monto || 0);
+    }
+
+    const totalAntes = abono + sumPagos;
+    const pendienteAntes = TICKET_TOTAL - totalAntes;
+
+    if (payNumber >= 2) {
+      payModalProgressLine.textContent = `Llevas abonado: ${money(totalAntes)} · Pendiente: ${money(pendienteAntes)}`;
+      payModalProgressLine.classList.remove("hidden");
+    }
+
+    payModalAmount.value = prefillAmount ? formatCurrencyInput(String(prefillAmount)) : "";
+    payModalOverlay.classList.add("show");
+    payModalOverlay.setAttribute("aria-hidden", "false");
+    lockBodyScroll();
+
+    setTimeout(() => payModalAmount.focus(), 50);
+  }
+
+  function closePayModal() {
+    payModalOverlay.classList.remove("show");
+    payModalOverlay.setAttribute("aria-hidden", "true");
+    unlockBodyScroll();
+    pendingDateISO = null;
+  }
+
+  payModalAmount.addEventListener("input", () => {
+    const caret = payModalAmount.selectionStart;
+    const before = payModalAmount.value;
+    payModalAmount.value = formatCurrencyInput(payModalAmount.value);
+    const delta = payModalAmount.value.length - before.length;
+    try { payModalAmount.setSelectionRange(caret + delta, caret + delta); } catch (e) {}
+    payModalErr.classList.remove("show");
+    payModalErr.textContent = "";
+  });
+
+  function savePayModal() {
+    const amt = Number((payModalAmount.value || "").replace(/,/g, ""));
+    if (!(amt > 0)) {
+      modalError("Monto inválido. Debe ser mayor a 0.");
+      return;
+    }
+    if (!pendingDateISO || !isValidISODate(pendingDateISO)) {
+      modalError("Fecha inválida. Selecciona una fecha válida.");
+      return;
+    }
+
+    if (editingIndex !== null) {
+      if (!canPickDateForEdit(pendingDateISO, editingIndex)) {
+        modalError("Fecha no válida para este pago.");
+        return;
+      }
+      payments[editingIndex] = { fecha: pendingDateISO, monto: amt };
       payments.sort((a, b) => a.fecha.localeCompare(b.fecha));
+      editingIndex = null;
 
       closePayModal();
       show(err_payments, false);
@@ -2100,609 +2066,679 @@
       updateLiveTotals();
       renderPayList();
       renderCalendar();
+      return;
     }
 
-    payModalSaveBtn.addEventListener("click", savePayModal);
-    payModalCloseBtn.addEventListener("click", () => { editingIndex = null; closePayModal(); renderCalendar(); });
-    payModalCancelBtn.addEventListener("click", () => { editingIndex = null; closePayModal(); renderCalendar(); });
-    payModalOverlay.addEventListener("click", (e) => { if (e.target === payModalOverlay) { editingIndex = null; closePayModal(); renderCalendar(); } });
-
-    calPrevBtn.addEventListener("click", () => {
-      if (paymentsCount <= 0) return;
-      viewMonth--;
-      if (viewMonth < 0) { viewMonth = 11; viewYear--; }
-      renderCalendar();
-    });
-    calNextBtn.addEventListener("click", () => {
-      if (paymentsCount <= 0) return;
-      viewMonth++;
-      if (viewMonth > 11) { viewMonth = 0; viewYear++; }
-      renderCalendar();
-    });
-
-    numPagos.addEventListener("input", () => {
-      const n = Number(numPagos.value);
-      show(err_numPagos, false);
-      show(err_payments, false);
-      err_payments_list.textContent = "";
-
-      if (Number.isInteger(n) && n >= 1 && n <= 50) {
-        setPaymentsCount(n);
-      } else {
-        resetPlanner();
-      }
-    });
-
-    // Collect data
-    function collectData() {
-      const n = Number(numPagos.value);
-
-      const abonoVal = abonoInicial.value.trim();
-      const abono = abonoVal === "" ? 0 : (parseAmount(abonoVal) || 0);
-
-      const pagosSorted = [...payments].sort((a, b) => a.fecha.localeCompare(b.fecha));
-      const pagos = pagosSorted.map((p, idx) => ({
-        num: idx + 1,
-        fecha: p.fecha,
-        monto: Number(p.monto || 0)
-      }));
-
-      const totalPlan = pagos.reduce((acc, p) => acc + (p.monto || 0), 0);
-      const totalPagado = abono + totalPlan;
-      const restante = TICKET_TOTAL - totalPagado;
-
-      const ticketElegido = (window.__FORM?.ticket_elegido || (ticketElegidoEl?.value || "")).trim();
-      const faseAuto = (window.__FORM?.fase_auto || (faseAutoEl?.value || "")).trim();
-
-      return {
-        contacto: {
-          nombres: nombres.value.trim(),
-          apellidos: apellidos.value.trim(),
-          email: email.value.trim(),
-          telefono: { lada: lada.value, numero: telefono.value.replace(/\D/g, '') }
-        },
-        firma: { nombre_firma: (signatureName.value || "").trim() },
-        ticket: {
-          elegido: ticketElegido,
-          fase_auto: faseAuto,
-          total: TICKET_TOTAL,
-          abono_inicial: abono,
-          total_plan_pagos: totalPlan,
-          total_pagado: totalPagado,
-          restante: restante
-        },
-        plan_pagos: { cantidad_pagos: n, pagos, total_programado: totalPlan },
-        reglas: { min_fecha: MIN_DATE, max_fecha: MAX_DATE, min_fecha_pago1: FIRST_PAY_MIN_DATE, max_abono: MAX_ABONO },
-        meta: { created_at_iso: new Date().toISOString(), source: "formulario_plan_pagos_calendar_modal_v1" }
-      };
+    if (payments.length >= paymentsCount) {
+      modalError("Ya completaste el número de pagos.");
+      return;
+    }
+    if (!canPickDateForAdd(pendingDateISO)) {
+      modalError("Fecha no válida (rango/orden/repetición). Selecciona una fecha posterior al último pago.");
+      return;
     }
 
-    function updateLiveTotals() {
-      const data = collectData();
-      liveTicketTotalEl.textContent = money(TICKET_TOTAL);
-      liveTotalPaidEl.textContent = money(data.ticket.total_pagado);
-      liveRemainingEl.textContent = money(data.ticket.restante);
+    payments.push({ fecha: pendingDateISO, monto: amt });
+    payments.sort((a, b) => a.fecha.localeCompare(b.fecha));
 
-      const restante = Number(data.ticket.restante || 0);
-      if (Math.abs(restante) <= REMAINING_TOL) {
-        hide(liveWarn);
-        liveWarn.textContent = "";
-      } else {
-        unhide(liveWarn);
-        liveWarn.textContent = restante > 0
-          ? `Aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`
-          : `Vas con exceso de ${money(Math.abs(restante))}. Revisa montos.`;
+    closePayModal();
+    show(err_payments, false);
+    err_payments_list.textContent = "";
+    updateLiveTotals();
+    renderPayList();
+    renderCalendar();
+  }
+
+  payModalSaveBtn.addEventListener("click", savePayModal);
+  payModalCloseBtn.addEventListener("click", () => { editingIndex = null; closePayModal(); renderCalendar(); });
+  payModalCancelBtn.addEventListener("click", () => { editingIndex = null; closePayModal(); renderCalendar(); });
+  payModalOverlay.addEventListener("click", (e) => { if (e.target === payModalOverlay) { editingIndex = null; closePayModal(); renderCalendar(); } });
+
+  calPrevBtn.addEventListener("click", () => {
+    if (paymentsCount <= 0) return;
+    viewMonth--;
+    if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+    renderCalendar();
+  });
+
+  calNextBtn.addEventListener("click", () => {
+    if (paymentsCount <= 0) return;
+    viewMonth++;
+    if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+    renderCalendar();
+  });
+
+  numPagos.addEventListener("input", () => {
+    const n = Number(numPagos.value);
+    show(err_numPagos, false);
+    show(err_payments, false);
+    err_payments_list.textContent = "";
+
+    if (Number.isInteger(n) && n >= 1 && n <= 50) {
+      setPaymentsCount(n);
+    } else {
+      resetPlanner();
+    }
+  });
+
+  function collectData() {
+    const n = Number(numPagos.value);
+
+    const abonoVal = abonoInicial.value.trim();
+    const abono = abonoVal === "" ? 0 : (parseAmount(abonoVal) || 0);
+
+    const pagosSorted = [...payments].sort((a, b) => a.fecha.localeCompare(b.fecha));
+    const pagos = pagosSorted.map((p, idx) => ({
+      num: idx + 1,
+      fecha: p.fecha,
+      monto: Number(p.monto || 0)
+    }));
+
+    const totalPlan = pagos.reduce((acc, p) => acc + (p.monto || 0), 0);
+    const totalPagado = abono + totalPlan;
+    const restante = TICKET_TOTAL - totalPagado;
+
+    const ticketElegido = (window.__FORM?.ticket_elegido || (ticketElegidoEl?.value || "")).trim();
+    const faseAuto = (window.__FORM?.fase_auto || (faseAutoEl?.value || "")).trim();
+
+    return {
+      contacto: {
+        nombres: nombres.value.trim(),
+        apellidos: apellidos.value.trim(),
+        email: email.value.trim(),
+        telefono: {
+          lada: lada.value,
+          numero: telefono.value.replace(/\D/g, '')
+        }
+      },
+      firma: {
+        nombre_firma: (signatureName.value || "").trim()
+      },
+      ticket: {
+        elegido: ticketElegido,
+        fase_auto: faseAuto,
+        total: TICKET_TOTAL,
+        abono_inicial: abono,
+        total_plan_pagos: totalPlan,
+        total_pagado: totalPagado,
+        restante: restante
+      },
+      plan_pagos: {
+        cantidad_pagos: n,
+        pagos,
+        total_programado: totalPlan
+      },
+      reglas: {
+        min_fecha: MIN_DATE,
+        max_fecha: MAX_DATE,
+        min_fecha_pago1: FIRST_PAY_MIN_DATE,
+        max_abono: MAX_ABONO
+      },
+      meta: {
+        created_at_iso: new Date().toISOString(),
+        source: "formulario_plan_pagos_calendar_modal_v1"
       }
+    };
+  }
+
+  function updateLiveTotals() {
+    const data = collectData();
+    liveTicketTotalEl.textContent = money(TICKET_TOTAL);
+    liveTotalPaidEl.textContent = money(data.ticket.total_pagado);
+    liveRemainingEl.textContent = money(data.ticket.restante);
+
+    const restante = Number(data.ticket.restante || 0);
+    if (Math.abs(restante) <= REMAINING_TOL) {
+      hide(liveWarn);
+      liveWarn.textContent = "";
+    } else {
+      unhide(liveWarn);
+      liveWarn.textContent = restante > 0
+        ? `Aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`
+        : `Vas con exceso de ${money(Math.abs(restante))}. Revisa montos.`;
+    }
+  }
+
+  function renderSummary(data) {
+    summaryGrid.innerHTML = "";
+    hide(validationBox);
+    validationBox.textContent = "";
+
+    const fullName = `${data.contacto.nombres} ${data.contacto.apellidos}`.trim();
+    const phone = `${data.contacto.telefono.lada} ${data.contacto.telefono.numero}`.trim();
+
+    const blocks = [
+      { k: "Nombre completo (INE)", v: fullName || "-" },
+      { k: "Correo", v: data.contacto.email || "-" },
+      { k: "Teléfono", v: phone || "-" },
+      { k: "Ticket elegido", v: data.ticket.elegido || "-" },
+      { k: "Fase detectada", v: data.ticket.fase_auto || "-" },
+      { k: "Abono inicial", v: money(data.ticket.abono_inicial) },
+      { k: "Cantidad de pagos", v: String(data.plan_pagos.cantidad_pagos || 0) },
+      { k: "Total plan de pagos", v: money(data.ticket.total_plan_pagos) },
+    ];
+
+    for (const b of blocks) {
+      const el = document.createElement("div");
+      el.className = "kv";
+      el.innerHTML = `<div class="k">${b.k}</div><div class="v">${b.v}</div>`;
+      summaryGrid.appendChild(el);
     }
 
-    function renderSummary(data) {
-      summaryGrid.innerHTML = "";
-      hide(validationBox);
-      validationBox.textContent = "";
+    const payListBlock = document.createElement("div");
+    payListBlock.className = "kv";
+    payListBlock.style.gridColumn = "1 / -1";
+    const lines = data.plan_pagos.pagos.map(p => `Pago ${p.num}: ${p.fecha ? isoToDMY(p.fecha) : "(sin fecha)"} · ${money(p.monto)}`);
+    payListBlock.innerHTML = `<div class="k">Plan de pagos</div><div class="v">${lines.join("\n")}</div>`;
+    summaryGrid.appendChild(payListBlock);
 
-      const fullName = `${data.contacto.nombres} ${data.contacto.apellidos}`.trim();
-      const phone = `${data.contacto.telefono.lada} ${data.contacto.telefono.numero}`.trim();
-
-      const blocks = [
-        { k: "Nombre completo (INE)", v: fullName || "-" },
-        { k: "Correo", v: data.contacto.email || "-" },
-        { k: "Teléfono", v: phone || "-" },
-        { k: "Ticket elegido", v: data.ticket.elegido || "-" },
-        { k: "Fase detectada", v: data.ticket.fase_auto || "-" },
-        { k: "Abono inicial", v: money(data.ticket.abono_inicial) },
-        { k: "Cantidad de pagos", v: String(data.plan_pagos.cantidad_pagos || 0) },
-        { k: "Total plan de pagos", v: money(data.ticket.total_plan_pagos) },
-      ];
-
-      for (const b of blocks) {
-        const el = document.createElement("div");
-        el.className = "kv";
-        el.innerHTML = `<div class="k">${b.k}</div><div class="v">${b.v}</div>`;
-        summaryGrid.appendChild(el);
-      }
-
-      const payListBlock = document.createElement("div");
-      payListBlock.className = "kv";
-      payListBlock.style.gridColumn = "1 / -1";
-      const lines = data.plan_pagos.pagos.map(p => `Pago ${p.num}: ${p.fecha ? isoToDMY(p.fecha) : "(sin fecha)"} · ${money(p.monto)}`);
-      payListBlock.innerHTML = `<div class="k">Plan de pagos</div><div class="v">${lines.join("\n")}</div>`;
-      summaryGrid.appendChild(payListBlock);
-
-      const totals = document.createElement("div");
-      totals.className = "kv";
-      totals.style.gridColumn = "1 / -1";
-      totals.innerHTML = `
-        <div class="k">Totales</div>
-        <div class="v">
+    const totals = document.createElement("div");
+    totals.className = "kv";
+    totals.style.gridColumn = "1 / -1";
+    totals.innerHTML = `
+      <div class="k">Totales</div>
+      <div class="v">
 El total de tu ticket es ${money(TICKET_TOTAL)}
 Incluyendo tu abono y tu plan de pagos, el total pagado es ${money(data.ticket.total_pagado)}
 Restante pendiente: ${money(data.ticket.restante)}
-        </div>
-      `;
-      summaryGrid.appendChild(totals);
+      </div>
+    `;
+    summaryGrid.appendChild(totals);
 
-      const restante = Number(data.ticket.restante || 0);
+    const restante = Number(data.ticket.restante || 0);
 
-      if (!remainingIsZero(restante)) {
-        unhide(validationBox);
-        validationBox.textContent = restante > 0
-          ? `Hey, hay algo raro aquí: con tu abono + tu plan de pagos aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`
-          : `Hey, hay algo raro aquí: vas con exceso de ${money(Math.abs(restante))} sobre el total.`;
-        toAgreementBtn.disabled = true;
-      } else {
-        hide(validationBox);
-        toAgreementBtn.disabled = false;
-      }
-
-      syncNextButtonRules();
-    }
-
-    function renderAgreementPlan(data) {
-      agreementPlanList.innerHTML = "";
-      pdfPlanList.innerHTML = "";
-
-      const pagos = data.plan_pagos?.pagos || [];
-      pagos.forEach(p => {
-        const li = document.createElement("li");
-        li.textContent = `${p.fecha ? isoToDMY(p.fecha) : "(sin fecha)"} | ${money(p.monto)}`;
-        agreementPlanList.appendChild(li);
-
-        const li2 = document.createElement("li");
-        li2.textContent = `${p.fecha ? isoToDMY(p.fecha) : "(sin fecha)"} | ${money(p.monto)}`;
-        pdfPlanList.appendChild(li2);
-      });
-    }
-
-    function normalizeName(s) {
-      return (s || "").trim().replace(/\s+/g, " ").toLowerCase();
-    }
-    function validateSignature() {
-      signatureErr.textContent = "";
-      signatureErr.classList.remove("show");
-
-      const captured = `${nombres.value} ${apellidos.value}`.trim();
-      const must = normalizeName(captured);
-      const got = normalizeName(signatureName.value);
-
-      if (!got) {
-        signatureErr.textContent = "Escribe tu nombre completo como aparece en tu INE.";
-        signatureErr.classList.add("show");
-        return false;
-      }
-      if (must && got !== must) {
-        signatureErr.textContent = `Tu firma debe coincidir con el nombre capturado en el formulario:\n"${captured}"`;
-        signatureErr.classList.add("show");
-        return false;
-      }
-      return true;
-    }
-
-    // ✅ ENVÍO: FORM + IFRAME
-    async function submitToWebApp(payloadStr) {
-      if (typeof payloadStr !== "string") payloadStr = JSON.stringify(payloadStr);
-
-      postForm.action = WEB_APP_URL;
-      postForm.method = "POST";
-      postForm.enctype = "application/x-www-form-urlencoded";
-      payloadField.value = payloadStr;
-
-      postForm.submit();
-      return { ok: true, via: "iframe" };
-    }
-
-    function resetFormHard() {
-      nombres.value = "";
-      apellidos.value = "";
-      email.value = "";
-      lada.value = "+52";
-      telefono.value = "";
-      ticketElegidoEl.value = "";
-      faseAutoEl.value = "—";
-      ticketTotalEl.value = "—";
-      abonoInicial.value = "";
-      numPagos.value = "";
-      signatureName.value = "";
-
-      // reset ticket globals
-      window.__FORM = window.__FORM || {};
-      window.__FORM.ticket_elegido = "";
-      window.__FORM.ticket_total = "";
-      window.__FORM.fase_auto = "";
-      TICKET_TOTAL = 50000;
-
-      resetPlanner();
-
-      summaryGrid.innerHTML = "";
-      agreementPlanList.innerHTML = "";
-      pdfPlanList.innerHTML = "";
-      pdfSignature.textContent = "";
-
-      show(err_nombres, false);
-      show(err_apellidos, false);
-      show(err_email, false);
-      show(err_telefono, false);
-      show(ticketErrEl, false);
-      show(err_abonoInicial, false);
-      show(err_numPagos, false);
-      show(err_payments, false);
-      err_payments_list.textContent = "";
-
+    if (!remainingIsZero(restante)) {
+      unhide(validationBox);
+      validationBox.textContent = restante > 0
+        ? `Hey, hay algo raro aquí: con tu abono + tu plan de pagos aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`
+        : `Hey, hay algo raro aquí: vas con exceso de ${money(Math.abs(restante))} sobre el total.`;
+      toAgreementBtn.disabled = true;
+    } else {
       hide(validationBox);
-      validationBox.textContent = "";
-
-      signatureErr.textContent = "";
-      signatureErr.classList.remove("show");
-
-      hide(successBox);
-      hide(sendingBox);
-      failBox.style.display = "none";
-
       toAgreementBtn.disabled = false;
-      sendBtn.disabled = false;
-      signatureName.disabled = false;
-
-      hide(liveWarn);
-      liveWarn.textContent = "";
-
-      lockAfterSubmit = false;
-
-      updateLiveTotals();
-      setStep(1);
     }
 
-    // ✅ goNext alineado a 11 pasos
-    function goNext() {
-      const totalSteps = steps.length;
+    syncNextButtonRules();
+  }
 
-      // Firma (Paso 10)
-      if (currentStep === 10) {
+  function renderAgreementPlan(data) {
+    agreementPlanList.innerHTML = "";
+    pdfPlanList.innerHTML = "";
+
+    const pagos = data.plan_pagos?.pagos || [];
+    pagos.forEach(p => {
+      const li = document.createElement("li");
+      li.textContent = `${p.fecha ? isoToDMY(p.fecha) : "(sin fecha)"} | ${money(p.monto)}`;
+      agreementPlanList.appendChild(li);
+
+      const li2 = document.createElement("li");
+      li2.textContent = `${p.fecha ? isoToDMY(p.fecha) : "(sin fecha)"} | ${money(p.monto)}`;
+      pdfPlanList.appendChild(li2);
+    });
+  }
+
+  function normalizeName(s) {
+    return (s || "").trim().replace(/\s+/g, " ").toLowerCase();
+  }
+
+  function validateSignature() {
+    signatureErr.textContent = "";
+    signatureErr.classList.remove("show");
+
+    const captured = `${nombres.value} ${apellidos.value}`.trim();
+    const must = normalizeName(captured);
+    const got = normalizeName(signatureName.value);
+
+    if (!got) {
+      signatureErr.textContent = "Escribe tu nombre completo como aparece en tu INE.";
+      signatureErr.classList.add("show");
+      return false;
+    }
+    if (must && got !== must) {
+      signatureErr.textContent = `Tu firma debe coincidir con el nombre capturado en el formulario:\n"${captured}"`;
+      signatureErr.classList.add("show");
+      return false;
+    }
+    return true;
+  }
+
+  async function submitToWebApp(payloadObj) {
+    try {
+      const fd = new FormData();
+      fd.append("payload", JSON.stringify(payloadObj));
+
+      const res = await fetch(WEB_APP_URL, {
+        method: "POST",
+        body: fd,
+        cache: "no-store"
+      });
+
+      const text = await res.text();
+
+      let json;
+      try {
+        json = JSON.parse(text);
+      } catch (e) {
+        json = { ok: res.ok, raw: text };
+      }
+
+      return {
+        ok: !!json?.ok,
+        via: "fetch_formdata",
+        data: json,
+        raw: text
+      };
+    } catch (err) {
+      console.error("fetch FormData falló, usando fallback iframe:", err);
+
+      try {
+        postForm.action = WEB_APP_URL;
+        postForm.method = "POST";
+        postForm.enctype = "application/x-www-form-urlencoded";
+        payloadField.value = JSON.stringify(payloadObj);
+        postForm.submit();
+
+        return { ok: true, via: "iframe_fallback" };
+      } catch (e2) {
+        return { ok: false, via: "none", error: String(e2) };
+      }
+    }
+  }
+
+  function resetFormHard() {
+    nombres.value = "";
+    apellidos.value = "";
+    email.value = "";
+    lada.value = "+52";
+    telefono.value = "";
+    ticketElegidoEl.value = "";
+    faseAutoEl.value = "—";
+    ticketTotalEl.value = "—";
+    abonoInicial.value = "";
+    numPagos.value = "";
+    signatureName.value = "";
+
+    window.__FORM = window.__FORM || {};
+    window.__FORM.ticket_elegido = "";
+    window.__FORM.ticket_total = "";
+    window.__FORM.fase_auto = "";
+    TICKET_TOTAL = 50000;
+
+    resetPlanner();
+
+    summaryGrid.innerHTML = "";
+    agreementPlanList.innerHTML = "";
+    pdfPlanList.innerHTML = "";
+    pdfSignature.textContent = "";
+
+    show(err_nombres, false);
+    show(err_apellidos, false);
+    show(err_email, false);
+    show(err_telefono, false);
+    show(ticketErrEl, false);
+    show(err_abonoInicial, false);
+    show(err_numPagos, false);
+    show(err_payments, false);
+    err_payments_list.textContent = "";
+
+    hide(validationBox);
+    validationBox.textContent = "";
+
+    signatureErr.textContent = "";
+    signatureErr.classList.remove("show");
+
+    hide(successBox);
+    hide(sendingBox);
+    failBox.style.display = "none";
+
+    toAgreementBtn.disabled = false;
+    sendBtn.disabled = false;
+    signatureName.disabled = false;
+
+    hide(liveWarn);
+    liveWarn.textContent = "";
+
+    lockAfterSubmit = false;
+    sendingInProgress = false;
+
+    updateLiveTotals();
+    setStep(1);
+  }
+
+  function goNext() {
+    const totalSteps = steps.length;
+
+    if (currentStep === 10) {
+      validateSignature();
+      return;
+    }
+
+    if (currentStep === 1 && !validateStep1()) return;
+    if (currentStep === 2 && !validateStep2()) return;
+    if (currentStep === 3 && !validateTicketStep()) return;
+    if (currentStep === 4 && !validateStep3()) return;
+
+    if (currentStep === 5) {
+      const v = validatePlannerDetailed();
+      if (!v.ok) return;
+    }
+
+    if (currentStep === 6) {
+      const data = collectData();
+      renderSummary(data);
+      if (!remainingIsZero(data.ticket.restante)) {
+        syncNextButtonRules();
+        return;
+      }
+    }
+
+    if (currentStep < totalSteps) {
+      if (currentStep === 5) {
+        const data = collectData();
+        renderSummary(data);
+      }
+
+      if (currentStep === 6) {
+        const data = collectData();
+        renderAgreementPlan(data);
+      }
+
+      setStep(currentStep + 1);
+    }
+  }
+
+  function goBack() {
+    if (lockAfterSubmit) {
+      resetFormHard();
+      return;
+    }
+    if (currentStep > 1) setStep(currentStep - 1);
+  }
+
+  nextBtn.addEventListener("click", goNext);
+  backBtn.addEventListener("click", goBack);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      const active = steps.find(s => s.classList.contains("active"));
+      const stepNum = active ? Number(active.dataset.step) : 1;
+
+      if (stepNum === 10) {
+        e.preventDefault();
         validateSignature();
         return;
       }
-
-      if (currentStep === 1 && !validateStep1()) return;
-      if (currentStep === 2 && !validateStep2()) return;
-
-      // Paso 3: Ticket
-      if (currentStep === 3 && !validateTicketStep()) return;
-
-      // Paso 4: Abono
-      if (currentStep === 4 && !validateStep3()) return;
-
-      // Paso 5: Planner
-      if (currentStep === 5) {
-        const v = validatePlannerDetailed();
-        if (!v.ok) return;
+      if (stepNum === 6 && nextBtn.disabled) {
+        e.preventDefault();
+        return;
       }
-
-      // Paso 6: Resumen (bloquea si restante != 0)
-      if (currentStep === 6) {
-        const data = collectData();
-        renderSummary(data);
-        if (!remainingIsZero(data.ticket.restante)) {
-          syncNextButtonRules();
-          return;
-        }
-      }
-
-      if (currentStep < totalSteps) {
-        // Al salir del planner (5) → render resumen
-        if (currentStep === 5) {
-          const data = collectData();
-          renderSummary(data);
-        }
-
-        // Al salir del resumen (6) → render acuerdo
-        if (currentStep === 6) {
-          const data = collectData();
-          renderAgreementPlan(data);
-        }
-
-        setStep(currentStep + 1);
+      if (stepNum < steps.length) {
+        e.preventDefault();
+        goNext();
       }
     }
+  });
 
-    function goBack() {
-      if (lockAfterSubmit) {
-        resetFormHard();
-        return;
-      }
-      if (currentStep > 1) setStep(currentStep - 1);
+  toAgreementBtn.addEventListener("click", () => {
+    const v = validatePlannerDetailed();
+    if (!v.ok) { setStep(5); return; }
+
+    const data = collectData();
+    if (!(Number(data.ticket.abono_inicial) <= MAX_ABONO)) { setStep(4); return; }
+    if (!remainingIsZero(data.ticket.restante)) {
+      unhide(validationBox);
+      validationBox.textContent = "El restante pendiente debe ser 0 para poder continuar. Revisa montos.";
+      return;
+    }
+    renderAgreementPlan(data);
+    setStep(7);
+  });
+
+  sendBtn.addEventListener("click", async () => {
+    if (sendingInProgress) return;
+
+    if (!validateStep1() || !validateStep2() || !validateTicketStep() || !validateStep3()) {
+      setStep(3);
+      return;
     }
 
-    nextBtn.addEventListener("click", goNext);
-    backBtn.addEventListener("click", goBack);
+    const v = validatePlannerDetailed();
+    if (!v.ok) {
+      setStep(5);
+      return;
+    }
 
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        const active = steps.find(s => s.classList.contains("active"));
-        const stepNum = active ? Number(active.dataset.step) : 1;
+    const data = collectData();
+    if (!remainingIsZero(data.ticket.restante)) {
+      signatureErr.textContent = "El restante pendiente debe ser 0 para poder enviar. Revisa montos.";
+      signatureErr.classList.add("show");
+      return;
+    }
+    if (!validateSignature()) return;
 
-        // Firma es 10
-        if (stepNum === 10) {
-          e.preventDefault();
-          validateSignature();
-          return;
-        }
-        // Resumen es 6
-        if (stepNum === 6 && nextBtn.disabled) {
-          e.preventDefault();
-          return;
-        }
-        if (stepNum < steps.length) {
-          e.preventDefault();
-          goNext();
-        }
-      }
-    });
+    pdfSignature.textContent = data.firma.nombre_firma;
 
-    toAgreementBtn.addEventListener("click", () => {
-      const v = validatePlannerDetailed();
-      if (!v.ok) { setStep(5); return; }
+    const fullName = `${data.contacto.nombres} ${data.contacto.apellidos}`.trim();
+    const phoneE164ish = `${data.contacto.telefono.lada}${data.contacto.telefono.numero}`.trim();
 
-      const data = collectData();
-      if (!(Number(data.ticket.abono_inicial) <= MAX_ABONO)) { setStep(4); return; }
-      if (!remainingIsZero(data.ticket.restante)) {
-        unhide(validationBox);
-        validationBox.textContent = "El restante pendiente debe ser 0 para poder continuar. Revisa montos.";
-        return;
-      }
-      renderAgreementPlan(data);
-      setStep(7);
-    });
+    const payloadObj = {
+      nombre_reg: fullName,
+      email_reg: data.contacto.email || "",
+      telefono_reg: phoneE164ish,
+      firma_nombre: data.firma.nombre_firma || "",
+      firma_ok: true,
 
-    let awaitingAck = false;
+      ticket_elegido: data.ticket.elegido || "",
+      ticket_total: Number(data.ticket.total || 0),
 
-    hiddenFrame.addEventListener("load", () => {
-      if (!awaitingAck) return;
-      awaitingAck = false;
+      plan_json: JSON.stringify({
+        cantidad_pagos: data.plan_pagos.cantidad_pagos,
+        pagos: data.plan_pagos.pagos,
+        total_programado: data.plan_pagos.total_programado,
+        abono_inicial: data.ticket.abono_inicial,
+        total_pagado: data.ticket.total_pagado,
+        restante: data.ticket.restante,
+        fase_auto: data.ticket.fase_auto
+      }),
 
-      hide(sendingBox);
-      unhide(successBox);
-      showToast("Enviado ✅");
+      pdf_status: "PENDING",
+      pdf_url: "",
+      pdf_id: "",
+      error: "",
+      row_id: "",
 
-      sendBtn.disabled = true;
-      signatureName.disabled = true;
+      evento: getEventoFromURL(),
+      data_full: data,
 
-      lockAfterSubmit = true;
-      setTimeout(() => setStep(11), 700);
-    });
+      target_sheet: {
+        url: "https://docs.google.com/spreadsheets/d/193FboWwyrT7ahzGXqXk2EWCWG5HdjVVts2zpPXQoNCw/edit",
+        id: "193FboWwyrT7ahzGXqXk2EWCWG5HdjVVts2zpPXQoNCw"
+      },
 
-    sendBtn.addEventListener("click", async () => {
-      if (!validateStep1() || !validateStep2() || !validateTicketStep() || !validateStep3()) {
-        setStep(3);
-        return;
-      }
-
-      const v = validatePlannerDetailed();
-      if (!v.ok) {
-        setStep(5);
-        return;
-      }
-
-      const data = collectData();
-      if (!remainingIsZero(data.ticket.restante)) {
-        signatureErr.textContent = "El restante pendiente debe ser 0 para poder enviar. Revisa montos.";
-        signatureErr.classList.add("show");
-        return;
-      }
-      if (!validateSignature()) return;
-
-      pdfSignature.textContent = data.firma.nombre_firma;
-
-      const payload = JSON.stringify({
-        evento: getEventoFromURL(),
-        ...data,
-        target_sheet: {
-          url: "https://docs.google.com/spreadsheets/d/193FboWwyrT7ahzGXqXk2EWCWG5HdjVVts2zpPXQoNCw/edit",
-          id: "193FboWwyrT7ahzGXqXk2EWCWG5HdjVVts2zpPXQoNCw"
-        },
-        pdf_html: document.getElementById("pdfAgreementTemplate").outerHTML
-      });
-
-      failBox.style.display = "none";
-      hide(successBox);
-      unhide(sendingBox);
-      sendBtn.disabled = true;
-
-      awaitingAck = true;
-      setTimeout(() => {
-        if (awaitingAck) {
-          awaitingAck = false;
-          hide(sendingBox);
-          failBox.style.display = "block";
-          sendBtn.disabled = false;
-        }
-      }, 9000);
-
-      const result = await submitToWebApp(payload);
-      if (!result.ok) {
-        awaitingAck = false;
-        hide(sendingBox);
-        failBox.style.display = "block";
-        sendBtn.disabled = false;
-        console.error("No se pudo enviar:", result);
-        return;
-      }
-    });
-
-    /* =========================
-       ✅ SKILLS · Ticket + Fase auto (Solo FHS)
-       ========================= */
-
-    const SKILLS_2026 = {
-      phases: [
-        {
-          key: "F2",
-          label: "Fase 2",
-          start: { y: 2026, m: 2, d: 1 },
-          end: { y: 2026, m: 2, d: 28 },
-          fhs: {
-            "Normal": 8000,
-            "All inclusive": 25000,
-            "All inclusive + backstage": 35000
-          }
-        },
-        {
-          key: "F3",
-          label: "Fase 3",
-          start: { y: 2026, m: 3, d: 1 },
-          end: { y: 2026, m: 4, d: 30 },
-          fhs: {
-            "Normal": 11000,
-            "All inclusive": 30000,
-            "All inclusive + backstage": 40000
-          }
-        },
-        {
-          key: "F4",
-          label: "Fase 4",
-          start: { y: 2026, m: 5, d: 1 },
-          end: { y: 2026, m: 7, d: 31 },
-          fhs: {
-            "Normal": 13500,
-            "All inclusive": 35000,
-            "All inclusive + backstage": 45000
-          }
-        },
-        {
-          key: "F5",
-          label: "Fase 5",
-          start: { y: 2026, m: 8, d: 1 },
-          end: { y: 2026, m: 9, d: 4 },
-          fhs: {
-            "Normal": 18000,
-            "All inclusive": 45000,
-            "All inclusive + backstage": 55000
-          }
-        }
-      ]
+      pdf_html: document.getElementById("pdfAgreementTemplate").outerHTML
     };
 
-    function _localDateAtYMD(y, m, d) {
-      return new Date(y, m - 1, d, 0, 0, 0, 0);
-    }
-    function _todayLocal() {
-      const now = new Date();
-      return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-    }
-    function _inRange(date, start, end) {
-      return date.getTime() >= start.getTime() && date.getTime() <= end.getTime();
-    }
+    failBox.style.display = "none";
+    hide(successBox);
+    unhide(sendingBox);
+    sendBtn.disabled = true;
+    sendingInProgress = true;
 
-    function getSkillsPhaseAuto(date = _todayLocal()) {
-      for (const ph of SKILLS_2026.phases) {
-        const s = _localDateAtYMD(ph.start.y, ph.start.m, ph.start.d);
-        const e = _localDateAtYMD(ph.end.y, ph.end.m, ph.end.d);
-        if (_inRange(date, s, e)) return ph;
-      }
-      return null;
+    const result = await submitToWebApp(payloadObj);
+
+    if (!result.ok) {
+      hide(sendingBox);
+      failBox.style.display = "block";
+      sendBtn.disabled = false;
+      sendingInProgress = false;
+      console.error("No se pudo enviar:", result);
+      return;
     }
 
-    const SKILLS_OUT_OF_RANGE_MODE = "fallback"; // "fallback" | "block"
+    hide(sendingBox);
+    unhide(successBox);
+    showToast("Enviado ✅");
 
-    function calcSkillsTicketTotal(ticketElegido, date = _todayLocal()) {
-      let ph = getSkillsPhaseAuto(date);
+    sendBtn.disabled = true;
+    signatureName.disabled = true;
+    lockAfterSubmit = true;
+    sendingInProgress = false;
 
-      if (!ph) {
-        if (SKILLS_OUT_OF_RANGE_MODE === "block") return { phase: null, total: null };
-        ph = SKILLS_2026.phases[SKILLS_2026.phases.length - 1];
-      }
+    setTimeout(() => setStep(11), 700);
+  });
 
-      const total = ph.fhs[ticketElegido] ?? null;
-      return { phase: ph, total };
-    }
-
-    function formatMXN(n) {
-      if (typeof n !== "number") return "—";
-      return n.toLocaleString("es-MX");
-    }
-
-    function skillsInitTicketStep() {
-      if (!ticketElegidoEl || !faseAutoEl || !ticketTotalEl) return;
-
-      window.__FORM = window.__FORM || {};
-
-      function recompute() {
-        const choice = (ticketElegidoEl.value || "").trim();
-
-        if (!choice) {
-          faseAutoEl.value = "—";
-          ticketTotalEl.value = "—";
-          ticketErrEl && ticketErrEl.classList.remove("show");
-
-          window.__FORM.ticket_elegido = "";
-          window.__FORM.ticket_total = "";
-          window.__FORM.fase_auto = "";
-
-          // Mantén un default seguro
-          TICKET_TOTAL = 50000;
-          updateLiveTotals();
-          return;
+  const SKILLS_2026 = {
+    phases: [
+      {
+        key: "F2",
+        label: "Fase 2",
+        start: { y: 2026, m: 2, d: 1 },
+        end: { y: 2026, m: 2, d: 28 },
+        fhs: {
+          "Normal": 8000,
+          "All inclusive": 25000,
+          "All inclusive + backstage": 35000
         }
-
-        const { phase, total } = calcSkillsTicketTotal(choice);
-
-        if (!phase || !total) {
-          faseAutoEl.value = "—";
-          ticketTotalEl.value = "—";
-          if (ticketErrEl) ticketErrEl.textContent = "No pudimos calcular tu ticket. Revisa tu selección.";
-          ticketErrEl && ticketErrEl.classList.add("show");
-
-          window.__FORM.ticket_elegido = choice;
-          window.__FORM.ticket_total = "";
-          window.__FORM.fase_auto = "";
-
-          return;
+      },
+      {
+        key: "F3",
+        label: "Fase 3",
+        start: { y: 2026, m: 3, d: 1 },
+        end: { y: 2026, m: 4, d: 30 },
+        fhs: {
+          "Normal": 11000,
+          "All inclusive": 30000,
+          "All inclusive + backstage": 40000
         }
+      },
+      {
+        key: "F4",
+        label: "Fase 4",
+        start: { y: 2026, m: 5, d: 1 },
+        end: { y: 2026, m: 7, d: 31 },
+        fhs: {
+          "Normal": 13500,
+          "All inclusive": 35000,
+          "All inclusive + backstage": 45000
+        }
+      },
+      {
+        key: "F5",
+        label: "Fase 5",
+        start: { y: 2026, m: 8, d: 1 },
+        end: { y: 2026, m: 9, d: 4 },
+        fhs: {
+          "Normal": 18000,
+          "All inclusive": 45000,
+          "All inclusive + backstage": 55000
+        }
+      }
+    ]
+  };
 
-        faseAutoEl.value = `${phase.label} (${phase.start.d}/${phase.start.m}–${phase.end.d}/${phase.end.m})`;
-        ticketTotalEl.value = formatMXN(total);
+  function _localDateAtYMD(y, m, d) {
+    return new Date(y, m - 1, d, 0, 0, 0, 0);
+  }
 
+  function _todayLocal() {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  }
+
+  function _inRange(date, start, end) {
+    return date.getTime() >= start.getTime() && date.getTime() <= end.getTime();
+  }
+
+  function getSkillsPhaseAuto(date = _todayLocal()) {
+    for (const ph of SKILLS_2026.phases) {
+      const s = _localDateAtYMD(ph.start.y, ph.start.m, ph.start.d);
+      const e = _localDateAtYMD(ph.end.y, ph.end.m, ph.end.d);
+      if (_inRange(date, s, e)) return ph;
+    }
+    return null;
+  }
+
+  const SKILLS_OUT_OF_RANGE_MODE = "fallback";
+
+  function calcSkillsTicketTotal(ticketElegido, date = _todayLocal()) {
+    let ph = getSkillsPhaseAuto(date);
+
+    if (!ph) {
+      if (SKILLS_OUT_OF_RANGE_MODE === "block") return { phase: null, total: null };
+      ph = SKILLS_2026.phases[SKILLS_2026.phases.length - 1];
+    }
+
+    const total = ph.fhs[ticketElegido] ?? null;
+    return { phase: ph, total };
+  }
+
+  function formatMXN(n) {
+    if (typeof n !== "number") return "—";
+    return n.toLocaleString("es-MX");
+  }
+
+  function skillsInitTicketStep() {
+    if (!ticketElegidoEl || !faseAutoEl || !ticketTotalEl) return;
+
+    window.__FORM = window.__FORM || {};
+
+    function recompute() {
+      const choice = (ticketElegidoEl.value || "").trim();
+
+      if (!choice) {
+        faseAutoEl.value = "—";
+        ticketTotalEl.value = "—";
         ticketErrEl && ticketErrEl.classList.remove("show");
 
-        window.__FORM.ticket_elegido = choice;
-        window.__FORM.ticket_total = total;
-        window.__FORM.fase_auto = phase.label;
+        window.__FORM.ticket_elegido = "";
+        window.__FORM.ticket_total = "";
+        window.__FORM.fase_auto = "";
 
-        // ✅ aquí se vuelve REALMENTE dinámico el sistema
-        TICKET_TOTAL = total;
+        TICKET_TOTAL = 50000;
         updateLiveTotals();
-        renderCalendar();
-        renderPayList();
+        return;
       }
 
-      ticketElegidoEl.addEventListener("change", recompute);
-      recompute();
+      const { phase, total } = calcSkillsTicketTotal(choice);
+
+      if (!phase || !total) {
+        faseAutoEl.value = "—";
+        ticketTotalEl.value = "—";
+        if (ticketErrEl) ticketErrEl.textContent = "No pudimos calcular tu ticket. Revisa tu selección.";
+        ticketErrEl && ticketErrEl.classList.add("show");
+
+        window.__FORM.ticket_elegido = choice;
+        window.__FORM.ticket_total = "";
+        window.__FORM.fase_auto = "";
+        return;
+      }
+
+      faseAutoEl.value = `${phase.label} (${phase.start.d}/${phase.start.m}–${phase.end.d}/${phase.end.m})`;
+      ticketTotalEl.value = formatMXN(total);
+
+      ticketErrEl && ticketErrEl.classList.remove("show");
+
+      window.__FORM.ticket_elegido = choice;
+      window.__FORM.ticket_total = total;
+      window.__FORM.fase_auto = phase.label;
+
+      TICKET_TOTAL = total;
+      updateLiveTotals();
+      renderCalendar();
+      renderPayList();
     }
 
-    // init
-    abonoHint.textContent = `Número (sin $). Se formatea automático. Máximo ${money(MAX_ABONO_HINT)}.`;
-    resetPlanner();
-    setStep(1);
-    updateLiveTotals();
-    skillsInitTicketStep();
-  </script>
+    ticketElegidoEl.addEventListener("change", recompute);
+    recompute();
+  }
+
+  abonoHint.textContent = `Número (sin $). Se formatea automático. Máximo ${money(MAX_ABONO_HINT)}.`;
+  resetPlanner();
+  setStep(1);
+  updateLiveTotals();
+  skillsInitTicketStep();
+</script>
+  
 </body>
 
 </html>
