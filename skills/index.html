@@ -685,28 +685,37 @@
 
     /* ===== Modal ===== */
     .modalOverlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, .68);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
-      z-index: 9998;
-    }
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(900px 500px at 50% 20%, rgba(57, 255, 20, .08), transparent 60%),
+    rgba(4, 8, 10, .82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 9998;
+}
 
     .modalOverlay.show {
       display: flex;
     }
 
     .modal {
-      width: min(520px, 100%);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: #0E1217;
-      box-shadow: 0 18px 60px rgba(0, 0, 0, .70);
-      overflow: hidden;
-    }
+  width: min(520px, 100%);
+  border: 1px solid rgba(57, 255, 20, .18);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(57, 255, 20, .04), rgba(255, 255, 255, .015)),
+    #0E1217;
+  box-shadow:
+    0 18px 60px rgba(0, 0, 0, .70),
+    0 0 0 1px rgba(57, 255, 20, .08),
+    0 0 24px rgba(57, 255, 20, .10);
+  overflow: hidden;
+}
 
     .modalHead {
       padding: 14px 14px 10px;
@@ -1408,10 +1417,14 @@
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzuNTaLIi65EbNzM9V35HO6d8AsGKjMbpX7ZK1x3DuX_c0FBDl8gsv-T3Ui9xIbFb_GHw/exec";
 
   let TICKET_TOTAL = 50000;
-  const MAX_DATE = "2026-11-30";
-  const MAX_ABONO = 49999.99;
-  const MAX_ABONO_HINT = 49000;
-  const REMAINING_TOL = 0.01;
+const MAX_DATE = "2026-11-30";
+const REMAINING_TOL = 0.01;
+
+function getDynamicMaxAbono() {
+  const total = Number(TICKET_TOTAL || 0);
+  if (!Number.isFinite(total) || total <= 0) return 0;
+  return Math.max(0, total - 1000);
+}
 
   const MONTHS_ES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
@@ -1486,6 +1499,13 @@
     const x = Number(n || 0);
     return x.toLocaleString("es-MX", { style: "currency", currency: "MXN" });
   }
+
+  function refreshAbonoUI() {
+  const maxAbono = getDynamicMaxAbono();
+
+  abonoHint.textContent = `Número (sin $). Se formatea automático. Máximo ${money(maxAbono)}.`;
+  err_abonoInicial.textContent = `Escribe un monto válido (0 a ${money(maxAbono)}).`;
+}
 
   function remainingIsZero(restante) {
     return Math.abs(Number(restante || 0)) <= REMAINING_TOL;
@@ -1667,13 +1687,20 @@
   }
 
   function validateStep3() {
-    const val = abonoInicial.value.trim();
-    const n = val === "" ? 0 : parseAmount(val);
-    const ok = Number.isFinite(n) && n >= 0 && n <= MAX_ABONO;
-    show(err_abonoInicial, !ok);
-    if (!ok) abonoInicial.classList.add("badField"); else abonoInicial.classList.remove("badField");
-    return ok;
-  }
+  const val = abonoInicial.value.trim();
+  const n = val === "" ? 0 : parseAmount(val);
+  const maxAbono = getDynamicMaxAbono();
+
+  const ok = Number.isFinite(n) && n >= 0 && n <= maxAbono;
+
+  err_abonoInicial.textContent = `Escribe un monto válido (0 a ${money(maxAbono)}).`;
+  show(err_abonoInicial, !ok);
+
+  if (!ok) abonoInicial.classList.add("badField");
+  else abonoInicial.classList.remove("badField");
+
+  return ok;
+}
 
   function validateTicketStep() {
     const ok = ticketElegidoEl && ticketElegidoEl.value && ticketElegidoEl.value.trim() !== "";
@@ -2168,12 +2195,12 @@
         pagos,
         total_programado: totalPlan
       },
-      reglas: {
-        min_fecha: MIN_DATE,
-        max_fecha: MAX_DATE,
-        min_fecha_pago1: FIRST_PAY_MIN_DATE,
-        max_abono: MAX_ABONO
-      },
+     reglas: {
+  min_fecha: MIN_DATE,
+  max_fecha: MAX_DATE,
+  min_fecha_pago1: FIRST_PAY_MIN_DATE,
+  max_abono: getDynamicMaxAbono()
+},
       meta: {
         created_at_iso: new Date().toISOString(),
         source: "formulario_plan_pagos_calendar_modal_v1"
@@ -2484,7 +2511,7 @@ Restante pendiente: ${money(data.ticket.restante)}
     if (!v.ok) { setStep(5); return; }
 
     const data = collectData();
-    if (!(Number(data.ticket.abono_inicial) <= MAX_ABONO)) { setStep(4); return; }
+    if (!(Number(data.ticket.abono_inicial) <= getDynamicMaxAbono())) { setStep(4); return; }
     if (!remainingIsZero(data.ticket.restante)) {
       unhide(validationBox);
       validationBox.textContent = "El restante pendiente debe ser 0 para poder continuar. Revisa montos.";
@@ -2686,18 +2713,19 @@ Restante pendiente: ${money(data.ticket.restante)}
       const choice = (ticketElegidoEl.value || "").trim();
 
       if (!choice) {
-        faseAutoEl.value = "—";
-        ticketTotalEl.value = "—";
-        ticketErrEl && ticketErrEl.classList.remove("show");
+  faseAutoEl.value = "—";
+  ticketTotalEl.value = "—";
+  ticketErrEl && ticketErrEl.classList.remove("show");
 
-        window.__FORM.ticket_elegido = "";
-        window.__FORM.ticket_total = "";
-        window.__FORM.fase_auto = "";
+  window.__FORM.ticket_elegido = "";
+  window.__FORM.ticket_total = "";
+  window.__FORM.fase_auto = "";
 
-        TICKET_TOTAL = 50000;
-        updateLiveTotals();
-        return;
-      }
+  TICKET_TOTAL = 50000;
+  refreshAbonoUI();
+  updateLiveTotals();
+  return;
+}
 
       const { phase, total } = calcSkillsTicketTotal(choice);
 
@@ -2723,20 +2751,21 @@ Restante pendiente: ${money(data.ticket.restante)}
       window.__FORM.fase_auto = phase.label;
 
       TICKET_TOTAL = total;
-      updateLiveTotals();
-      renderCalendar();
-      renderPayList();
+refreshAbonoUI();
+updateLiveTotals();
+renderCalendar();
+renderPayList();
     }
 
     ticketElegidoEl.addEventListener("change", recompute);
     recompute();
   }
 
-  abonoHint.textContent = `Número (sin $). Se formatea automático. Máximo ${money(MAX_ABONO_HINT)}.`;
-  resetPlanner();
-  setStep(1);
-  updateLiveTotals();
-  skillsInitTicketStep();
+resetPlanner();
+setStep(1);
+refreshAbonoUI();
+updateLiveTotals();
+skillsInitTicketStep();
 </script>
   
 </body>
