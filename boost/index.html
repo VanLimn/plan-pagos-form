@@ -1,0 +1,2821 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Acuerdo de Financiamiento</title>
+
+  <!-- ✅ Link preview -->
+  <meta property="og:title" content="Acuerdo de Financiamiento" />
+  <meta property="og:description" content="Captura tus abonos y programa los pagos que mejor te queden." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://vanlimn.github.io/plan-pagos-form/skills/" />
+  <meta property="og:image" content="https://vanlimn.github.io/plan-pagos-form/skills/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Acuerdo de Financiamiento" />
+  <meta name="twitter:description" content="Captura tus abonos y programa los pagos que mejor te queden." />
+  <meta name="twitter:image" content="./og-image.png" />
+  <link rel="icon" href="./og-image.png" type="image/png" />
+
+  <style>
+    :root {
+      /* ===== Skills Dark Neon (Premium) ===== */
+      --bg: #0B0D0F;
+      --card: #0F1216;
+      --card2: #0C0F13;
+      --text: #E9EDF2;
+      --muted: #A3AAB6;
+      --line: #232831;
+      --line2: #2B323D;
+
+      /* Skills Green */
+      --accent: #39FF14;
+      --accent2: #1FFF0A;
+      --accentSoft: rgba(57, 255, 20, .18);
+      --accentGlow: rgba(57, 255, 20, .45);
+
+      --danger: #FF4D6D;
+      --ok: var(--accent);
+      --warn: #FFCC00;
+
+      --solid: #12161C;
+      --solid2: #0E1217;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+html,
+body {
+  margin: 0;
+  background: radial-gradient(1200px 600px at 50% 0%, rgba(52, 242, 139, .08), transparent 60%),
+    linear-gradient(180deg, #07090B, var(--bg));
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+    body.modalOpen {
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+      left: 0;
+      right: 0;
+    }
+
+    .wrap {
+      width: min(920px, 100%);
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 22px 70px rgba(0, 0, 0, .60);
+    }
+
+    .header {
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      background: linear-gradient(180deg, rgba(52, 242, 139, .06), transparent 70%);
+    }
+
+    .title {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: .2px;
+      font-weight: 750;
+    }
+
+    .title p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .progress {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 220px;
+      justify-content: flex-end;
+      flex: 1;
+    }
+
+    .bar {
+      width: 160px;
+      height: 8px;
+      background: #0A0D11;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar>div {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), rgba(52, 242, 139, .55));
+      box-shadow: 0 0 18px var(--accentGlow);
+      transition: width .25s ease;
+    }
+
+    .stepLabel {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .content {
+      padding: 18px;
+    }
+
+    .step {
+      display: none;
+      animation: fade .18s ease;
+    }
+
+    .step.active {
+      display: block;
+    }
+
+    @keyframes fade {
+      from {
+        opacity: .55;
+        transform: translateY(2px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+    }
+
+    .field {
+      grid-column: span 12;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    @media (min-width:720px) {
+      .field.half {
+        grid-column: span 6;
+      }
+
+      .field.third {
+        grid-column: span 4;
+      }
+
+      .field.twoThird {
+        grid-column: span 8;
+      }
+    }
+
+    label {
+      font-size: 13px;
+      color: rgba(233, 237, 242, .92);
+      font-weight: 650;
+    }
+
+    input,
+    select,
+    textarea {
+      background: var(--solid);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 12px;
+      outline: none;
+      font-size: 14px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .03);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #6F7886;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: rgba(52, 242, 139, .75);
+      box-shadow: 0 0 0 3px var(--accentSoft), 0 0 18px rgba(52, 242, 139, .12);
+    }
+
+    .badField {
+      border-color: rgba(255, 77, 109, .85) !important;
+      box-shadow: 0 0 0 3px rgba(255, 77, 109, .12) !important;
+    }
+
+    .hint {
+      margin-top: -2px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .error {
+      color: var(--danger);
+      font-size: 12px;
+      display: none;
+      font-weight: 700;
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    .footer {
+      padding: 14px 18px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      background: linear-gradient(0deg, rgba(255, 255, 255, .02), transparent);
+    }
+
+    .btns {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 1px solid var(--line2);
+      background: #0E1217;
+      color: var(--text);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: transform .06s ease, border-color .2s ease, background .2s ease, opacity .2s ease;
+      font-weight: 800;
+    }
+
+    button:hover {
+      border-color: rgba(52, 242, 139, .50);
+      background: rgba(52, 242, 139, .06);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    /* Primary = Skills Green */
+    .primary {
+      border-color: rgba(57, 255, 20, .85);
+      background: linear-gradient(90deg, rgba(57, 255, 20, .30), rgba(57, 255, 20, .14));
+      box-shadow:
+        0 0 0 1px rgba(57, 255, 20, .25),
+        0 0 22px rgba(57, 255, 20, .45),
+        0 12px 45px rgba(0, 0, 0, .55);
+    }
+
+    .primary:hover {
+      background: linear-gradient(90deg, rgba(57, 255, 20, .40), rgba(57, 255, 20, .18));
+      border-color: rgba(57, 255, 20, 1);
+    }
+
+    /* Enviar (blackBtn) -> Skills */
+    .blackBtn {
+      background: var(--accent) !important;
+      border-color: var(--accent) !important;
+      color: #08110B !important;
+      font-weight: 900 !important;
+    }
+
+    .blackBtn:hover {
+      background: var(--accent2) !important;
+      border-color: var(--accent2) !important;
+    }
+
+    .small {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .tagDot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(52, 242, 139, .10);
+    }
+
+    .summaryBox {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(255, 255, 255, .02);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .summaryGrid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    @media (min-width:720px) {
+      .summaryGrid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .kv {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .02);
+      border-radius: 12px;
+      padding: 12px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      hyphens: auto;
+    }
+
+    .kv .k {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .kv .v {
+      font-size: 14px;
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0E1217;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, .55);
+      z-index: 9999;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+
+    .success,
+    .sending,
+    .warning {
+      border: 1px solid rgba(52, 242, 139, .35);
+      background: rgba(52, 242, 139, .06);
+      border-radius: 14px;
+      padding: 14px;
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    .warning {
+      border-color: rgba(255, 204, 0, .30);
+      background: rgba(255, 204, 0, .06);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* ===== Planner (Calendario) ===== */
+    .payPlanner {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    @media (min-width:860px) {
+      .payPlanner {
+        grid-template-columns: 1.15fr .85fr;
+      }
+    }
+
+    .calCard,
+    .listCard {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, .02);
+      padding: 12px;
+    }
+
+    .calHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 4px 2px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, .06);
+      margin-bottom: 10px;
+    }
+
+    .calTitle {
+      font-weight: 900;
+      letter-spacing: .2px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .calTitle .big {
+      font-size: 15px;
+    }
+
+    .calTitle .small {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .calNav {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .iconBtn {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      border: 1px solid rgba(52, 242, 139, .55);
+      background: rgba(52, 242, 139, .06);
+      color: var(--accent);
+      cursor: pointer;
+      font-weight: 950;
+      user-select: none;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .iconBtn:hover {
+      background: rgba(52, 242, 139, .14);
+      border-color: rgba(52, 242, 139, .90);
+      color: #DFFFEF;
+    }
+
+    .dow {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      padding: 0 2px 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      padding: 2px;
+    }
+
+    .day {
+      height: 44px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--solid2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 950;
+      font-size: 13px;
+      position: relative;
+      transition: transform .06s ease, border-color .2s ease, background .2s ease, opacity .2s ease;
+      color: var(--text);
+    }
+
+    .day:hover {
+      border-color: rgba(52, 242, 139, .75);
+      background: rgba(52, 242, 139, .08);
+    }
+
+    .day:active {
+      transform: translateY(1px);
+    }
+
+    .day.muted {
+      opacity: .25;
+      cursor: default;
+      background: #0B0E12;
+    }
+
+    .day.muted:hover {
+      border-color: var(--line);
+      background: #0B0E12;
+    }
+
+    .day.disabled {
+      opacity: .25;
+      cursor: not-allowed;
+      background: #0B0E12;
+    }
+
+    .day.disabled:hover {
+      border-color: var(--line);
+      background: #0B0E12;
+    }
+
+    .day.used {
+      background: rgba(52, 242, 139, .14);
+      border-color: rgba(52, 242, 139, .65);
+      box-shadow: inset 0 0 0 1px rgba(52, 242, 139, .10);
+    }
+
+    .day.used::after {
+      content: "✓";
+      position: absolute;
+      top: 7px;
+      right: 10px;
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 950;
+    }
+
+    .listTitle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, .06);
+    }
+
+    .listTitle .t {
+      font-weight: 950;
+      font-size: 14px;
+    }
+
+    .listTitle .s {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .payList {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .payItem {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .02);
+      border-radius: 14px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .payItem.filled {
+      border-color: rgba(52, 242, 139, .25);
+      background: rgba(52, 242, 139, .06);
+    }
+
+    .payTop {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .payMeta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .payMeta .n {
+      font-weight: 950;
+      font-size: 13px;
+    }
+
+    .payMeta .v {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .payBtns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .dangerBtn {
+      border-color: rgba(255, 77, 109, .45);
+      background: rgba(255, 77, 109, .08);
+    }
+
+    .dangerBtn:hover {
+      border-color: rgba(255, 77, 109, .75);
+      background: rgba(255, 77, 109, .12);
+    }
+
+    .plannerHint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+      font-weight: 800;
+      margin-top: 10px;
+    }
+
+    /* ===== Modal ===== */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(900px 500px at 50% 20%, rgba(57, 255, 20, .05), transparent 58%),
+    rgba(4, 8, 10, .50);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 9998;
+}
+
+    .modalOverlay.show {
+      display: flex;
+    }
+
+body.modalOpen .wrap {
+  filter: none;
+}
+
+body.modalOpen .card {
+  background:
+    linear-gradient(180deg, rgba(57, 255, 20, .035), rgba(255, 255, 255, .008)),
+    #0A0E12 !important;
+  border-color: rgba(57, 255, 20, .10) !important;
+}
+
+body.modalOpen .summaryBox,
+body.modalOpen .calCard,
+body.modalOpen .listCard,
+body.modalOpen .kv,
+body.modalOpen .payItem {
+  background:
+    linear-gradient(180deg, rgba(57, 255, 20, .025), rgba(255, 255, 255, .006)),
+    #0B1015 !important;
+  border-color: rgba(57, 255, 20, .10) !important;
+  box-shadow: none !important;
+}
+
+body.modalOpen input,
+body.modalOpen select,
+body.modalOpen textarea {
+  background: #091018 !important;
+  color: var(--text) !important;
+  border-color: rgba(57, 255, 20, .10) !important;
+}
+
+body.modalOpen .day {
+  background: #091018 !important;
+  border-color: rgba(57, 255, 20, .10) !important;
+  color: var(--text) !important;
+}
+
+body.modalOpen .day.used {
+  background: rgba(57, 255, 20, .14) !important;
+  border-color: rgba(57, 255, 20, .38) !important;
+}
+
+body.modalOpen .day.disabled,
+body.modalOpen .day.muted {
+  background: #070B10 !important;
+}
+    
+    .modal {
+  width: min(520px, 100%);
+  border: 1px solid rgba(57, 255, 20, .18);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(57, 255, 20, .04), rgba(255, 255, 255, .015)),
+    #0E1217;
+  box-shadow:
+    0 18px 60px rgba(0, 0, 0, .70),
+    0 0 0 1px rgba(57, 255, 20, .08),
+    0 0 24px rgba(57, 255, 20, .10);
+  overflow: hidden;
+}
+
+    .modalHead {
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .modalHead .h {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .modalHead .h .t {
+      font-weight: 950;
+      letter-spacing: .2px;
+    }
+
+    .modalHead .h .d {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .modalBody {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .modalFoot {
+      padding: 12px 14px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* ===== Agreement ===== */
+    .agreementHeader {
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 4px 0 8px;
+    }
+
+    .agreementTitle {
+      font-size: 30px;
+      line-height: 1.05;
+      font-weight: 950;
+      margin: 0;
+      letter-spacing: -.4px;
+      color: var(--text);
+    }
+
+    .agreementSub {
+      font-size: 18px;
+      margin: 0;
+      font-weight: 850;
+      color: #C9D0DB;
+    }
+
+    .agreementSub span {
+      font-weight: 500;
+      color: #AAB2BF;
+    }
+
+    .agreementSectionTitle {
+      margin: 10px 0 6px;
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .checkList {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .checkItem {
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .checkBox {
+      width: 28px;
+      height: 28px;
+      border: 2px solid rgba(52, 242, 139, .55);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      color: #08110B;
+      background: rgba(52, 242, 139, .92);
+      margin-top: 1px;
+      flex: 0 0 auto;
+      box-shadow: 0 0 16px rgba(52, 242, 139, .12);
+    }
+
+    .checkText {
+      font-size: 15px;
+      line-height: 1.45;
+      color: var(--text);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      hyphens: auto;
+    }
+
+    .checkText b {
+      font-weight: 900;
+      color: #F3F6FA;
+    }
+
+    .planBlock {
+      margin-top: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .02);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .planBlock .label {
+      font-weight: 950;
+      margin: 0 0 10px;
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    .planList {
+      margin: 0;
+      padding-left: 18px;
+      line-height: 1.65;
+      font-size: 14px;
+      color: var(--text);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .signatureWrap {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+      text-align: center;
+      margin-top: 12px;
+    }
+
+    .signatureTitle {
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1.25;
+      max-width: 520px;
+      color: var(--text);
+    }
+
+    .signatureInput {
+      width: min(560px, 100%);
+      background: #0E1217 !important;
+      color: var(--text) !important;
+      border: 2px solid rgba(52, 242, 139, .60) !important;
+      border-radius: 999px !important;
+      padding: 14px 16px !important;
+      font-size: 16px !important;
+      outline: none !important;
+      box-shadow: 0 0 0 4px rgba(52, 242, 139, .10) !important;
+    }
+
+    .signatureHint {
+      font-size: 13px;
+      color: var(--muted);
+      max-width: 560px;
+    }
+
+    .signatureErr {
+      font-size: 13px;
+      color: var(--danger);
+      font-weight: 900;
+      display: none;
+      max-width: 560px;
+      white-space: pre-wrap;
+    }
+
+    .signatureErr.show {
+      display: block;
+    }
+
+    /* PDF template stays light for printing */
+    #pdfAgreementTemplate {
+      display: none;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #111;
+      width: 816px;
+      padding: 18px;
+      background: #fff;
+    }
+
+    .finalWrap {
+      padding: 10px 2px;
+      text-align: center;
+    }
+
+    .finalTitle {
+      font-size: 18px;
+      font-weight: 950;
+      margin: 0 0 8px;
+      letter-spacing: .2px;
+    }
+
+    .finalText {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 13px;
+      font-weight: 800;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="header">
+        <div class="title">
+          <h1>Skills · Plan de Pagos</h1>
+          <p>Captura tus datos y programa tus abonos.</p>
+        </div>
+        <div class="progress">
+          <div class="stepLabel" id="stepLabel">Paso 1 de 11</div>
+          <div class="bar" aria-hidden="true">
+            <div id="barFill"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+
+        <!-- STEP 1 -->
+        <section class="step active" data-step="1">
+          <div class="grid">
+            <div class="field half">
+              <label for="nombres">Nombres</label>
+              <input id="nombres" type="text" placeholder="Nombre 1 Nombre 2" autocomplete="given-name" />
+              <div class="hint">Escríbelo exactamente como aparece en tu INE.</div>
+              <div class="error" id="err_nombres">Escribe tus nombres.</div>
+            </div>
+
+            <div class="field half">
+              <label for="apellidos">Apellidos</label>
+              <input id="apellidos" type="text" placeholder="Apellido 1 Apellido 2" autocomplete="family-name" />
+              <div class="hint">Escríbelo exactamente como aparece en tu INE.</div>
+              <div class="error" id="err_apellidos">Escribe tus apellidos.</div>
+            </div>
+
+            <div class="field">
+              <div class="tag"><span class="tagDot"></span><span>Esto va por páginas (Back / Next).</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 2 -->
+        <section class="step" data-step="2">
+          <div class="grid">
+            <div class="field twoThird">
+              <label for="email">Correo electrónico</label>
+              <input id="email" type="email" placeholder="tucorreo@dominio.com" autocomplete="email" />
+              <div class="hint">Se usará para confirmaciones o seguimiento.</div>
+              <div class="error" id="err_email">Escribe un correo válido.</div>
+            </div>
+
+            <div class="field third">
+              <label for="lada">Lada (país)</label>
+              <select id="lada" autocomplete="tel-country-code">
+                <option value="+52" selected>+52 (MX)</option>
+                <option value="+1">+1 (US/CA)</option>
+                <option value="+34">+34 (ES)</option>
+                <option value="+57">+57 (CO)</option>
+                <option value="+54">+54 (AR)</option>
+                <option value="+56">+56 (CL)</option>
+                <option value="+51">+51 (PE)</option>
+              </select>
+              <div class="hint">Puedes ampliar esta lista.</div>
+            </div>
+
+            <div class="field">
+              <label for="telefono">Número de teléfono</label>
+              <input id="telefono" type="tel" placeholder="Ej. 3312345678" autocomplete="tel-national"
+                inputmode="numeric" maxlength="10" />
+              <div class="hint">Solo números (sin espacios). Deben ser exactamente 10 dígitos.</div>
+              <div class="error" id="err_telefono">Escribe un teléfono válido (10 dígitos).</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ✅ STEP 3: Ticket elegido (Skills) -->
+        <section class="step" data-step="3" id="stepTicket">
+          <div class="grid">
+
+            <div class="field">
+              <label for="ticketElegido">¿Qué ticket adquiriste?</label>
+              <select id="ticketElegido">
+                <option value="">Selecciona una opción</option>
+                <option value="Normal">Normal (FHS)</option>
+                <option value="All inclusive">All inclusive (FHS)</option>
+                <option value="All inclusive + backstage">All inclusive + backstage (FHS)</option>
+              </select>
+              <div class="hint" id="ticketHint">
+                Calculamos tu fase automáticamente con la fecha de hoy.
+              </div>
+              <div class="error" id="ticketErr">Elige tu tipo de ticket para continuar.</div>
+            </div>
+
+            <div class="field half">
+              <label>Fase detectada</label>
+              <input id="faseAuto" type="text" disabled value="—" />
+              <div class="hint">Esto se calcula solo.</div>
+            </div>
+
+            <div class="field half">
+              <label>Ticket total (FHS)</label>
+              <input id="ticketTotal" type="text" disabled value="—" />
+              <div class="hint">Usaremos este monto para cálculos y “pendiente”.</div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- STEP 4 -->
+        <section class="step" data-step="4">
+          <div class="grid">
+            <div class="field">
+              <label for="abonoInicial">¿De cuánto fue tu abono inicial?</label>
+              <input id="abonoInicial" inputmode="decimal" placeholder="Ej. 10,000" />
+              <div class="hint" id="abonoHint">Número (sin $). Se formatea automático. Máximo $49,000.</div>
+              <div class="error" id="err_abonoInicial">Escribe un monto válido (0 a $49,999.99).</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 5 -->
+        <section class="step" data-step="5">
+          <div class="grid">
+            <div class="field">
+              <label for="numPagos">¿Cuántos pagos vas a querer que sean?</label>
+              <input id="numPagos" type="number" min="1" max="50" step="1" placeholder="Ej. 3" inputmode="numeric" />
+              <div class="hint">Se habilita un calendario. Selecciona fecha (pop-up) y captura el monto.</div>
+              <div class="error" id="err_numPagos">Indica un número de pagos (1–50).</div>
+            </div>
+
+            <div class="field">
+              <div class="tag">
+                <span class="tagDot"></span>
+                <span>
+                  Este es tu plan de pagos <b>después del apartado</b> que ya hiciste.
+                  Tu <b>Pago #1 aquí</b> es tu siguiente abono (no el apartado).
+                </span>
+              </div>
+            </div>
+
+            <div class="field">
+              <div id="plannerEmpty" class="summaryBox">
+                <div class="tag"><span class="tagDot"></span><span>Plan de pagos</span></div>
+                <div class="hint">Primero escribe cuántos pagos serán (arriba). Luego selecciona fechas en el
+                  calendario.</div>
+              </div>
+
+              <div id="payPlanner" class="payPlanner hidden">
+                <div class="calCard">
+                  <div class="calHeader">
+                    <div class="calTitle">
+                      <div class="big" id="calMonthTitle">Mes</div>
+                      <div class="small" id="calSubTitle">Selecciona una fecha…</div>
+                    </div>
+                    <div class="calNav">
+                      <button class="iconBtn" id="calPrevBtn" type="button" aria-label="Mes anterior">‹</button>
+                      <button class="iconBtn" id="calNextBtn" type="button" aria-label="Mes siguiente">›</button>
+                    </div>
+                  </div>
+
+                  <div class="dow">
+                    <div>Do</div>
+                    <div>Lu</div>
+                    <div>Ma</div>
+                    <div>Mi</div>
+                    <div>Ju</div>
+                    <div>Vi</div>
+                    <div>Sá</div>
+                  </div>
+                  <div class="days" id="calDays"></div>
+
+                  <div class="plannerHint" id="plannerHint"></div>
+                </div>
+
+                <div class="listCard">
+                  <div class="listTitle">
+                    <div>
+                      <div class="t">Tus pagos</div>
+                      <div class="s" id="payListStatus">0 / 0</div>
+                    </div>
+                    <div class="tag"><span class="tagDot"></span><span>Editar / borrar</span></div>
+                  </div>
+
+                  <div id="payList" class="payList"></div>
+                </div>
+              </div>
+
+              <div class="error" id="err_payments">
+                <div style="font-weight:900; margin-bottom:6px;">Revisa estos pagos:</div>
+                <div id="err_payments_list" style="white-space:pre-wrap; line-height:1.4;"></div>
+              </div>
+
+              <div class="summaryBox" id="liveTotalsBox" style="margin-top:12px;">
+                <div class="tag"><span class="tagDot"></span><span>Totales en vivo</span></div>
+
+                <div class="kv" style="grid-column: 1 / -1;">
+                  <div class="k">Tu abono hasta el momento es de</div>
+                  <div class="v" id="liveTotalPaid">$0.00</div>
+                </div>
+
+                <div class="summaryGrid">
+                  <div class="kv">
+                    <div class="k">Ticket</div>
+                    <div class="v" id="liveTicketTotal">$0.00</div>
+                  </div>
+                  <div class="kv">
+                    <div class="k">Restante pendiente</div>
+                    <div class="v" id="liveRemaining">$0.00</div>
+                  </div>
+                </div>
+
+                <div class="warning hidden" id="liveWarn"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 6 (Resumen) -->
+        <section class="step" data-step="6">
+          <div class="summaryBox">
+            <div class="tag"><span class="tagDot"></span><span>Resumen final | Revisa que todos tus datos estén correctos
+                (teléfono principalmente).</span></div>
+            <div class="summaryGrid" id="summaryGrid"></div>
+
+            <div class="warning hidden" id="validationBox"></div>
+
+            <div class="btns">
+              <button class="small primary" id="toAgreementBtn" type="button">Continuar al acuerdo</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 7 -->
+        <section class="step" data-step="7" id="stepAgreement">
+          <div class="agreementHeader">
+            <div class="agreementHeaderLeft">
+              <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
+              <div class="agreementSub">&gt; <b>skills x ab</b> <span>| Septiembre 2026</span></div>
+            </div>
+          </div>
+
+          <div class="summaryBox">
+            <div class="agreementSectionTitle">Estoy de acuerdo con que la empresa</div>
+
+            <div class="checkList">
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
+                <div class="checkText">use mi <b>imagen</b> en fotos y videos promocionales en el futuro;</div>
+              </div>
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
+                <div class="checkText">no es responsable de <b>robo/extravío</b> de mis pertenencias;</div>
+              </div>
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
+                <div class="checkText">me expulse de las instalaciones si mi <b>conducta</b> altera negativamente el
+                  evento.</div>
+              </div>
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
+                <div class="checkText">daré los créditos debidos al compartir públicamente <b>contenido</b> del evento.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 8 -->
+        <section class="step" data-step="8">
+          <div class="agreementHeader">
+            <div class="agreementHeaderLeft">
+              <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
+              <div class="agreementSub">&gt; <b>skills x ab</b> <span>| Septiembre 2026</span></div>
+            </div>
+          </div>
+
+          <div class="summaryBox">
+            <div class="agreementSectionTitle">Estoy de acuerdo también con que</div>
+
+            <div class="checkList">
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
+                <div class="checkText">no hay <b>reembolsos/cancelaciones/devoluciones</b> del apartado y/o pagos
+                  realizados.</div>
+              </div>
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
+                <div class="checkText">mantendré las <b>fechas de pago acordadas</b> para conservar el precio especial;
+                  de no hacerlo, el monto total se ajustará al precio público.</div>
+              </div>
+            </div>
+
+            <div class="planBlock">
+              <div class="label">Mi plan de pago:</div>
+              <ul class="planList" id="agreementPlanList"></ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 9 -->
+        <section class="step" data-step="9">
+          <div class="agreementHeader">
+            <div class="agreementHeaderLeft">
+              <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
+              <div class="agreementSub">&gt; <b>skills x ab</b> <span>| Septiembre 2026</span></div>
+            </div>
+          </div>
+
+          <div class="summaryBox">
+            <div class="agreementSectionTitle">Estoy de acuerdo con que para ingresar a las instalaciones</div>
+
+            <div class="checkList">
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
+                <div class="checkText">presento en recepción mi identificación oficial vigente con fotografía.</div>
+              </div>
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
+                <div class="checkText">muestro en recepción foto y texto de presentación que compartí en el WhatsApp del
+                  evento.</div>
+              </div>
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
+                <div class="checkText">debo tener firmado este <b>acuerdo de financiamiento</b>.</div>
+              </div>
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
+                <div class="checkText">estoy de acuerdo con escuchar y leer toda la información e indicaciones del
+                  workshop que se envíen por WhatsApp.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 10 (Firma) -->
+        <section class="step" data-step="10">
+          <div class="agreementHeader">
+            <div class="agreementHeaderLeft">
+              <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
+              <div class="agreementSub">&gt; <b>skills x ab</b> <span>| Septiembre 2026</span></div>
+            </div>
+          </div>
+
+          <div class="summaryBox">
+            <div class="signatureWrap">
+              <div class="signatureTitle">Pon aquí tu nombre completo, idéntico a tu INE para confirmar de enterado el
+                acuerdo de financiamiento.</div>
+
+              <input class="signatureInput" id="signatureName" type="text"
+                placeholder="Nombre 1 Nombre 2 Apellido 1 Apellido 2" autocomplete="name" />
+
+              <div class="signatureHint" id="signatureTip">Tip: Debe coincidir con el nombre que capturaste en el
+                formulario para evitar errores.</div>
+              <div class="signatureErr" id="signatureErr"></div>
+
+              <button class="blackBtn" id="sendBtn" type="button">Enviar</button>
+
+              <div class="sending hidden" id="sendingBox">Enviando…</div>
+              <div class="success hidden" id="successBox">Listo ✅ Se registró tu plan de pagos.</div>
+              <div class="error" id="failBox" style="display:none;">No se pudo enviar. Revisa tu conexión e intenta otra
+                vez.</div>
+
+              <div class="hint">Firma el acuerdo y presiona Enviar.</div>
+            </div>
+
+            <!-- ✅ Hidden form post (fallback) -->
+            <iframe name="hiddenFrame" id="hiddenFrame" style="display:none;"></iframe>
+            <form id="postForm" style="display:none;" method="POST" target="hiddenFrame">
+              <input type="hidden" name="payload" id="payloadField" />
+            </form>
+          </div>
+
+          <!-- ✅ PDF interno oculto -->
+          <div id="pdfAgreementTemplate">
+            <h2>ACUERDO DE<br />FINANCIAMIENTO</h2>
+            <div class="sub">&gt; skills x ab | Septiembre 2026</div>
+            <div class="divider"></div>
+
+            <div class="sec">Estoy de acuerdo con que la empresa</div>
+            <div class="row">✓ use mi <b>imagen</b> en fotos y videos promocionales en el futuro;</div>
+            <div class="row">✓ no es responsable de <b>robo/extravío</b> de mis pertenencias;</div>
+            <div class="row">✓ me expulse de las instalaciones si mi <b>conducta</b> altera negativamente el evento.
+            </div>
+            <div class="row">✓ daré los créditos debidos al compartir públicamente <b>contenido</b> del evento.</div>
+
+            <div class="sec">Estoy de acuerdo también con que</div>
+            <div class="row">✓ no hay <b>reembolsos/cancelaciones/devoluciones</b> del apartado y/o pagos realizados.
+            </div>
+            <div class="row">✓ mantendré las <b>fechas de pago acordadas</b> para conservar el precio especial; de no
+              hacerlo, el monto total se ajustará al precio público.</div>
+
+            <div class="sec">Mi plan de pago:</div>
+            <ul id="pdfPlanList"></ul>
+
+            <div class="sec">Estoy de acuerdo con que para ingresar a las instalaciones</div>
+            <div class="row">✓ presento en recepción mi identificación oficial vigente con fotografía.</div>
+            <div class="row">✓ muestro en recepción foto y texto de presentación que compartí en el WhatsApp del evento.
+            </div>
+            <div class="row">✓ debo tener firmado este <b>acuerdo de financiamiento</b>.</div>
+            <div class="row">✓ estoy de acuerdo con escuchar y leer toda la información e indicaciones del workshop que
+              se envíen por WhatsApp.</div>
+
+            <div class="divider"></div>
+            <div class="row"><b>Firma (nombre idéntico al INE):</b> <span id="pdfSignature"></span></div>
+          </div>
+        </section>
+
+        <!-- STEP 11 -->
+        <section class="step" data-step="11">
+          <div class="summaryBox">
+            <div class="finalWrap">
+              <h2 class="finalTitle">Gracias por tu registro ✅</h2>
+              <p class="finalText">
+                En breve recibirás más notas en tu correo.<br />
+                Por favor revisa <b>Inbox</b>, <b>Spam</b> y <b>Promociones</b>.<br />
+                Por favor confirma de recibido.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="footer">
+        <div class="hint" id="footerHint">Tip: Enter también avanza cuando es válido.</div>
+        <div class="btns">
+          <button id="backBtn" type="button">Back</button>
+          <button id="nextBtn" class="primary" type="button">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ Modal para capturar monto (fecha viene del click en calendario) -->
+  <div class="modalOverlay" id="payModalOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="payModalTitle">
+      <div class="modalHead">
+        <div class="h">
+          <div class="t" id="payModalTitle">Agregar pago</div>
+          <div class="d" id="payModalDesc">Fecha: —</div>
+        </div>
+        <button class="small" id="payModalCloseBtn" type="button">Cerrar</button>
+      </div>
+      <div class="modalBody">
+        <div class="field" style="margin:0;">
+          <label for="payModalAmount">Monto a abonar</label>
+          <input id="payModalAmount" inputmode="decimal" placeholder="Ej. 2,000" />
+          <div class="hint">Número (sin $). Se formatea automático.</div>
+          <div class="hint hidden" id="payModalProgressLine" style="font-weight:900;"></div>
+          <div class="error" id="payModalErr"></div>
+        </div>
+      </div>
+      <div class="modalFoot">
+        <button class="small" id="payModalCancelBtn" type="button">Cancelar</button>
+        <button class="small primary" id="payModalSaveBtn" type="button">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Enviado ✅</div>
+
+<script>
+  function getEventoFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const ev = (params.get("evento") || "skills").trim().toLowerCase();
+    if (!["skills", "stage", "boost"].includes(ev)) return "skills";
+    return ev;
+  }
+
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzuNTaLIi65EbNzM9V35HO6d8AsGKjMbpX7ZK1x3DuX_c0FBDl8gsv-T3Ui9xIbFb_GHw/exec";
+
+  let TICKET_TOTAL = 50000;
+const MAX_DATE = "2026-11-30";
+const REMAINING_TOL = 0.01;
+
+function getDynamicMaxAbono() {
+  const total = Number(TICKET_TOTAL || 0);
+  if (!Number.isFinite(total) || total <= 0) return 0;
+  return Math.max(0, total - 1000);
+}
+
+  const MONTHS_ES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+  function todayISO() {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  function addDaysISO(iso, days) {
+    const [y, m, d] = iso.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    dt.setUTCDate(dt.getUTCDate() + days);
+    const yy = dt.getUTCFullYear();
+    const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(dt.getUTCDate()).padStart(2, "0");
+    return `${yy}-${mm}-${dd}`;
+  }
+
+  function isoToDMY(iso) {
+    if (!iso || typeof iso !== "string") return iso;
+    const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return iso;
+    return `${m[3]}/${m[2]}/${m[1]}`;
+  }
+
+  function isoToPrettyLong(iso) {
+    if (!iso) return "-";
+    const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return iso;
+    const y = Number(m[1]), mo = Number(m[2]) - 1, d = Number(m[3]);
+    return `${d} ${MONTHS_ES[mo]} ${y}`;
+  }
+
+  function isValidISODate(dateStr) {
+    if (!dateStr || typeof dateStr !== "string") return false;
+    const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return false;
+    const y = Number(m[1]), mo = Number(m[2]), d = Number(m[3]);
+    const dt = new Date(Date.UTC(y, mo - 1, d));
+    return dt.getUTCFullYear() === y && (dt.getUTCMonth() + 1) === mo && dt.getUTCDate() === d;
+  }
+
+  function toISO(y, m, d) {
+    const mm = String(m + 1).padStart(2, "0");
+    const dd = String(d).padStart(2, "0");
+    return `${y}-${mm}-${dd}`;
+  }
+
+  const MIN_DATE = todayISO();
+  const FIRST_PAY_MIN_DATE = addDaysISO(MIN_DATE, 1);
+
+  function parseAmount(str) {
+    const cleaned = (str || "").toString().replace(/,/g, '').trim();
+    if (cleaned === "") return NaN;
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : NaN;
+  }
+
+  function formatCurrencyInput(value) {
+    const cleaned = (value || "").toString().replace(/[^\d.]/g, '');
+    if (cleaned === "") return "";
+    const parts = cleaned.split(".");
+    const intPart = parts[0].replace(/^0+(?=\d)/, "");
+    const formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return parts.length > 1 ? `${formatted}.${parts[1].slice(0, 2)}` : formatted;
+  }
+
+  function money(n) {
+    const x = Number(n || 0);
+    return x.toLocaleString("es-MX", { style: "currency", currency: "MXN" });
+  }
+
+  function refreshAbonoUI() {
+  const maxAbono = getDynamicMaxAbono();
+
+  abonoHint.textContent = `Número (sin $). Se formatea automático. Máximo ${money(maxAbono)}.`;
+  err_abonoInicial.textContent = `Escribe un monto válido (0 a ${money(maxAbono)}).`;
+}
+
+  function remainingIsZero(restante) {
+    return Math.abs(Number(restante || 0)) <= REMAINING_TOL;
+  }
+
+  const steps = Array.from(document.querySelectorAll(".step"));
+  let currentStep = 1;
+
+  const stepLabel = document.getElementById("stepLabel");
+  const barFill = document.getElementById("barFill");
+  const backBtn = document.getElementById("backBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const footerHint = document.getElementById("footerHint");
+
+  const nombres = document.getElementById("nombres");
+  const apellidos = document.getElementById("apellidos");
+  const email = document.getElementById("email");
+  const lada = document.getElementById("lada");
+  const telefono = document.getElementById("telefono");
+  const abonoInicial = document.getElementById("abonoInicial");
+  const abonoHint = document.getElementById("abonoHint");
+  const numPagos = document.getElementById("numPagos");
+
+  const ticketElegidoEl = document.getElementById("ticketElegido");
+  const faseAutoEl = document.getElementById("faseAuto");
+  const ticketTotalEl = document.getElementById("ticketTotal");
+  const ticketErrEl = document.getElementById("ticketErr");
+
+  const err_nombres = document.getElementById("err_nombres");
+  const err_apellidos = document.getElementById("err_apellidos");
+  const err_email = document.getElementById("err_email");
+  const err_telefono = document.getElementById("err_telefono");
+  const err_abonoInicial = document.getElementById("err_abonoInicial");
+  const err_numPagos = document.getElementById("err_numPagos");
+  const err_payments = document.getElementById("err_payments");
+  const err_payments_list = document.getElementById("err_payments_list");
+
+  const summaryGrid = document.getElementById("summaryGrid");
+  const validationBox = document.getElementById("validationBox");
+  const toAgreementBtn = document.getElementById("toAgreementBtn");
+
+  const liveTotalPaidEl = document.getElementById("liveTotalPaid");
+  const liveTicketTotalEl = document.getElementById("liveTicketTotal");
+  const liveRemainingEl = document.getElementById("liveRemaining");
+  const liveWarn = document.getElementById("liveWarn");
+
+  const agreementPlanList = document.getElementById("agreementPlanList");
+  const sendBtn = document.getElementById("sendBtn");
+  const successBox = document.getElementById("successBox");
+  const sendingBox = document.getElementById("sendingBox");
+  const failBox = document.getElementById("failBox");
+
+  const signatureName = document.getElementById("signatureName");
+  const signatureErr = document.getElementById("signatureErr");
+
+  const toast = document.getElementById("toast");
+  const postForm = document.getElementById("postForm");
+  const payloadField = document.getElementById("payloadField");
+
+  const pdfPlanList = document.getElementById("pdfPlanList");
+  const pdfSignature = document.getElementById("pdfSignature");
+
+  const plannerEmpty = document.getElementById("plannerEmpty");
+  const payPlanner = document.getElementById("payPlanner");
+  const calMonthTitle = document.getElementById("calMonthTitle");
+  const calSubTitle = document.getElementById("calSubTitle");
+  const calDays = document.getElementById("calDays");
+  const calPrevBtn = document.getElementById("calPrevBtn");
+  const calNextBtn = document.getElementById("calNextBtn");
+  const plannerHint = document.getElementById("plannerHint");
+
+  const payList = document.getElementById("payList");
+  const payListStatus = document.getElementById("payListStatus");
+
+  const payModalOverlay = document.getElementById("payModalOverlay");
+  const payModalTitle = document.getElementById("payModalTitle");
+  const payModalDesc = document.getElementById("payModalDesc");
+  const payModalAmount = document.getElementById("payModalAmount");
+  const payModalErr = document.getElementById("payModalErr");
+  const payModalProgressLine = document.getElementById("payModalProgressLine");
+
+  const payModalSaveBtn = document.getElementById("payModalSaveBtn");
+  const payModalCloseBtn = document.getElementById("payModalCloseBtn");
+  const payModalCancelBtn = document.getElementById("payModalCancelBtn");
+
+  let lockAfterSubmit = false;
+
+  let paymentsCount = 0;
+  let payments = [];
+  let viewYear = new Date().getFullYear();
+  let viewMonth = new Date().getMonth();
+  let pendingDateISO = null;
+  let editingIndex = null;
+  let bodyScrollY = 0;
+  let sendingInProgress = false;
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 1100);
+  }
+
+  function show(el, yes) { el.classList.toggle("show", !!yes); }
+  function hide(el) { el.classList.add("hidden"); }
+  function unhide(el) { el.classList.remove("hidden"); }
+
+  function syncNextButtonRules() {
+    nextBtn.disabled = false;
+    nextBtn.style.display = "inline-flex";
+
+    if (currentStep === steps.length) {
+      nextBtn.style.display = "none";
+      return;
+    }
+    if (currentStep === 10) {
+      nextBtn.disabled = true;
+      nextBtn.style.display = "none";
+      return;
+    }
+    if (currentStep === 6) {
+      nextBtn.disabled = !!toAgreementBtn.disabled;
+    }
+  }
+
+  function setStep(n) {
+    currentStep = n;
+    steps.forEach(s => s.classList.toggle("active", Number(s.dataset.step) === currentStep));
+
+    const total = steps.length;
+    stepLabel.textContent = `Paso ${currentStep} de ${total}`;
+    barFill.style.width = `${Math.round((currentStep - 1) / (total - 1) * 100)}%`;
+
+    backBtn.disabled = currentStep === 1;
+
+    if (currentStep === total) {
+      footerHint.textContent = "Listo. Puedes cerrar esta ventana.";
+    } else if (currentStep === 10) {
+      footerHint.textContent = "Para finalizar, firma y presiona Enviar.";
+    } else {
+      footerHint.textContent = "Tip: Enter también avanza cuando es válido.";
+    }
+
+    const focusMap = {
+      1: nombres,
+      2: email,
+      3: ticketElegidoEl,
+      4: abonoInicial,
+      5: numPagos,
+      10: signatureName
+    };
+    if (focusMap[currentStep]) focusMap[currentStep].focus();
+
+    if (currentStep === 5) {
+      renderCalendar();
+      renderPayList();
+      updateLiveTotals();
+    }
+
+    syncNextButtonRules();
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function validateStep1() {
+    const okN = nombres.value.trim().length > 0;
+    const okA = apellidos.value.trim().length > 0;
+    show(err_nombres, !okN);
+    show(err_apellidos, !okA);
+    return okN && okA;
+  }
+
+  function validateStep2() {
+    const okE = emailRegex.test(email.value.trim());
+    const digits = telefono.value.replace(/\D/g, '');
+    const okT = digits.length === 10;
+    show(err_email, !okE);
+    show(err_telefono, !okT);
+    return okE && okT;
+  }
+
+  function validateStep3() {
+  const val = abonoInicial.value.trim();
+  const n = val === "" ? 0 : parseAmount(val);
+  const maxAbono = getDynamicMaxAbono();
+
+  const ok = Number.isFinite(n) && n >= 0 && n <= maxAbono;
+
+  err_abonoInicial.textContent = `Escribe un monto válido (0 a ${money(maxAbono)}).`;
+  show(err_abonoInicial, !ok);
+
+  if (!ok) abonoInicial.classList.add("badField");
+  else abonoInicial.classList.remove("badField");
+
+  return ok;
+}
+
+  function validateTicketStep() {
+    const ok = ticketElegidoEl && ticketElegidoEl.value && ticketElegidoEl.value.trim() !== "";
+    if (!ok) {
+      ticketErrEl && ticketErrEl.classList.add("show");
+      ticketElegidoEl && ticketElegidoEl.classList.add("badField");
+    } else {
+      ticketErrEl && ticketErrEl.classList.remove("show");
+      ticketElegidoEl && ticketElegidoEl.classList.remove("badField");
+    }
+    return ok;
+  }
+
+  function validatePlannerDetailed() {
+    show(err_payments, false);
+    err_payments_list.textContent = "";
+
+    const errors = [];
+
+    if (!(Number.isInteger(paymentsCount) && paymentsCount >= 1 && paymentsCount <= 50)) {
+      errors.push("Cantidad de pagos inválida (1–50).");
+    }
+
+    if (payments.length !== paymentsCount) {
+      errors.push(`Faltan pagos por completar: llevas ${payments.length} de ${paymentsCount}.`);
+    }
+
+    const used = new Set();
+    const sorted = [...payments].sort((a, b) => (a.fecha || "").localeCompare(b.fecha || ""));
+
+    for (let i = 0; i < sorted.length; i++) {
+      const p = sorted[i];
+      const idxHuman = i + 1;
+
+      if (!p || !p.fecha || !isValidISODate(p.fecha)) {
+        errors.push(`Pago ${idxHuman}: fecha inválida.`);
+        continue;
+      }
+      if (!(p.fecha >= MIN_DATE && p.fecha <= MAX_DATE)) {
+        errors.push(`Pago ${idxHuman}: fecha fuera de rango (${isoToDMY(p.fecha)}).`);
+      }
+      if (i === 0 && p.fecha < FIRST_PAY_MIN_DATE) {
+        errors.push(`Pago 1: no puede ser hoy. Selecciona desde ${isoToDMY(FIRST_PAY_MIN_DATE)}.`);
+      }
+      if (used.has(p.fecha)) {
+        errors.push(`Fechas repetidas: ${isoToDMY(p.fecha)}.`);
+      }
+      used.add(p.fecha);
+
+      const amt = Number(p.monto || 0);
+      if (!(amt > 0)) {
+        errors.push(`Pago ${idxHuman}: monto inválido (debe ser mayor a 0).`);
+      }
+
+      if (i > 0) {
+        const prev = sorted[i - 1].fecha;
+        if (prev && p.fecha <= prev) {
+          errors.push(`Orden inválido: Pago ${idxHuman} (${isoToDMY(p.fecha)}) debe ser después de ${isoToDMY(prev)}.`);
+        }
+      }
+    }
+
+    const ok = errors.length === 0;
+    if (!ok) {
+      err_payments_list.textContent = errors.join("\n");
+      show(err_payments, true);
+    }
+    return { ok, errors };
+  }
+
+  abonoInicial.addEventListener("input", () => {
+    const caret = abonoInicial.selectionStart;
+    const before = abonoInicial.value;
+    abonoInicial.value = formatCurrencyInput(abonoInicial.value);
+    const delta = abonoInicial.value.length - before.length;
+    try { abonoInicial.setSelectionRange(caret + delta, caret + delta); } catch (e) {}
+    show(err_abonoInicial, false);
+    abonoInicial.classList.remove("badField");
+    updateLiveTotals();
+  });
+
+  telefono.addEventListener("input", () => {
+    telefono.value = telefono.value.replace(/[^\d]/g, '').slice(0, 10);
+    show(err_telefono, false);
+  });
+
+  function enablePlannerUI(enable) {
+    if (enable) {
+      plannerEmpty.classList.add("hidden");
+      payPlanner.classList.remove("hidden");
+    } else {
+      payPlanner.classList.add("hidden");
+      plannerEmpty.classList.remove("hidden");
+    }
+  }
+
+  function resetPlanner() {
+    paymentsCount = 0;
+    payments = [];
+    viewYear = new Date().getFullYear();
+    viewMonth = new Date().getMonth();
+    pendingDateISO = null;
+    editingIndex = null;
+    enablePlannerUI(false);
+    renderPayList();
+    renderCalendar();
+    updateLiveTotals();
+  }
+
+  function setPaymentsCount(n) {
+    paymentsCount = n;
+    payments = [];
+    viewYear = new Date().getFullYear();
+    viewMonth = new Date().getMonth();
+    pendingDateISO = null;
+    editingIndex = null;
+    enablePlannerUI(true);
+    renderPayList();
+    renderCalendar();
+    updateLiveTotals();
+  }
+
+  function usedDateSet(excludeIndex = null) {
+    const s = new Set();
+    payments.forEach((p, i) => {
+      if (!p || !p.fecha) return;
+      if (excludeIndex !== null && i === excludeIndex) return;
+      s.add(p.fecha);
+    });
+    return s;
+  }
+
+  function lastPaymentDate() {
+    if (payments.length === 0) return null;
+    const sorted = [...payments].sort((a, b) => a.fecha.localeCompare(b.fecha));
+    return sorted[sorted.length - 1].fecha;
+  }
+
+  function canPickDateForAdd(dateISO) {
+    if (!isValidISODate(dateISO)) return false;
+    if (!(dateISO >= MIN_DATE && dateISO <= MAX_DATE)) return false;
+    if (payments.length === 0) {
+      if (dateISO < FIRST_PAY_MIN_DATE) return false;
+    } else {
+      const last = lastPaymentDate();
+      if (last && dateISO <= last) return false;
+    }
+    if (usedDateSet().has(dateISO)) return false;
+    return true;
+  }
+
+  function canPickDateForEdit(dateISO, index) {
+    if (!isValidISODate(dateISO)) return false;
+    if (!(dateISO >= MIN_DATE && dateISO <= MAX_DATE)) return false;
+    if (index === 0 && dateISO < FIRST_PAY_MIN_DATE) return false;
+    if (usedDateSet(index).has(dateISO)) return false;
+    return true;
+  }
+
+  function renderCalendar() {
+    if (paymentsCount <= 0) {
+      calDays.innerHTML = "";
+      calMonthTitle.textContent = "—";
+      calSubTitle.textContent = "Escribe cuántos pagos serán.";
+      plannerHint.textContent = "";
+      return;
+    }
+
+    calMonthTitle.textContent = `${MONTHS_ES[viewMonth]} ${viewYear}`;
+
+    if (editingIndex !== null) {
+      calSubTitle.textContent = `Editando Pago ${editingIndex + 1}: selecciona una nueva fecha.`;
+      plannerHint.textContent = "Modo edición: selecciona una fecha válida. No repetida, dentro del rango.";
+    } else {
+      if (payments.length >= paymentsCount) {
+        calSubTitle.textContent = "Plan completo ✅ Si necesitas ajustar algo, usa Editar en el pago correspondiente.";
+        plannerHint.textContent = "El calendario queda bloqueado porque ya completaste todos los pagos.";
+      } else {
+        calSubTitle.textContent = `Selecciona una fecha para Pago ${payments.length + 1} de ${paymentsCount}`;
+        plannerHint.textContent = "Selecciona un día y captura el monto. No se permiten fechas repetidas ni fuera de orden.";
+      }
+    }
+
+    const firstDay = new Date(Date.UTC(viewYear, viewMonth, 1));
+    const daysInMonth = new Date(Date.UTC(viewYear, viewMonth + 1, 0)).getUTCDate();
+    const startDow = firstDay.getUTCDay();
+
+    calDays.innerHTML = "";
+
+    for (let i = 0; i < startDow; i++) {
+      const el = document.createElement("div");
+      el.className = "day muted";
+      el.textContent = "";
+      calDays.appendChild(el);
+    }
+
+    const used = usedDateSet(editingIndex);
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const iso = toISO(viewYear, viewMonth, d);
+
+      const el = document.createElement("div");
+      el.className = "day";
+      el.textContent = String(d);
+
+      if (used.has(iso)) el.classList.add("used");
+
+      let enabled = true;
+      if (editingIndex !== null) {
+        enabled = canPickDateForEdit(iso, editingIndex);
+      } else {
+        if (payments.length >= paymentsCount) {
+          enabled = false;
+        } else {
+          enabled = canPickDateForAdd(iso);
+        }
+      }
+      if (!enabled) el.classList.add("disabled");
+
+      el.addEventListener("click", () => {
+        if (el.classList.contains("disabled") || el.classList.contains("muted")) return;
+        pendingDateISO = iso;
+        openPayModal();
+      });
+
+      calDays.appendChild(el);
+    }
+  }
+
+  function renderPayList() {
+    payList.innerHTML = "";
+    payListStatus.textContent = `${payments.length} / ${paymentsCount}`;
+
+    for (let i = 0; i < paymentsCount; i++) {
+      const p = payments[i];
+      const item = document.createElement("div");
+      item.className = "payItem" + (p ? " filled" : "");
+      const title = `Pago #${i + 1}`;
+
+      if (p) {
+        item.innerHTML = `
+          <div class="payTop">
+            <div class="payMeta">
+              <div class="n">${title}</div>
+              <div class="v">${isoToPrettyLong(p.fecha)} | ${money(p.monto)}</div>
+            </div>
+            <div class="payBtns">
+              <button class="small" type="button" data-action="edit" data-index="${i}">Editar</button>
+              <button class="small dangerBtn" type="button" data-action="delete" data-index="${i}">Borrar</button>
+            </div>
+          </div>
+        `;
+      } else {
+        item.innerHTML = `
+          <div class="payTop">
+            <div class="payMeta">
+              <div class="n">${title}</div>
+              <div class="v">Pendiente · Selecciona una fecha en el calendario</div>
+            </div>
+          </div>
+        `;
+      }
+
+      payList.appendChild(item);
+    }
+
+    payList.querySelectorAll("button[data-action='edit']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = Number(btn.dataset.index);
+        if (!Number.isInteger(idx) || idx < 0 || idx >= payments.length) return;
+        editingIndex = idx;
+        pendingDateISO = payments[idx].fecha;
+        openPayModal(payments[idx].monto);
+        renderCalendar();
+      });
+    });
+
+    payList.querySelectorAll("button[data-action='delete']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = Number(btn.dataset.index);
+        if (!Number.isInteger(idx) || idx < 0 || idx >= payments.length) return;
+        payments.splice(idx, 1);
+        if (editingIndex === idx) editingIndex = null;
+        show(err_payments, false);
+        err_payments_list.textContent = "";
+        updateLiveTotals();
+        renderPayList();
+        renderCalendar();
+      });
+    });
+  }
+
+  function lockBodyScroll() {
+    bodyScrollY = window.scrollY || 0;
+    document.body.classList.add("modalOpen");
+    document.body.style.top = `-${bodyScrollY}px`;
+  }
+
+  function unlockBodyScroll() {
+    document.body.classList.remove("modalOpen");
+    const top = document.body.style.top;
+    document.body.style.top = "";
+    const y = top ? Number(top.replace("px", "")) * -1 : bodyScrollY;
+    window.scrollTo(0, y || 0);
+  }
+
+  function modalError(msg) {
+    payModalErr.textContent = msg;
+    payModalErr.classList.add("show");
+  }
+
+  function openPayModal(prefillAmount = null) {
+    payModalErr.textContent = "";
+    payModalErr.classList.remove("show");
+
+    payModalProgressLine.textContent = "";
+    payModalProgressLine.classList.add("hidden");
+
+    const isEdit = (editingIndex !== null);
+    const payNumber = isEdit ? (editingIndex + 1) : (payments.length + 1);
+
+    payModalTitle.textContent = isEdit ? `Editar pago ${payNumber}` : `Agregar pago ${payNumber}`;
+    payModalDesc.textContent = `Fecha: ${isoToPrettyLong(pendingDateISO)}`;
+
+    const abonoVal = abonoInicial.value.trim();
+    const abono = abonoVal === "" ? 0 : (parseAmount(abonoVal) || 0);
+
+    let sumPagos = 0;
+    for (let i = 0; i < payments.length; i++) {
+      if (isEdit && i === editingIndex) continue;
+      sumPagos += Number(payments[i]?.monto || 0);
+    }
+
+    const totalAntes = abono + sumPagos;
+    const pendienteAntes = TICKET_TOTAL - totalAntes;
+
+    if (payNumber >= 2) {
+      payModalProgressLine.textContent = `Llevas abonado: ${money(totalAntes)} · Pendiente: ${money(pendienteAntes)}`;
+      payModalProgressLine.classList.remove("hidden");
+    }
+
+    payModalAmount.value = prefillAmount ? formatCurrencyInput(String(prefillAmount)) : "";
+    payModalOverlay.classList.add("show");
+    payModalOverlay.setAttribute("aria-hidden", "false");
+    lockBodyScroll();
+
+    setTimeout(() => payModalAmount.focus(), 50);
+  }
+
+  function closePayModal() {
+    payModalOverlay.classList.remove("show");
+    payModalOverlay.setAttribute("aria-hidden", "true");
+    unlockBodyScroll();
+    pendingDateISO = null;
+  }
+
+  payModalAmount.addEventListener("input", () => {
+    const caret = payModalAmount.selectionStart;
+    const before = payModalAmount.value;
+    payModalAmount.value = formatCurrencyInput(payModalAmount.value);
+    const delta = payModalAmount.value.length - before.length;
+    try { payModalAmount.setSelectionRange(caret + delta, caret + delta); } catch (e) {}
+    payModalErr.classList.remove("show");
+    payModalErr.textContent = "";
+  });
+
+  function savePayModal() {
+    const amt = Number((payModalAmount.value || "").replace(/,/g, ""));
+    if (!(amt > 0)) {
+      modalError("Monto inválido. Debe ser mayor a 0.");
+      return;
+    }
+    if (!pendingDateISO || !isValidISODate(pendingDateISO)) {
+      modalError("Fecha inválida. Selecciona una fecha válida.");
+      return;
+    }
+
+    if (editingIndex !== null) {
+      if (!canPickDateForEdit(pendingDateISO, editingIndex)) {
+        modalError("Fecha no válida para este pago.");
+        return;
+      }
+      payments[editingIndex] = { fecha: pendingDateISO, monto: amt };
+      payments.sort((a, b) => a.fecha.localeCompare(b.fecha));
+      editingIndex = null;
+
+      closePayModal();
+      show(err_payments, false);
+      err_payments_list.textContent = "";
+      updateLiveTotals();
+      renderPayList();
+      renderCalendar();
+      return;
+    }
+
+    if (payments.length >= paymentsCount) {
+      modalError("Ya completaste el número de pagos.");
+      return;
+    }
+    if (!canPickDateForAdd(pendingDateISO)) {
+      modalError("Fecha no válida (rango/orden/repetición). Selecciona una fecha posterior al último pago.");
+      return;
+    }
+
+    payments.push({ fecha: pendingDateISO, monto: amt });
+    payments.sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+    closePayModal();
+    show(err_payments, false);
+    err_payments_list.textContent = "";
+    updateLiveTotals();
+    renderPayList();
+    renderCalendar();
+  }
+
+  payModalSaveBtn.addEventListener("click", savePayModal);
+  payModalCloseBtn.addEventListener("click", () => { editingIndex = null; closePayModal(); renderCalendar(); });
+  payModalCancelBtn.addEventListener("click", () => { editingIndex = null; closePayModal(); renderCalendar(); });
+  payModalOverlay.addEventListener("click", (e) => { if (e.target === payModalOverlay) { editingIndex = null; closePayModal(); renderCalendar(); } });
+
+  calPrevBtn.addEventListener("click", () => {
+    if (paymentsCount <= 0) return;
+    viewMonth--;
+    if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+    renderCalendar();
+  });
+
+  calNextBtn.addEventListener("click", () => {
+    if (paymentsCount <= 0) return;
+    viewMonth++;
+    if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+    renderCalendar();
+  });
+
+  numPagos.addEventListener("input", () => {
+    const n = Number(numPagos.value);
+    show(err_numPagos, false);
+    show(err_payments, false);
+    err_payments_list.textContent = "";
+
+    if (Number.isInteger(n) && n >= 1 && n <= 50) {
+      setPaymentsCount(n);
+    } else {
+      resetPlanner();
+    }
+  });
+
+  function collectData() {
+    const n = Number(numPagos.value);
+
+    const abonoVal = abonoInicial.value.trim();
+    const abono = abonoVal === "" ? 0 : (parseAmount(abonoVal) || 0);
+
+    const pagosSorted = [...payments].sort((a, b) => a.fecha.localeCompare(b.fecha));
+    const pagos = pagosSorted.map((p, idx) => ({
+      num: idx + 1,
+      fecha: p.fecha,
+      monto: Number(p.monto || 0)
+    }));
+
+    const totalPlan = pagos.reduce((acc, p) => acc + (p.monto || 0), 0);
+    const totalPagado = abono + totalPlan;
+    const restante = TICKET_TOTAL - totalPagado;
+
+    const ticketElegido = (window.__FORM?.ticket_elegido || (ticketElegidoEl?.value || "")).trim();
+    const faseAuto = (window.__FORM?.fase_auto || (faseAutoEl?.value || "")).trim();
+
+    return {
+      contacto: {
+        nombres: nombres.value.trim(),
+        apellidos: apellidos.value.trim(),
+        email: email.value.trim(),
+        telefono: {
+          lada: lada.value,
+          numero: telefono.value.replace(/\D/g, '')
+        }
+      },
+      firma: {
+        nombre_firma: (signatureName.value || "").trim()
+      },
+      ticket: {
+        elegido: ticketElegido,
+        fase_auto: faseAuto,
+        total: TICKET_TOTAL,
+        abono_inicial: abono,
+        total_plan_pagos: totalPlan,
+        total_pagado: totalPagado,
+        restante: restante
+      },
+      plan_pagos: {
+        cantidad_pagos: n,
+        pagos,
+        total_programado: totalPlan
+      },
+     reglas: {
+  min_fecha: MIN_DATE,
+  max_fecha: MAX_DATE,
+  min_fecha_pago1: FIRST_PAY_MIN_DATE,
+  max_abono: getDynamicMaxAbono()
+},
+      meta: {
+        created_at_iso: new Date().toISOString(),
+        source: "formulario_plan_pagos_calendar_modal_v1"
+      }
+    };
+  }
+
+  function updateLiveTotals() {
+    const data = collectData();
+    liveTicketTotalEl.textContent = money(TICKET_TOTAL);
+    liveTotalPaidEl.textContent = money(data.ticket.total_pagado);
+    liveRemainingEl.textContent = money(data.ticket.restante);
+
+    const restante = Number(data.ticket.restante || 0);
+    if (Math.abs(restante) <= REMAINING_TOL) {
+      hide(liveWarn);
+      liveWarn.textContent = "";
+    } else {
+      unhide(liveWarn);
+      liveWarn.textContent = restante > 0
+        ? `Aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`
+        : `Vas con exceso de ${money(Math.abs(restante))}. Revisa montos.`;
+    }
+  }
+
+  function renderSummary(data) {
+    summaryGrid.innerHTML = "";
+    hide(validationBox);
+    validationBox.textContent = "";
+
+    const fullName = `${data.contacto.nombres} ${data.contacto.apellidos}`.trim();
+    const phone = `${data.contacto.telefono.lada} ${data.contacto.telefono.numero}`.trim();
+
+    const blocks = [
+      { k: "Nombre completo (INE)", v: fullName || "-" },
+      { k: "Correo", v: data.contacto.email || "-" },
+      { k: "Teléfono", v: phone || "-" },
+      { k: "Ticket elegido", v: data.ticket.elegido || "-" },
+      { k: "Fase detectada", v: data.ticket.fase_auto || "-" },
+      { k: "Abono inicial", v: money(data.ticket.abono_inicial) },
+      { k: "Cantidad de pagos", v: String(data.plan_pagos.cantidad_pagos || 0) },
+      { k: "Total plan de pagos", v: money(data.ticket.total_plan_pagos) },
+    ];
+
+    for (const b of blocks) {
+      const el = document.createElement("div");
+      el.className = "kv";
+      el.innerHTML = `<div class="k">${b.k}</div><div class="v">${b.v}</div>`;
+      summaryGrid.appendChild(el);
+    }
+
+    const payListBlock = document.createElement("div");
+    payListBlock.className = "kv";
+    payListBlock.style.gridColumn = "1 / -1";
+    const lines = data.plan_pagos.pagos.map(p => `Pago ${p.num}: ${p.fecha ? isoToDMY(p.fecha) : "(sin fecha)"} · ${money(p.monto)}`);
+    payListBlock.innerHTML = `<div class="k">Plan de pagos</div><div class="v">${lines.join("\n")}</div>`;
+    summaryGrid.appendChild(payListBlock);
+
+    const totals = document.createElement("div");
+    totals.className = "kv";
+    totals.style.gridColumn = "1 / -1";
+    totals.innerHTML = `
+      <div class="k">Totales</div>
+      <div class="v">
+El total de tu ticket es ${money(TICKET_TOTAL)}
+Incluyendo tu abono y tu plan de pagos, el total pagado es ${money(data.ticket.total_pagado)}
+Restante pendiente: ${money(data.ticket.restante)}
+      </div>
+    `;
+    summaryGrid.appendChild(totals);
+
+    const restante = Number(data.ticket.restante || 0);
+
+    if (!remainingIsZero(restante)) {
+      unhide(validationBox);
+      validationBox.textContent = restante > 0
+        ? `Hey, hay algo raro aquí: con tu abono + tu plan de pagos aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`
+        : `Hey, hay algo raro aquí: vas con exceso de ${money(Math.abs(restante))} sobre el total.`;
+      toAgreementBtn.disabled = true;
+    } else {
+      hide(validationBox);
+      toAgreementBtn.disabled = false;
+    }
+
+    syncNextButtonRules();
+  }
+
+  function renderAgreementPlan(data) {
+    agreementPlanList.innerHTML = "";
+    pdfPlanList.innerHTML = "";
+
+    const pagos = data.plan_pagos?.pagos || [];
+    pagos.forEach(p => {
+      const li = document.createElement("li");
+      li.textContent = `${p.fecha ? isoToDMY(p.fecha) : "(sin fecha)"} | ${money(p.monto)}`;
+      agreementPlanList.appendChild(li);
+
+      const li2 = document.createElement("li");
+      li2.textContent = `${p.fecha ? isoToDMY(p.fecha) : "(sin fecha)"} | ${money(p.monto)}`;
+      pdfPlanList.appendChild(li2);
+    });
+  }
+
+  function normalizeName(s) {
+    return (s || "").trim().replace(/\s+/g, " ").toLowerCase();
+  }
+
+  function validateSignature() {
+    signatureErr.textContent = "";
+    signatureErr.classList.remove("show");
+
+    const captured = `${nombres.value} ${apellidos.value}`.trim();
+    const must = normalizeName(captured);
+    const got = normalizeName(signatureName.value);
+
+    if (!got) {
+      signatureErr.textContent = "Escribe tu nombre completo como aparece en tu INE.";
+      signatureErr.classList.add("show");
+      return false;
+    }
+    if (must && got !== must) {
+      signatureErr.textContent = `Tu firma debe coincidir con el nombre capturado en el formulario:\n"${captured}"`;
+      signatureErr.classList.add("show");
+      return false;
+    }
+    return true;
+  }
+
+  async function submitToWebApp(payloadObj) {
+    try {
+      const fd = new FormData();
+      fd.append("payload", JSON.stringify(payloadObj));
+
+      const res = await fetch(WEB_APP_URL, {
+        method: "POST",
+        body: fd,
+        cache: "no-store"
+      });
+
+      const text = await res.text();
+
+      let json;
+      try {
+        json = JSON.parse(text);
+      } catch (e) {
+        json = { ok: res.ok, raw: text };
+      }
+
+      return {
+        ok: !!json?.ok,
+        via: "fetch_formdata",
+        data: json,
+        raw: text
+      };
+    } catch (err) {
+      console.error("fetch FormData falló, usando fallback iframe:", err);
+
+      try {
+        postForm.action = WEB_APP_URL;
+        postForm.method = "POST";
+        postForm.enctype = "application/x-www-form-urlencoded";
+        payloadField.value = JSON.stringify(payloadObj);
+        postForm.submit();
+
+        return { ok: true, via: "iframe_fallback" };
+      } catch (e2) {
+        return { ok: false, via: "none", error: String(e2) };
+      }
+    }
+  }
+
+  function resetFormHard() {
+    nombres.value = "";
+    apellidos.value = "";
+    email.value = "";
+    lada.value = "+52";
+    telefono.value = "";
+    ticketElegidoEl.value = "";
+    faseAutoEl.value = "—";
+    ticketTotalEl.value = "—";
+    abonoInicial.value = "";
+    numPagos.value = "";
+    signatureName.value = "";
+
+    window.__FORM = window.__FORM || {};
+    window.__FORM.ticket_elegido = "";
+    window.__FORM.ticket_total = "";
+    window.__FORM.fase_auto = "";
+    TICKET_TOTAL = 50000;
+
+    resetPlanner();
+
+    summaryGrid.innerHTML = "";
+    agreementPlanList.innerHTML = "";
+    pdfPlanList.innerHTML = "";
+    pdfSignature.textContent = "";
+
+    show(err_nombres, false);
+    show(err_apellidos, false);
+    show(err_email, false);
+    show(err_telefono, false);
+    show(ticketErrEl, false);
+    show(err_abonoInicial, false);
+    show(err_numPagos, false);
+    show(err_payments, false);
+    err_payments_list.textContent = "";
+
+    hide(validationBox);
+    validationBox.textContent = "";
+
+    signatureErr.textContent = "";
+    signatureErr.classList.remove("show");
+
+    hide(successBox);
+    hide(sendingBox);
+    failBox.style.display = "none";
+
+    toAgreementBtn.disabled = false;
+    sendBtn.disabled = false;
+    signatureName.disabled = false;
+
+    hide(liveWarn);
+    liveWarn.textContent = "";
+
+    lockAfterSubmit = false;
+    sendingInProgress = false;
+
+    updateLiveTotals();
+    setStep(1);
+  }
+
+  function goNext() {
+    const totalSteps = steps.length;
+
+    if (currentStep === 10) {
+      validateSignature();
+      return;
+    }
+
+    if (currentStep === 1 && !validateStep1()) return;
+    if (currentStep === 2 && !validateStep2()) return;
+    if (currentStep === 3 && !validateTicketStep()) return;
+    if (currentStep === 4 && !validateStep3()) return;
+
+    if (currentStep === 5) {
+      const v = validatePlannerDetailed();
+      if (!v.ok) return;
+    }
+
+    if (currentStep === 6) {
+      const data = collectData();
+      renderSummary(data);
+      if (!remainingIsZero(data.ticket.restante)) {
+        syncNextButtonRules();
+        return;
+      }
+    }
+
+    if (currentStep < totalSteps) {
+      if (currentStep === 5) {
+        const data = collectData();
+        renderSummary(data);
+      }
+
+      if (currentStep === 6) {
+        const data = collectData();
+        renderAgreementPlan(data);
+      }
+
+      setStep(currentStep + 1);
+    }
+  }
+
+  function goBack() {
+    if (lockAfterSubmit) {
+      resetFormHard();
+      return;
+    }
+    if (currentStep > 1) setStep(currentStep - 1);
+  }
+
+  nextBtn.addEventListener("click", goNext);
+  backBtn.addEventListener("click", goBack);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      const active = steps.find(s => s.classList.contains("active"));
+      const stepNum = active ? Number(active.dataset.step) : 1;
+
+      if (stepNum === 10) {
+        e.preventDefault();
+        validateSignature();
+        return;
+      }
+      if (stepNum === 6 && nextBtn.disabled) {
+        e.preventDefault();
+        return;
+      }
+      if (stepNum < steps.length) {
+        e.preventDefault();
+        goNext();
+      }
+    }
+  });
+
+  toAgreementBtn.addEventListener("click", () => {
+    const v = validatePlannerDetailed();
+    if (!v.ok) { setStep(5); return; }
+
+    const data = collectData();
+    if (!(Number(data.ticket.abono_inicial) <= getDynamicMaxAbono())) { setStep(4); return; }
+    if (!remainingIsZero(data.ticket.restante)) {
+      unhide(validationBox);
+      validationBox.textContent = "El restante pendiente debe ser 0 para poder continuar. Revisa montos.";
+      return;
+    }
+    renderAgreementPlan(data);
+    setStep(7);
+  });
+
+  sendBtn.addEventListener("click", async () => {
+    if (sendingInProgress) return;
+
+    if (!validateStep1() || !validateStep2() || !validateTicketStep() || !validateStep3()) {
+      setStep(3);
+      return;
+    }
+
+    const v = validatePlannerDetailed();
+    if (!v.ok) {
+      setStep(5);
+      return;
+    }
+
+    const data = collectData();
+    if (!remainingIsZero(data.ticket.restante)) {
+      signatureErr.textContent = "El restante pendiente debe ser 0 para poder enviar. Revisa montos.";
+      signatureErr.classList.add("show");
+      return;
+    }
+    if (!validateSignature()) return;
+
+    pdfSignature.textContent = data.firma.nombre_firma;
+
+    const fullName = `${data.contacto.nombres} ${data.contacto.apellidos}`.trim();
+    const phoneE164ish = `${data.contacto.telefono.lada}${data.contacto.telefono.numero}`.trim();
+
+    const payloadObj = {
+      nombre_reg: fullName,
+      email_reg: data.contacto.email || "",
+      telefono_reg: phoneE164ish,
+      firma_nombre: data.firma.nombre_firma || "",
+      firma_ok: true,
+
+      ticket_elegido: data.ticket.elegido || "",
+      ticket_total: Number(data.ticket.total || 0),
+
+      plan_json: JSON.stringify({
+        cantidad_pagos: data.plan_pagos.cantidad_pagos,
+        pagos: data.plan_pagos.pagos,
+        total_programado: data.plan_pagos.total_programado,
+        abono_inicial: data.ticket.abono_inicial,
+        total_pagado: data.ticket.total_pagado,
+        restante: data.ticket.restante,
+        fase_auto: data.ticket.fase_auto
+      }),
+
+      pdf_status: "PENDING",
+      pdf_url: "",
+      pdf_id: "",
+      error: "",
+      row_id: "",
+
+      evento: getEventoFromURL(),
+      data_full: data,
+
+      target_sheet: {
+        url: "https://docs.google.com/spreadsheets/d/193FboWwyrT7ahzGXqXk2EWCWG5HdjVVts2zpPXQoNCw/edit",
+        id: "193FboWwyrT7ahzGXqXk2EWCWG5HdjVVts2zpPXQoNCw"
+      },
+
+      pdf_html: document.getElementById("pdfAgreementTemplate").outerHTML
+    };
+
+    failBox.style.display = "none";
+    hide(successBox);
+    unhide(sendingBox);
+    sendBtn.disabled = true;
+    sendingInProgress = true;
+
+    const result = await submitToWebApp(payloadObj);
+
+    if (!result.ok) {
+      hide(sendingBox);
+      failBox.style.display = "block";
+      sendBtn.disabled = false;
+      sendingInProgress = false;
+      console.error("No se pudo enviar:", result);
+      return;
+    }
+
+    hide(sendingBox);
+    unhide(successBox);
+    showToast("Enviado ✅");
+
+    sendBtn.disabled = true;
+    signatureName.disabled = true;
+    lockAfterSubmit = true;
+    sendingInProgress = false;
+
+    setTimeout(() => setStep(11), 700);
+  });
+
+  const SKILLS_2026 = {
+    phases: [
+      {
+        key: "F2",
+        label: "Fase 2",
+        start: { y: 2026, m: 2, d: 1 },
+        end: { y: 2026, m: 2, d: 28 },
+        fhs: {
+          "Normal": 8000,
+          "All inclusive": 25000,
+          "All inclusive + backstage": 35000
+        }
+      },
+      {
+        key: "F3",
+        label: "Fase 3",
+        start: { y: 2026, m: 3, d: 1 },
+        end: { y: 2026, m: 4, d: 30 },
+        fhs: {
+          "Normal": 11000,
+          "All inclusive": 30000,
+          "All inclusive + backstage": 40000
+        }
+      },
+      {
+        key: "F4",
+        label: "Fase 4",
+        start: { y: 2026, m: 5, d: 1 },
+        end: { y: 2026, m: 7, d: 31 },
+        fhs: {
+          "Normal": 13500,
+          "All inclusive": 35000,
+          "All inclusive + backstage": 45000
+        }
+      },
+      {
+        key: "F5",
+        label: "Fase 5",
+        start: { y: 2026, m: 8, d: 1 },
+        end: { y: 2026, m: 9, d: 4 },
+        fhs: {
+          "Normal": 18000,
+          "All inclusive": 45000,
+          "All inclusive + backstage": 55000
+        }
+      }
+    ]
+  };
+
+  function _localDateAtYMD(y, m, d) {
+    return new Date(y, m - 1, d, 0, 0, 0, 0);
+  }
+
+  function _todayLocal() {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  }
+
+  function _inRange(date, start, end) {
+    return date.getTime() >= start.getTime() && date.getTime() <= end.getTime();
+  }
+
+  function getSkillsPhaseAuto(date = _todayLocal()) {
+    for (const ph of SKILLS_2026.phases) {
+      const s = _localDateAtYMD(ph.start.y, ph.start.m, ph.start.d);
+      const e = _localDateAtYMD(ph.end.y, ph.end.m, ph.end.d);
+      if (_inRange(date, s, e)) return ph;
+    }
+    return null;
+  }
+
+  const SKILLS_OUT_OF_RANGE_MODE = "fallback";
+
+  function calcSkillsTicketTotal(ticketElegido, date = _todayLocal()) {
+    let ph = getSkillsPhaseAuto(date);
+
+    if (!ph) {
+      if (SKILLS_OUT_OF_RANGE_MODE === "block") return { phase: null, total: null };
+      ph = SKILLS_2026.phases[SKILLS_2026.phases.length - 1];
+    }
+
+    const total = ph.fhs[ticketElegido] ?? null;
+    return { phase: ph, total };
+  }
+
+  function formatMXN(n) {
+    if (typeof n !== "number") return "—";
+    return n.toLocaleString("es-MX");
+  }
+
+  function skillsInitTicketStep() {
+    if (!ticketElegidoEl || !faseAutoEl || !ticketTotalEl) return;
+
+    window.__FORM = window.__FORM || {};
+
+    function recompute() {
+      const choice = (ticketElegidoEl.value || "").trim();
+
+      if (!choice) {
+  faseAutoEl.value = "—";
+  ticketTotalEl.value = "—";
+  ticketErrEl && ticketErrEl.classList.remove("show");
+
+  window.__FORM.ticket_elegido = "";
+  window.__FORM.ticket_total = "";
+  window.__FORM.fase_auto = "";
+
+  TICKET_TOTAL = 50000;
+  refreshAbonoUI();
+  updateLiveTotals();
+  return;
+}
+
+      const { phase, total } = calcSkillsTicketTotal(choice);
+
+      if (!phase || !total) {
+        faseAutoEl.value = "—";
+        ticketTotalEl.value = "—";
+        if (ticketErrEl) ticketErrEl.textContent = "No pudimos calcular tu ticket. Revisa tu selección.";
+        ticketErrEl && ticketErrEl.classList.add("show");
+
+        window.__FORM.ticket_elegido = choice;
+        window.__FORM.ticket_total = "";
+        window.__FORM.fase_auto = "";
+        return;
+      }
+
+      faseAutoEl.value = `${phase.label} (${phase.start.d}/${phase.start.m}–${phase.end.d}/${phase.end.m})`;
+      ticketTotalEl.value = formatMXN(total);
+
+      ticketErrEl && ticketErrEl.classList.remove("show");
+
+      window.__FORM.ticket_elegido = choice;
+      window.__FORM.ticket_total = total;
+      window.__FORM.fase_auto = phase.label;
+
+      TICKET_TOTAL = total;
+refreshAbonoUI();
+updateLiveTotals();
+renderCalendar();
+renderPayList();
+    }
+
+    ticketElegidoEl.addEventListener("change", recompute);
+    recompute();
+  }
+
+resetPlanner();
+setStep(1);
+refreshAbonoUI();
+updateLiveTotals();
+skillsInitTicketStep();
+</script>
+  
+</body>
+
+</html>
