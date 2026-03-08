@@ -688,8 +688,8 @@
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(900px 500px at 50% 20%, rgba(57, 255, 20, .045), transparent 58%),
-    rgba(0, 0, 0, .58);
+    radial-gradient(900px 500px at 50% 20%, rgba(57, 255, 20, .05), transparent 58%),
+    rgba(4, 8, 10, .50);
   display: none;
   align-items: center;
   justify-content: center;
@@ -705,18 +705,47 @@ body.modalOpen .wrap {
   filter: none;
 }
 
-body.modalOpen .card,
+body.modalOpen .card {
+  background:
+    linear-gradient(180deg, rgba(57, 255, 20, .035), rgba(255, 255, 255, .008)),
+    #0A0E12 !important;
+  border-color: rgba(57, 255, 20, .10) !important;
+}
+
 body.modalOpen .summaryBox,
 body.modalOpen .calCard,
 body.modalOpen .listCard,
 body.modalOpen .kv,
 body.modalOpen .payItem {
-  border-color: rgba(57, 255, 20, .12) !important;
+  background:
+    linear-gradient(180deg, rgba(57, 255, 20, .025), rgba(255, 255, 255, .006)),
+    #0B1015 !important;
+  border-color: rgba(57, 255, 20, .10) !important;
+  box-shadow: none !important;
+}
+
+body.modalOpen input,
+body.modalOpen select,
+body.modalOpen textarea {
+  background: #091018 !important;
+  color: var(--text) !important;
+  border-color: rgba(57, 255, 20, .10) !important;
+}
+
+body.modalOpen .day {
+  background: #091018 !important;
+  border-color: rgba(57, 255, 20, .10) !important;
+  color: var(--text) !important;
 }
 
 body.modalOpen .day.used {
   background: rgba(57, 255, 20, .14) !important;
-  border-color: rgba(57, 255, 20, .42) !important;
+  border-color: rgba(57, 255, 20, .38) !important;
+}
+
+body.modalOpen .day.disabled,
+body.modalOpen .day.muted {
+  background: #070B10 !important;
 }
     
     .modal {
