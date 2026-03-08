@@ -1078,11 +1078,9 @@
             <div class="field">
               <label for="ticketElegido">¿Qué ticket adquiriste?</label>
               <select id="ticketElegido">
-                <option value="">Selecciona una opción</option>
-                <option value="Normal">Normal (FHS)</option>
-                <option value="All inclusive">All inclusive (FHS)</option>
-                <option value="All inclusive + backstage">All inclusive + backstage (FHS)</option>
-              </select>
+  <option value="">Selecciona una opción</option>
+  <option value="Normal">Normal (FHS)</option>
+</select>
               <div class="hint" id="ticketHint">
                 Calculamos tu fase automáticamente con la fecha de hoy.
               </div>
@@ -1233,7 +1231,7 @@
           <div class="agreementHeader">
             <div class="agreementHeaderLeft">
               <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
-              <div class="agreementSub">&gt; <b>boost x ab</b> <span>| Septiembre 2026</span></div>
+              <div class="agreementSub">&gt; <b>boost x ab</b> <span>| Abril 2026</span></div>
             </div>
           </div>
 
@@ -1268,7 +1266,7 @@
           <div class="agreementHeader">
             <div class="agreementHeaderLeft">
               <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
-              <div class="agreementSub">&gt; <b>boost x ab</b> <span>| Septiembre 2026</span></div>
+              <div class="agreementSub">&gt; <b>boost x ab</b> <span>| Abril 2026</span></div>
             </div>
           </div>
 
@@ -1300,7 +1298,7 @@
           <div class="agreementHeader">
             <div class="agreementHeaderLeft">
               <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
-              <div class="agreementSub">&gt; <b>boost x ab</b> <span>| Septiembre 2026</span></div>
+              <div class="agreementSub">&gt; <b>boost x ab</b> <span>| Abril 2026</span></div>
             </div>
           </div>
 
@@ -1335,7 +1333,7 @@
           <div class="agreementHeader">
             <div class="agreementHeaderLeft">
               <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
-              <div class="agreementSub">&gt; <b>boost x ab</b> <span>| Septiembre 2026</span></div>
+              <div class="agreementSub">&gt; <b>boost x ab</b> <span>| Abril 2026</span></div>
             </div>
           </div>
 
@@ -1371,7 +1369,7 @@
           <!-- ✅ PDF interno oculto -->
           <div id="pdfAgreementTemplate">
             <h2>ACUERDO DE<br />FINANCIAMIENTO</h2>
-            <div class="sub">&gt; boost x ab | Septiembre 2026</div>
+            <div class="sub">&gt; boost x ab | Abril 2026</div>
             <div class="divider"></div>
 
             <div class="sec">Estoy de acuerdo con que la empresa</div>
@@ -1466,7 +1464,7 @@
 
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzuNTaLIi65EbNzM9V35HO6d8AsGKjMbpX7ZK1x3DuX_c0FBDl8gsv-T3Ui9xIbFb_GHw/exec";
 
-    let TICKET_TOTAL = 50000;
+    let TICKET_TOTAL = 35000;
     const MAX_DATE = "2026-11-30";
     const REMAINING_TOL = 0.01;
 
@@ -2439,7 +2437,7 @@ Restante pendiente: ${money(data.ticket.restante)}
       window.__FORM.ticket_elegido = "";
       window.__FORM.ticket_total = "";
       window.__FORM.fase_auto = "";
-      TICKET_TOTAL = 50000;
+      TICKET_TOTAL = 35000;
 
       resetPlanner();
 
@@ -2664,54 +2662,37 @@ Restante pendiente: ${money(data.ticket.restante)}
       setTimeout(() => setStep(11), 700);
     });
 
-    const BOOST_2026 = {
-      phases: [
-        {
-          key: "F2",
-          label: "Fase 2",
-          start: { y: 2026, m: 2, d: 1 },
-          end: { y: 2026, m: 2, d: 28 },
-          fhs: {
-            "Normal": 8000,
-            "All inclusive": 25000,
-            "All inclusive + backstage": 35000
-          }
-        },
-        {
-          key: "F3",
-          label: "Fase 3",
-          start: { y: 2026, m: 3, d: 1 },
-          end: { y: 2026, m: 4, d: 30 },
-          fhs: {
-            "Normal": 11000,
-            "All inclusive": 30000,
-            "All inclusive + backstage": 40000
-          }
-        },
-        {
-          key: "F4",
-          label: "Fase 4",
-          start: { y: 2026, m: 5, d: 1 },
-          end: { y: 2026, m: 7, d: 31 },
-          fhs: {
-            "Normal": 13500,
-            "All inclusive": 35000,
-            "All inclusive + backstage": 45000
-          }
-        },
-        {
-          key: "F5",
-          label: "Fase 5",
-          start: { y: 2026, m: 8, d: 1 },
-          end: { y: 2026, m: 9, d: 4 },
-          fhs: {
-            "Normal": 18000,
-            "All inclusive": 45000,
-            "All inclusive + backstage": 55000
-          }
-        }
-      ]
-    };
+const BOOST_2026 = {
+  phases: [
+    {
+      key: "F1",
+      label: "Fase 1",
+      start: { y: 2026, m: 1, d: 19 },
+      end: { y: 2026, m: 1, d: 31 },
+      fhs: {
+        "Normal": 25000
+      }
+    },
+    {
+      key: "F2",
+      label: "Fase 2",
+      start: { y: 2026, m: 2, d: 1 },
+      end: { y: 2026, m: 3, d: 8 },
+      fhs: {
+        "Normal": 30000
+      }
+    },
+    {
+      key: "F3",
+      label: "Fase 3",
+      start: { y: 2026, m: 3, d: 9 },
+      end: { y: 2026, m: 4, d: 24 },
+      fhs: {
+        "Normal": 35000
+      }
+    }
+  ]
+};
 
     function _localDateAtYMD(y, m, d) {
       return new Date(y, m - 1, d, 0, 0, 0, 0);
@@ -2755,61 +2736,61 @@ Restante pendiente: ${money(data.ticket.restante)}
     }
 
     function boostInitTicketStep() {
-      if (!ticketElegidoEl || !faseAutoEl || !ticketTotalEl) return;
+  if (!ticketElegidoEl || !faseAutoEl || !ticketTotalEl) return;
 
-      window.__FORM = window.__FORM || {};
+  window.__FORM = window.__FORM || {};
 
-      function recompute() {
-        const choice = (ticketElegidoEl.value || "").trim();
+  function recompute() {
+    const choice = (ticketElegidoEl.value || "").trim();
 
-        if (!choice) {
-          faseAutoEl.value = "—";
-          ticketTotalEl.value = "—";
-          ticketErrEl && ticketErrEl.classList.remove("show");
+    if (!choice) {
+      faseAutoEl.value = "—";
+      ticketTotalEl.value = "—";
+      ticketErrEl && ticketErrEl.classList.remove("show");
 
-          window.__FORM.ticket_elegido = "";
-          window.__FORM.ticket_total = "";
-          window.__FORM.fase_auto = "";
+      window.__FORM.ticket_elegido = "";
+      window.__FORM.ticket_total = "";
+      window.__FORM.fase_auto = "";
 
-          TICKET_TOTAL = 50000;
-          refreshAbonoUI();
-          updateLiveTotals();
-          return;
-        }
-
-        const { phase, total } = calcBoostTicketTotal(choice);
-
-        if (!phase || !total) {
-          faseAutoEl.value = "—";
-          ticketTotalEl.value = "—";
-          if (ticketErrEl) ticketErrEl.textContent = "No pudimos calcular tu ticket. Revisa tu selección.";
-          ticketErrEl && ticketErrEl.classList.add("show");
-
-          window.__FORM.ticket_elegido = choice;
-          window.__FORM.ticket_total = "";
-          window.__FORM.fase_auto = "";
-          return;
-        }
-
-        faseAutoEl.value = `${phase.label} (${phase.start.d}/${phase.start.m}–${phase.end.d}/${phase.end.m})`;
-        ticketTotalEl.value = formatMXN(total);
-
-        ticketErrEl && ticketErrEl.classList.remove("show");
-
-        window.__FORM.ticket_elegido = choice;
-        window.__FORM.ticket_total = total;
-        window.__FORM.fase_auto = phase.label;
-
-        TICKET_TOTAL = total;
-        refreshAbonoUI();
-        updateLiveTotals();
-        renderCalendar();
-        renderPayList();
-      }
-
-      ticketElegidoEl.addEventListener("change", recompute);
-      recompute();
+      TICKET_TOTAL = 35000;
+      refreshAbonoUI();
+      updateLiveTotals();
+      return;
     }
+
+    const { phase, total } = calcBoostTicketTotal(choice);
+
+    if (!phase || !total) {
+      faseAutoEl.value = "—";
+      ticketTotalEl.value = "—";
+      if (ticketErrEl) ticketErrEl.textContent = "No pudimos calcular tu ticket. Revisa tu selección.";
+      ticketErrEl && ticketErrEl.classList.add("show");
+
+      window.__FORM.ticket_elegido = choice;
+      window.__FORM.ticket_total = "";
+      window.__FORM.fase_auto = "";
+      return;
+    }
+
+    faseAutoEl.value = `${phase.label} (${phase.start.d}/${phase.start.m}–${phase.end.d}/${phase.end.m})`;
+    ticketTotalEl.value = formatMXN(total);
+
+    ticketErrEl && ticketErrEl.classList.remove("show");
+
+    window.__FORM.ticket_elegido = choice;
+    window.__FORM.ticket_total = total;
+    window.__FORM.fase_auto = phase.label;
+
+    TICKET_TOTAL = total;
+    refreshAbonoUI();
+    updateLiveTotals();
+    renderCalendar();
+    renderPayList();
+  }
+
+  ticketElegidoEl.addEventListener("change", recompute);
+  recompute();
+}
 
     resetPlanner();
     setStep(1);
