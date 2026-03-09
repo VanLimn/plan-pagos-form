@@ -8,7 +8,7 @@
 
   <!-- ✅ Link preview -->
   <meta property="og:title" content="Acuerdo de Financiamiento" />
-  <meta property="og:description" content="Firma tu acuerdo y confirma de enterado tu participación." />
+  <meta property="og:description" content="Captura tus datos y firma tu acuerdo." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://vanlimn.github.io/plan-pagos-form/acuerdo-skills/" />
   <meta property="og:image" content="https://vanlimn.github.io/plan-pagos-form/acuerdo-skills/og-image.png" />
@@ -16,13 +16,12 @@
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Acuerdo de Financiamiento" />
-  <meta name="twitter:description" content="Firma tu acuerdo y confirma de enterado tu participación." />
+  <meta name="twitter:description" content="Captura tus datos y firma tu acuerdo." />
   <meta name="twitter:image" content="./og-image.png" />
   <link rel="icon" href="./og-image.png" type="image/png" />
 
   <style>
     :root {
-      /* ===== Skills Dark Neon (Premium) ===== */
       --bg: #0B0D0F;
       --card: #0F1216;
       --card2: #0C0F13;
@@ -31,7 +30,6 @@
       --line: #232831;
       --line2: #2B323D;
 
-      /* Skills Green */
       --accent: #39FF14;
       --accent2: #1FFF0A;
       --accentSoft: rgba(57, 255, 20, .18);
@@ -52,7 +50,8 @@
     html,
     body {
       margin: 0;
-      background: radial-gradient(1200px 600px at 50% 0%, rgba(52, 242, 139, .08), transparent 60%),
+      background:
+        radial-gradient(1200px 600px at 50% 0%, rgba(52, 242, 139, .08), transparent 60%),
         linear-gradient(180deg, #07090B, var(--bg));
     }
 
@@ -350,6 +349,40 @@
       gap: 10px;
     }
 
+    .summaryGrid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    @media (min-width:720px) {
+      .summaryGrid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .kv {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .02);
+      border-radius: 12px;
+      padding: 12px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      hyphens: auto;
+    }
+
+    .kv .k {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .kv .v {
+      font-size: 14px;
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+
     .toast {
       position: fixed;
       bottom: 18px;
@@ -562,7 +595,7 @@
           <p>Captura tus datos y firma tu acuerdo.</p>
         </div>
         <div class="progress">
-          <div class="stepLabel" id="stepLabel">Paso 1 de 6</div>
+          <div class="stepLabel" id="stepLabel">Paso 1 de 7</div>
           <div class="bar" aria-hidden="true">
             <div id="barFill"></div>
           </div>
@@ -678,10 +711,6 @@
                 <div class="checkBox">✓</div>
                 <div class="checkText">no hay <b>reembolsos/cancelaciones/devoluciones</b> del apartado y/o pagos realizados.</div>
               </div>
-              <div class="checkItem">
-                <div class="checkBox">✓</div>
-                <div class="checkText">mantendré las <b>fechas de pago acordadas</b> para conservar el precio especial; de no hacerlo, el monto total se ajustará al precio público.</div>
-              </div>
             </div>
           </div>
         </section>
@@ -766,7 +795,6 @@
 
             <div class="sec">Estoy de acuerdo también con que</div>
             <div class="row">✓ no hay <b>reembolsos/cancelaciones/devoluciones</b> del apartado y/o pagos realizados.</div>
-            <div class="row">✓ mantendré las <b>fechas de pago acordadas</b> para conservar el precio especial; de no hacerlo, el monto total se ajustará al precio público.</div>
 
             <div class="sec">Estoy de acuerdo con que para ingresar a las instalaciones</div>
             <div class="row">✓ presento en recepción mi identificación oficial vigente con fotografía.</div>
@@ -779,6 +807,19 @@
           </div>
         </section>
 
+        <!-- STEP 7 -->
+        <section class="step" data-step="7">
+          <div class="summaryBox">
+            <div class="finalWrap">
+              <h2 class="finalTitle">Gracias por tu registro ✅</h2>
+              <p class="finalText">
+                En breve recibirás más notas en tu correo.<br />
+                Por favor revisa <b>Inbox</b>, <b>Spam</b> y <b>Promociones</b>.<br />
+                Por favor confirma de recibido.
+              </p>
+            </div>
+          </div>
+        </section>
       </div>
 
       <div class="footer">
@@ -795,18 +836,13 @@
 
   <script>
     function getEventoFromURL() {
-      const params = new URLSearchParams(window.location.search);
-      const ev = (params.get("evento") || "skills").trim().toLowerCase();
-      if (!["skills", "stage", "boost"].includes(ev)) return "skills";
-      return ev;
+      return "skills";
     }
 
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzj6lGQftjOFiZQ2PG1NbYn5Ihl5BgHrAbtctJIJvhm8V8bo4E7rBeDs8160-Ki_rfE1Q/exec";
 
     const steps = Array.from(document.querySelectorAll(".step"));
     let currentStep = 1;
-    let lockAfterSubmit = false;
-    let sendingInProgress = false;
 
     const stepLabel = document.getElementById("stepLabel");
     const barFill = document.getElementById("barFill");
@@ -838,6 +874,9 @@
     const payloadField = document.getElementById("payloadField");
     const pdfSignature = document.getElementById("pdfSignature");
 
+    let lockAfterSubmit = false;
+    let sendingInProgress = false;
+
     function showToast(msg) {
       toast.textContent = msg;
       toast.classList.add("show");
@@ -862,6 +901,11 @@
         nextBtn.style.display = "none";
         return;
       }
+
+      if (currentStep === 7) {
+        nextBtn.style.display = "none";
+        return;
+      }
     }
 
     function setStep(n) {
@@ -874,7 +918,7 @@
 
       backBtn.disabled = currentStep === 1;
 
-      if (currentStep === total) {
+      if (currentStep === total || currentStep === 7) {
         footerHint.textContent = "Listo. Puedes cerrar esta ventana.";
       } else if (currentStep === 6) {
         footerHint.textContent = "Para finalizar, firma y presiona Enviar.";
@@ -933,11 +977,13 @@
         signatureErr.classList.add("show");
         return false;
       }
+
       if (must && got !== must) {
         signatureErr.textContent = `Tu firma debe coincidir con el nombre capturado en el formulario:\n"${captured}"`;
         signatureErr.classList.add("show");
         return false;
       }
+
       return true;
     }
 
@@ -1012,6 +1058,7 @@
       lada.value = "+52";
       telefono.value = "";
       signatureName.value = "";
+      pdfSignature.textContent = "";
 
       show(err_nombres, false);
       show(err_apellidos, false);
@@ -1072,7 +1119,7 @@
           return;
         }
 
-        if (stepNum < steps.length) {
+        if (stepNum < steps.length && stepNum !== 7) {
           e.preventDefault();
           goNext();
         }
@@ -1093,6 +1140,7 @@
       }
 
       const data = collectData();
+
       if (!validateSignature()) return;
 
       pdfSignature.textContent = data.firma.nombre_firma;
@@ -1107,7 +1155,10 @@
         firma_nombre: data.firma.nombre_firma || "",
         firma_ok: true,
 
-        plan_json: "",
+        plan_json: JSON.stringify({
+          cantidad_pagos: 0,
+          pagos: []
+        }),
 
         pdf_status: "PENDING",
         pdf_url: "",
@@ -1117,11 +1168,6 @@
 
         evento: getEventoFromURL(),
         data_full: data,
-
-        target_sheet: {
-          url: "https://docs.google.com/spreadsheets/d/1NepY-POXv8w2eD4NViBxhtfGCenEOBnwbUQlv03TZZQ/edit",
-          id: "1NepY-POXv8w2eD4NViBxhtfGCenEOBnwbUQlv03TZZQ"
-        },
 
         pdf_html: document.getElementById("pdfAgreementTemplate").outerHTML
       };
@@ -1153,27 +1199,7 @@
       sendingInProgress = false;
 
       setTimeout(() => {
-        const thanksSection = document.createElement("section");
-        thanksSection.className = "step active";
-        thanksSection.setAttribute("data-step", "7");
-        thanksSection.innerHTML = `
-          <div class="summaryBox">
-            <div class="finalWrap">
-              <h2 class="finalTitle">Gracias por tu registro ✅</h2>
-              <p class="finalText">
-                En breve recibirás más notas en tu correo.<br />
-                Por favor revisa <b>Inbox</b>, <b>Spam</b> y <b>Promociones</b>.<br />
-                Por favor confirma de recibido.
-              </p>
-            </div>
-          </div>
-        `;
-        document.querySelectorAll(".step").forEach(s => s.classList.remove("active"));
-        document.querySelector(".content").appendChild(thanksSection);
-        stepLabel.textContent = "Paso 7 de 7";
-        barFill.style.width = "100%";
-        nextBtn.style.display = "none";
-        footerHint.textContent = "Listo. Puedes cerrar esta ventana.";
+        setStep(7);
       }, 700);
     });
 
