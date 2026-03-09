@@ -1,0 +1,1224 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Acuerdo de Financiamiento</title>
+
+  <meta property="og:title" content="Acuerdo de Financiamiento" />
+  <meta property="og:description" content="Captura tus datos y firma tu acuerdo." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://vanlimn.github.io/plan-pagos-form/acuerdo-boost/" />
+  <meta property="og:image" content="https://vanlimn.github.io/plan-pagos-form/acuerdo-boost/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Acuerdo de Financiamiento" />
+  <meta name="twitter:description" content="Captura tus datos y firma tu acuerdo." />
+  <meta name="twitter:image" content="./og-image.png" />
+  <link rel="icon" href="./og-image.png" type="image/png" />
+
+  <style>
+    :root {
+      --bg: #0B0D0F;
+      --card: #0F1216;
+      --card2: #0C0F13;
+      --text: #E9EDF2;
+      --muted: #A3AAB6;
+      --line: #232831;
+      --line2: #2B323D;
+
+      --accent: #9f20ef;
+      --accent2: #b24cff;
+      --accentSoft: rgba(159, 32, 239, .18);
+      --accentGlow: rgba(159, 32, 239, .45);
+
+      --danger: #FF4D6D;
+      --ok: var(--accent);
+      --warn: #FFCC00;
+
+      --solid: #12161C;
+      --solid2: #0E1217;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      background:
+        radial-gradient(1200px 600px at 50% 0%, rgba(159, 32, 239, .10), transparent 60%),
+        linear-gradient(180deg, #07090B, var(--bg));
+    }
+
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .wrap {
+      width: min(920px, 100%);
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 22px 70px rgba(0, 0, 0, .60);
+    }
+
+    .header {
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      background: linear-gradient(180deg, rgba(159, 32, 239, .10), transparent 70%);
+    }
+
+    .title {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: .2px;
+      font-weight: 750;
+    }
+
+    .title p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .progress {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 220px;
+      justify-content: flex-end;
+      flex: 1;
+    }
+
+    .bar {
+      width: 160px;
+      height: 8px;
+      background: #0A0D11;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar>div {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), rgba(255, 255, 255, .55));
+      box-shadow: 0 0 18px var(--accentGlow);
+      transition: width .25s ease;
+    }
+
+    .stepLabel {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .content {
+      padding: 18px;
+    }
+
+    .step {
+      display: none;
+      animation: fade .18s ease;
+    }
+
+    .step.active {
+      display: block;
+    }
+
+    @keyframes fade {
+      from {
+        opacity: .55;
+        transform: translateY(2px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+    }
+
+    .field {
+      grid-column: span 12;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    @media (min-width:720px) {
+      .field.half {
+        grid-column: span 6;
+      }
+
+      .field.third {
+        grid-column: span 4;
+      }
+
+      .field.twoThird {
+        grid-column: span 8;
+      }
+    }
+
+    label {
+      font-size: 13px;
+      color: rgba(233, 237, 242, .92);
+      font-weight: 650;
+    }
+
+    input,
+    select,
+    textarea {
+      background: var(--solid);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 12px;
+      outline: none;
+      font-size: 14px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .03);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #6F7886;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: rgba(159, 32, 239, .75);
+      box-shadow: 0 0 0 3px var(--accentSoft), 0 0 18px rgba(159, 32, 239, .12);
+    }
+
+    .badField {
+      border-color: rgba(255, 77, 109, .85) !important;
+      box-shadow: 0 0 0 3px rgba(255, 77, 109, .12) !important;
+    }
+
+    .hint {
+      margin-top: -2px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .error {
+      color: var(--danger);
+      font-size: 12px;
+      display: none;
+      font-weight: 700;
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    .footer {
+      padding: 14px 18px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      background: linear-gradient(0deg, rgba(255, 255, 255, .02), transparent);
+    }
+
+    .btns {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 1px solid var(--line2);
+      background: #0E1217;
+      color: var(--text);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: transform .06s ease, border-color .2s ease, background .2s ease, opacity .2s ease;
+      font-weight: 800;
+    }
+
+    button:hover {
+      border-color: rgba(159, 32, 239, .50);
+      background: rgba(159, 32, 239, .08);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .primary {
+      border-color: rgba(159, 32, 239, .85);
+      background: linear-gradient(90deg, rgba(159, 32, 239, .34), rgba(159, 32, 239, .16));
+      box-shadow:
+        0 0 0 1px rgba(159, 32, 239, .25),
+        0 0 22px rgba(159, 32, 239, .35),
+        0 12px 45px rgba(0, 0, 0, .55);
+    }
+
+    .primary:hover {
+      background: linear-gradient(90deg, rgba(159, 32, 239, .42), rgba(159, 32, 239, .22));
+      border-color: rgba(159, 32, 239, 1);
+    }
+
+    .blackBtn {
+      background: var(--accent) !important;
+      border-color: var(--accent) !important;
+      color: var(--text) !important;
+      font-weight: 900 !important;
+    }
+
+    .blackBtn:hover {
+      background: var(--accent2) !important;
+      border-color: var(--accent2) !important;
+    }
+
+    .small {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .tagDot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(159, 32, 239, .10);
+    }
+
+    .summaryBox {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(255, 255, 255, .02);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .summaryGrid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    @media (min-width:720px) {
+      .summaryGrid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .kv {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .02);
+      border-radius: 12px;
+      padding: 12px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      hyphens: auto;
+    }
+
+    .kv .k {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .kv .v {
+      font-size: 14px;
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0E1217;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, .55);
+      z-index: 9999;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+
+    .success,
+    .sending,
+    .warning {
+      border: 1px solid rgba(159, 32, 239, .35);
+      background: rgba(159, 32, 239, .08);
+      border-radius: 14px;
+      padding: 14px;
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    .warning {
+      border-color: rgba(255, 204, 0, .30);
+      background: rgba(255, 204, 0, .06);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .agreementHeader {
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 4px 0 8px;
+    }
+
+    .agreementTitle {
+      font-size: 30px;
+      line-height: 1.05;
+      font-weight: 950;
+      margin: 0;
+      letter-spacing: -.4px;
+      color: var(--text);
+    }
+
+    .agreementSub {
+      font-size: 18px;
+      margin: 0;
+      font-weight: 850;
+      color: #C9D0DB;
+    }
+
+    .agreementSub span {
+      font-weight: 500;
+      color: #AAB2BF;
+    }
+
+    .agreementSectionTitle {
+      margin: 10px 0 6px;
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .checkList {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .checkItem {
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .checkBox {
+      width: 28px;
+      height: 28px;
+      border: 2px solid rgba(159, 32, 239, .55);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      color: #ffffff;
+      background: rgba(159, 32, 239, .92);
+      margin-top: 1px;
+      flex: 0 0 auto;
+      box-shadow: 0 0 16px rgba(159, 32, 239, .12);
+    }
+
+    .checkText {
+      font-size: 15px;
+      line-height: 1.45;
+      color: var(--text);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      hyphens: auto;
+    }
+
+    .checkText b {
+      font-weight: 900;
+      color: #F3F6FA;
+    }
+
+    .signatureWrap {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+      text-align: center;
+      margin-top: 12px;
+    }
+
+    .signatureTitle {
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1.25;
+      max-width: 520px;
+      color: var(--text);
+    }
+
+    .signatureInput {
+      width: min(560px, 100%);
+      background: #0E1217 !important;
+      color: var(--text) !important;
+      border: 2px solid rgba(159, 32, 239, .60) !important;
+      border-radius: 999px !important;
+      padding: 14px 16px !important;
+      font-size: 16px !important;
+      outline: none !important;
+      box-shadow: 0 0 0 4px rgba(159, 32, 239, .10) !important;
+    }
+
+    .signatureHint {
+      font-size: 13px;
+      color: var(--muted);
+      max-width: 560px;
+    }
+
+    .signatureErr {
+      font-size: 13px;
+      color: var(--danger);
+      font-weight: 900;
+      display: none;
+      max-width: 560px;
+      white-space: pre-wrap;
+    }
+
+    .signatureErr.show {
+      display: block;
+    }
+
+    #pdfAgreementTemplate {
+      display: none;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #111;
+      width: 816px;
+      padding: 18px;
+      background: #fff;
+    }
+
+    .finalWrap {
+      padding: 10px 2px;
+      text-align: center;
+    }
+
+    .finalTitle {
+      font-size: 18px;
+      font-weight: 950;
+      margin: 0 0 8px;
+      letter-spacing: .2px;
+    }
+
+    .finalText {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 13px;
+      font-weight: 800;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="header">
+        <div class="title">
+          <h1>Boost · Acuerdo</h1>
+          <p>Captura tus datos y firma tu acuerdo.</p>
+        </div>
+        <div class="progress">
+          <div class="stepLabel" id="stepLabel">Paso 1 de 6</div>
+          <div class="bar" aria-hidden="true">
+            <div id="barFill"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- STEP 1 -->
+        <section class="step active" data-step="1">
+          <div class="grid">
+            <div class="field half">
+              <label for="nombres">Nombres</label>
+              <input id="nombres" type="text" placeholder="Nombre 1 Nombre 2" autocomplete="given-name" />
+              <div class="hint">Escríbelo exactamente como aparece en tu INE.</div>
+              <div class="error" id="err_nombres">Escribe tus nombres.</div>
+            </div>
+
+            <div class="field half">
+              <label for="apellidos">Apellidos</label>
+              <input id="apellidos" type="text" placeholder="Apellido 1 Apellido 2" autocomplete="family-name" />
+              <div class="hint">Escríbelo exactamente como aparece en tu INE.</div>
+              <div class="error" id="err_apellidos">Escribe tus apellidos.</div>
+            </div>
+
+            <div class="field">
+              <div class="tag"><span class="tagDot"></span><span>Esto va por páginas (Back / Next).</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 2 -->
+        <section class="step" data-step="2">
+          <div class="grid">
+            <div class="field twoThird">
+              <label for="email">Correo electrónico</label>
+              <input id="email" type="email" placeholder="tucorreo@dominio.com" autocomplete="email" />
+              <div class="hint">Se usará para confirmaciones o seguimiento.</div>
+              <div class="error" id="err_email">Escribe un correo válido.</div>
+            </div>
+
+            <div class="field third">
+              <label for="lada">Lada (país)</label>
+              <select id="lada" autocomplete="tel-country-code">
+                <option value="+52" selected>+52 (MX)</option>
+                <option value="+1">+1 (US/CA)</option>
+                <option value="+34">+34 (ES)</option>
+                <option value="+57">+57 (CO)</option>
+                <option value="+54">+54 (AR)</option>
+                <option value="+56">+56 (CL)</option>
+                <option value="+51">+51 (PE)</option>
+              </select>
+              <div class="hint">Puedes ampliar esta lista.</div>
+            </div>
+
+            <div class="field">
+              <label for="telefono">Número de teléfono</label>
+              <input id="telefono" type="tel" placeholder="Ej. 3312345678" autocomplete="tel-national"
+                inputmode="numeric" maxlength="10" />
+              <div class="hint">Solo números (sin espacios). Deben ser exactamente 10 dígitos.</div>
+              <div class="error" id="err_telefono">Escribe un teléfono válido (10 dígitos).</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 3 -->
+        <section class="step" data-step="3" id="stepAgreement1">
+          <div class="agreementHeader">
+            <div class="agreementHeaderLeft">
+              <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
+              <div class="agreementSub">&gt; <b>boost x ab</b> <span>| Abril 2026</span></div>
+            </div>
+          </div>
+
+          <div class="summaryBox">
+            <div class="agreementSectionTitle">Estoy de acuerdo con que la empresa</div>
+
+            <div class="checkList">
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
+                <div class="checkText">use mi <b>imagen</b> en fotos y videos promocionales en el futuro;</div>
+              </div>
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
+                <div class="checkText">no es responsable de <b>robo/extravío</b> de mis pertenencias;</div>
+              </div>
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
+                <div class="checkText">me expulse de las instalaciones si mi <b>conducta</b> altera negativamente el evento.</div>
+              </div>
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
+                <div class="checkText">daré los créditos debidos al compartir públicamente <b>contenido</b> del evento.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 4 -->
+        <section class="step" data-step="4">
+          <div class="agreementHeader">
+            <div class="agreementHeaderLeft">
+              <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
+              <div class="agreementSub">&gt; <b>boost x ab</b> <span>| Abril 2026</span></div>
+            </div>
+          </div>
+
+          <div class="summaryBox">
+            <div class="agreementSectionTitle">Estoy de acuerdo también con que</div>
+
+            <div class="checkList">
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
+                <div class="checkText">no hay <b>reembolsos/cancelaciones/devoluciones</b> del apartado y/o pagos realizados.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 5 -->
+        <section class="step" data-step="5">
+          <div class="agreementHeader">
+            <div class="agreementHeaderLeft">
+              <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
+              <div class="agreementSub">&gt; <b>boost x ab</b> <span>| Abril 2026</span></div>
+            </div>
+          </div>
+
+          <div class="summaryBox">
+            <div class="agreementSectionTitle">Estoy de acuerdo con que para ingresar a las instalaciones</div>
+
+            <div class="checkList">
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
+                <div class="checkText">presento en recepción mi identificación oficial vigente con fotografía.</div>
+              </div>
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
+                <div class="checkText">muestro en recepción foto y texto de presentación que compartí en el WhatsApp del evento.</div>
+              </div>
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
+                <div class="checkText">debo tener firmado este <b>acuerdo de financiamiento</b>.</div>
+              </div>
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
+                <div class="checkText">estoy de acuerdo con escuchar y leer toda la información e indicaciones del workshop que se envíen por WhatsApp.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 6 -->
+        <section class="step" data-step="6">
+          <div class="agreementHeader">
+            <div class="agreementHeaderLeft">
+              <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
+              <div class="agreementSub">&gt; <b>boost x ab</b> <span>| Abril 2026</span></div>
+            </div>
+          </div>
+
+          <div class="summaryBox">
+            <div class="signatureWrap">
+              <div class="signatureTitle">Pon aquí tu nombre completo, idéntico a tu INE para confirmar de enterado el acuerdo de financiamiento.</div>
+
+              <input class="signatureInput" id="signatureName" type="text"
+                placeholder="Nombre 1 Nombre 2 Apellido 1 Apellido 2" autocomplete="name" />
+
+              <div class="signatureHint" id="signatureTip">Tip: Debe coincidir con el nombre que capturaste en el formulario para evitar errores.</div>
+              <div class="signatureErr" id="signatureErr"></div>
+
+              <button class="blackBtn" id="sendBtn" type="button">Enviar</button>
+
+              <div class="sending hidden" id="sendingBox">Enviando…</div>
+              <div class="success hidden" id="successBox">Listo ✅ Se registró tu acuerdo.</div>
+              <div class="error" id="failBox" style="display:none;">No se pudo enviar. Revisa tu conexión e intenta otra vez.</div>
+
+              <div class="hint">Firma el acuerdo y presiona Enviar.</div>
+            </div>
+
+            <iframe name="hiddenFrame" id="hiddenFrame" style="display:none;"></iframe>
+            <form id="postForm" style="display:none;" method="POST" target="hiddenFrame">
+              <input type="hidden" name="payload" id="payloadField" />
+            </form>
+          </div>
+
+          <div id="pdfAgreementTemplate">
+            <h2>ACUERDO DE<br />FINANCIAMIENTO</h2>
+            <div class="sub">&gt; boost x ab | Abril 2026</div>
+            <div class="divider"></div>
+
+            <div class="sec">Estoy de acuerdo con que la empresa</div>
+            <div class="row">✓ use mi <b>imagen</b> en fotos y videos promocionales en el futuro;</div>
+            <div class="row">✓ no es responsable de <b>robo/extravío</b> de mis pertenencias;</div>
+            <div class="row">✓ me expulse de las instalaciones si mi <b>conducta</b> altera negativamente el evento.</div>
+            <div class="row">✓ daré los créditos debidos al compartir públicamente <b>contenido</b> del evento.</div>
+
+            <div class="sec">Estoy de acuerdo también con que</div>
+            <div class="row">✓ no hay <b>reembolsos/cancelaciones/devoluciones</b> del apartado y/o pagos realizados.</div>
+
+            <div class="sec">Estoy de acuerdo con que para ingresar a las instalaciones</div>
+            <div class="row">✓ presento en recepción mi identificación oficial vigente con fotografía.</div>
+            <div class="row">✓ muestro en recepción foto y texto de presentación que compartí en el WhatsApp del evento.</div>
+            <div class="row">✓ debo tener firmado este <b>acuerdo de financiamiento</b>.</div>
+            <div class="row">✓ estoy de acuerdo con escuchar y leer toda la información e indicaciones del workshop que se envíen por WhatsApp.</div>
+
+            <div class="divider"></div>
+            <div class="row"><b>Firma (nombre idéntico al INE):</b> <span id="pdfSignature"></span></div>
+          </div>
+        </section>
+
+        <!-- STEP FINAL -->
+        <section class="step" data-step="7">
+          <div class="summaryBox">
+            <div class="finalWrap">
+              <h2 class="finalTitle">Gracias por tu registro ✅</h2>
+              <p class="finalText">
+                En breve recibirás más notas en tu correo.<br />
+                Por favor revisa <b>Inbox</b>, <b>Spam</b> y <b>Promociones</b>.<br />
+                Por favor confirma de recibido.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="footer">
+        <div class="hint" id="footerHint">Tip: Enter también avanza cuando es válido.</div>
+        <div class="btns">
+          <button id="backBtn" type="button">Back</button>
+          <button id="nextBtn" class="primary" type="button">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Enviado ✅</div>
+
+  <script>
+    function getEventoFromURL() {
+      return "boost";
+    }
+
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzj6lGQftjOFiZQ2PG1NbYn5Ihl5BgHrAbtctJIJvhm8V8bo4E7rBeDs8160-Ki_rfE1Q/exec";
+
+    const steps = Array.from(document.querySelectorAll(".step"));
+    let currentStep = 1;
+    let lockAfterSubmit = false;
+    let sendingInProgress = false;
+
+    const stepLabel = document.getElementById("stepLabel");
+    const barFill = document.getElementById("barFill");
+    const backBtn = document.getElementById("backBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const footerHint = document.getElementById("footerHint");
+
+    const nombres = document.getElementById("nombres");
+    const apellidos = document.getElementById("apellidos");
+    const email = document.getElementById("email");
+    const lada = document.getElementById("lada");
+    const telefono = document.getElementById("telefono");
+
+    const err_nombres = document.getElementById("err_nombres");
+    const err_apellidos = document.getElementById("err_apellidos");
+    const err_email = document.getElementById("err_email");
+    const err_telefono = document.getElementById("err_telefono");
+
+    const sendBtn = document.getElementById("sendBtn");
+    const successBox = document.getElementById("successBox");
+    const sendingBox = document.getElementById("sendingBox");
+    const failBox = document.getElementById("failBox");
+
+    const signatureName = document.getElementById("signatureName");
+    const signatureErr = document.getElementById("signatureErr");
+
+    const toast = document.getElementById("toast");
+    const postForm = document.getElementById("postForm");
+    const payloadField = document.getElementById("payloadField");
+    const pdfSignature = document.getElementById("pdfSignature");
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 1100);
+    }
+
+    function show(el, yes) {
+      if (!el) return;
+      el.classList.toggle("show", !!yes);
+    }
+
+    function hide(el) {
+      if (!el) return;
+      el.classList.add("hidden");
+    }
+
+    function unhide(el) {
+      if (!el) return;
+      el.classList.remove("hidden");
+    }
+
+    function syncNextButtonRules() {
+      nextBtn.disabled = false;
+      nextBtn.style.display = "inline-flex";
+
+      if (currentStep === steps.length) {
+        nextBtn.style.display = "none";
+        return;
+      }
+
+      if (currentStep === 6) {
+        nextBtn.disabled = true;
+        nextBtn.style.display = "none";
+      }
+    }
+
+    function setStep(n) {
+      currentStep = n;
+      steps.forEach(s => s.classList.toggle("active", Number(s.dataset.step) === currentStep));
+
+      const totalVisualSteps = 6;
+      const stepVisual = Math.min(currentStep, totalVisualSteps);
+      stepLabel.textContent = `Paso ${stepVisual} de ${totalVisualSteps}`;
+      barFill.style.width = `${Math.round((stepVisual - 1) / (totalVisualSteps - 1) * 100)}%`;
+
+      backBtn.disabled = currentStep === 1;
+
+      if (currentStep === 7) {
+        footerHint.textContent = "Listo. Puedes cerrar esta ventana.";
+      } else if (currentStep === 6) {
+        footerHint.textContent = "Para finalizar, firma y presiona Enviar.";
+      } else {
+        footerHint.textContent = "Tip: Enter también avanza cuando es válido.";
+      }
+
+      const focusMap = {
+        1: nombres,
+        2: email,
+        6: signatureName
+      };
+      if (focusMap[currentStep]) focusMap[currentStep].focus();
+
+      syncNextButtonRules();
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    function validateStep1() {
+      const okN = nombres.value.trim().length > 0;
+      const okA = apellidos.value.trim().length > 0;
+      show(err_nombres, !okN);
+      show(err_apellidos, !okA);
+      if (!okN) nombres.classList.add("badField"); else nombres.classList.remove("badField");
+      if (!okA) apellidos.classList.add("badField"); else apellidos.classList.remove("badField");
+      return okN && okA;
+    }
+
+    function validateStep2() {
+      const okE = emailRegex.test(email.value.trim());
+      const digits = telefono.value.replace(/\D/g, '');
+      const okT = digits.length === 10;
+      show(err_email, !okE);
+      show(err_telefono, !okT);
+      if (!okE) email.classList.add("badField"); else email.classList.remove("badField");
+      if (!okT) telefono.classList.add("badField"); else telefono.classList.remove("badField");
+      return okE && okT;
+    }
+
+    telefono.addEventListener("input", () => {
+      telefono.value = telefono.value.replace(/[^\d]/g, '').slice(0, 10);
+      show(err_telefono, false);
+      telefono.classList.remove("badField");
+    });
+
+    function normalizeName(s) {
+      return (s || "").trim().replace(/\s+/g, " ").toLowerCase();
+    }
+
+    function validateSignature() {
+      signatureErr.textContent = "";
+      signatureErr.classList.remove("show");
+
+      const captured = `${nombres.value} ${apellidos.value}`.trim();
+      const must = normalizeName(captured);
+      const got = normalizeName(signatureName.value);
+
+      if (!got) {
+        signatureErr.textContent = "Escribe tu nombre completo como aparece en tu INE.";
+        signatureErr.classList.add("show");
+        return false;
+      }
+
+      if (must && got !== must) {
+        signatureErr.textContent = `Tu firma debe coincidir con el nombre capturado en el formulario:\n"${captured}"`;
+        signatureErr.classList.add("show");
+        return false;
+      }
+
+      return true;
+    }
+
+    function collectData() {
+      return {
+        contacto: {
+          nombres: nombres.value.trim(),
+          apellidos: apellidos.value.trim(),
+          email: email.value.trim(),
+          telefono: {
+            lada: lada.value,
+            numero: telefono.value.replace(/\D/g, '')
+          }
+        },
+        firma: {
+          nombre_firma: (signatureName.value || "").trim()
+        },
+        meta: {
+          created_at_iso: new Date().toISOString(),
+          source: "acuerdo_boost_v1"
+        }
+      };
+    }
+
+    async function submitToWebApp(payloadObj) {
+      try {
+        const fd = new FormData();
+        fd.append("payload", JSON.stringify(payloadObj));
+
+        const res = await fetch(WEB_APP_URL, {
+          method: "POST",
+          body: fd,
+          cache: "no-store"
+        });
+
+        const text = await res.text();
+
+        let json;
+        try {
+          json = JSON.parse(text);
+        } catch (e) {
+          json = { ok: res.ok, raw: text };
+        }
+
+        return {
+          ok: !!json?.ok,
+          via: "fetch_formdata",
+          data: json,
+          raw: text
+        };
+      } catch (err) {
+        console.error("fetch FormData falló, usando fallback iframe:", err);
+
+        try {
+          postForm.action = WEB_APP_URL;
+          postForm.method = "POST";
+          postForm.enctype = "application/x-www-form-urlencoded";
+          payloadField.value = JSON.stringify(payloadObj);
+          postForm.submit();
+          return { ok: true, via: "iframe_fallback" };
+        } catch (e2) {
+          return { ok: false, via: "none", error: String(e2) };
+        }
+      }
+    }
+
+    function resetFormHard() {
+      nombres.value = "";
+      apellidos.value = "";
+      email.value = "";
+      lada.value = "+52";
+      telefono.value = "";
+      signatureName.value = "";
+
+      nombres.classList.remove("badField");
+      apellidos.classList.remove("badField");
+      email.classList.remove("badField");
+      telefono.classList.remove("badField");
+
+      show(err_nombres, false);
+      show(err_apellidos, false);
+      show(err_email, false);
+      show(err_telefono, false);
+
+      signatureErr.textContent = "";
+      signatureErr.classList.remove("show");
+
+      hide(successBox);
+      hide(sendingBox);
+      failBox.style.display = "none";
+
+      sendBtn.disabled = false;
+      signatureName.disabled = false;
+
+      lockAfterSubmit = false;
+      sendingInProgress = false;
+
+      setStep(1);
+    }
+
+    function goNext() {
+      if (currentStep === 1 && !validateStep1()) return;
+      if (currentStep === 2 && !validateStep2()) return;
+      if (currentStep === 6) {
+        validateSignature();
+        return;
+      }
+
+      if (currentStep < 6) {
+        setStep(currentStep + 1);
+      }
+    }
+
+    function goBack() {
+      if (lockAfterSubmit) {
+        resetFormHard();
+        return;
+      }
+
+      if (currentStep > 1) {
+        setStep(currentStep - 1);
+      }
+    }
+
+    nextBtn.addEventListener("click", goNext);
+    backBtn.addEventListener("click", goBack);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const active = steps.find(s => s.classList.contains("active"));
+        const stepNum = active ? Number(active.dataset.step) : 1;
+
+        if (stepNum === 6) {
+          e.preventDefault();
+          validateSignature();
+          return;
+        }
+
+        if (stepNum < 6) {
+          e.preventDefault();
+          goNext();
+        }
+      }
+    });
+
+    sendBtn.addEventListener("click", async () => {
+      if (sendingInProgress) return;
+
+      if (!validateStep1()) {
+        setStep(1);
+        return;
+      }
+
+      if (!validateStep2()) {
+        setStep(2);
+        return;
+      }
+
+      if (!validateSignature()) return;
+
+      const data = collectData();
+      pdfSignature.textContent = data.firma.nombre_firma;
+
+      const fullName = `${data.contacto.nombres} ${data.contacto.apellidos}`.trim();
+      const phoneE164ish = `${data.contacto.telefono.lada}${data.contacto.telefono.numero}`.trim();
+
+      const payloadObj = {
+        nombre_reg: fullName,
+        email_reg: data.contacto.email || "",
+        telefono_reg: phoneE164ish,
+        firma_nombre: data.firma.nombre_firma || "",
+        firma_ok: true,
+
+        plan_json: JSON.stringify({
+          cantidad_pagos: 0,
+          pagos: [],
+          total_programado: 0,
+          abono_inicial: 0,
+          total_pagado: 0,
+          restante: 0,
+          fase_auto: ""
+        }),
+
+        pdf_status: "PENDING",
+        pdf_url: "",
+        pdf_id: "",
+        error: "",
+        row_id: "",
+
+        evento: getEventoFromURL(),
+        data_full: data,
+
+        pdf_html: document.getElementById("pdfAgreementTemplate").outerHTML
+      };
+
+      failBox.style.display = "none";
+      hide(successBox);
+      unhide(sendingBox);
+      sendBtn.disabled = true;
+      sendingInProgress = true;
+
+      const result = await submitToWebApp(payloadObj);
+
+      if (!result.ok) {
+        hide(sendingBox);
+        failBox.style.display = "block";
+        sendBtn.disabled = false;
+        sendingInProgress = false;
+        console.error("No se pudo enviar:", result);
+        return;
+      }
+
+      hide(sendingBox);
+      unhide(successBox);
+      showToast("Enviado ✅");
+
+      sendBtn.disabled = true;
+      signatureName.disabled = true;
+      lockAfterSubmit = true;
+      sendingInProgress = false;
+
+      setTimeout(() => setStep(7), 700);
+    });
+
+    setStep(1);
+  </script>
+
+</body>
+
+</html>
