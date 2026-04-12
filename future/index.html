@@ -1069,21 +1069,12 @@
             <div class="field">
               <label for="ticketTotalInput">El total de tu ticket es:</label>
               <input id="ticketTotalInput" inputmode="decimal" placeholder="Aquí escribe el monto final de tu ticket" />
-              <div class="hint">Número (sin $). Se formatea automático. Este monto será la base para calcular tu pendiente total.</div>
+              <div class="hint">Número (sin $). Se formatea automático y será la base para calcular tu pendiente total.</div>
               <div class="error" id="ticketErr">Escribe un monto final válido, mayor a 0.</div>
             </div>
 
-            <div class="field half">
-              <label>Total capturado</label>
-              <input id="ticketTotalDisplay" type="text" disabled value="—" />
-              <div class="hint">Esto se actualiza automáticamente conforme escribes.</div>
-            </div>
-
-            <div class="field half">
-              <label>Tipo de cálculo</label>
-              <input id="faseAuto" type="text" disabled value="Manual" />
-              <div class="hint">Este evento usa monto libre, sin tipo de ticket.</div>
-            </div>
+            <input id="ticketTotalDisplay" type="hidden" value="" />
+            <input id="faseAuto" type="hidden" value="Diciembre 2026" />
           </div>
         </section>
 
@@ -1204,7 +1195,7 @@
           <div class="agreementHeader">
             <div class="agreementHeaderLeft">
               <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
-              <div class="agreementSub">&gt; <b>stage x ab</b> <span>| Junio 2026</span></div>
+              <div class="agreementSub">&gt; <b>future x ab</b> <span>| Diciembre 2026</span></div>
             </div>
           </div>
 
@@ -1238,7 +1229,7 @@
           <div class="agreementHeader">
             <div class="agreementHeaderLeft">
               <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
-              <div class="agreementSub">&gt; <b>stage x ab</b> <span>| Junio 2026</span></div>
+              <div class="agreementSub">&gt; <b>future x ab</b> <span>| Diciembre 2026</span></div>
             </div>
           </div>
 
@@ -1269,7 +1260,7 @@
           <div class="agreementHeader">
             <div class="agreementHeaderLeft">
               <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
-              <div class="agreementSub">&gt; <b>stage x ab</b> <span>| Junio 2026</span></div>
+              <div class="agreementSub">&gt; <b>future x ab</b> <span>| Diciembre 2026</span></div>
             </div>
           </div>
 
@@ -1303,7 +1294,7 @@
           <div class="agreementHeader">
             <div class="agreementHeaderLeft">
               <div class="agreementTitle">ACUERDO DE FINANCIAMIENTO</div>
-              <div class="agreementSub">&gt; <b>stage x ab</b> <span>| Junio 2026</span></div>
+              <div class="agreementSub">&gt; <b>future x ab</b> <span>| Diciembre 2026</span></div>
             </div>
           </div>
 
@@ -1337,7 +1328,7 @@
 
           <div id="pdfAgreementTemplate">
             <h2>ACUERDO DE<br />FINANCIAMIENTO</h2>
-            <div class="sub">&gt; stage x ab | Junio 2026</div>
+            <div class="sub">&gt; future x ab | Diciembre 2026</div>
             <div class="divider"></div>
 
             <div class="sec">Estoy de acuerdo con que la empresa</div>
@@ -1636,6 +1627,10 @@
         nextBtn.style.display = "none";
         return;
       }
+      if (currentStep === 5) {
+        const restante = Number(collectData().ticket.restante || 0);
+        nextBtn.disabled = !remainingIsZero(restante);
+      }
       if (currentStep === 6) {
         nextBtn.disabled = !!toAgreementBtn.disabled;
       }
@@ -1773,8 +1768,11 @@
       }
 
       const data = collectData();
-      if (Number(data.ticket.total_pagado || 0) - Number(data.ticket.total || 0) > REMAINING_TOL) {
-        errors.push("Tus pagos rebasan el total del ticket.");
+      const restante = Number(data.ticket.restante || 0);
+      if (restante > REMAINING_TOL) {
+        errors.push(`Aún faltan ${money(restante)} para liquidar el ticket completo.`);
+      } else if (restante < -REMAINING_TOL) {
+        errors.push(`Tus pagos rebasan el total del ticket por ${money(Math.abs(restante))}.`);
       }
 
       const ok = errors.length === 0;
@@ -2201,7 +2199,7 @@
         },
         ticket: {
           elegido: "Monto libre",
-          fase_auto: "Manual",
+          fase_auto: "Diciembre 2026",
           total: TICKET_TOTAL,
           abono_inicial: abono,
           total_plan_pagos: totalPlan,
@@ -2242,6 +2240,8 @@
           ? `Aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`
           : `Vas con exceso de ${money(Math.abs(restante))}. Revisa montos.`;
       }
+
+      syncNextButtonRules();
     }
 
     function renderSummary(data) {
@@ -2397,7 +2397,7 @@ Restante pendiente: ${money(data.ticket.restante)}
       telefono.value = "";
       ticketTotalInput.value = "";
       ticketTotalDisplay.value = "—";
-      faseAutoEl.value = "Manual";
+      faseAutoEl.value = "Diciembre 2026";
       abonoInicial.value = "";
       signatureName.value = "";
 
@@ -2634,7 +2634,7 @@ Restante pendiente: ${money(data.ticket.restante)}
     function futureInitTicketStep() {
       enablePlannerUI(false);
       ticketTotalDisplay.value = "—";
-      faseAutoEl.value = "Manual";
+      faseAutoEl.value = "Diciembre 2026";
     }
 
     resetPlanner();
