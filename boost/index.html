@@ -11,7 +11,7 @@
   <meta property="og:description" content="Captura tus abonos y programa los pagos que mejor te queden." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://vanlimn.github.io/plan-pagos-form/boost/" />
-  <meta property="og:image" content="https://vanlimn.github.io/plan-pagos-form/boost/og-image.png" />
+<meta property="og:image" content="https://vanlimn.github.io/plan-pagos-form/boost/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
@@ -302,7 +302,7 @@
       cursor: not-allowed;
     }
 
-    /* Primary = Boost Purple */
+    /* Primary = Stage Purple */
     .primary {
       border-color: rgba(159, 32, 239, .85);
       background: linear-gradient(90deg, rgba(159, 32, 239, .34), rgba(159, 32, 239, .16));
@@ -314,14 +314,13 @@
 
     .primary:hover {
       background: linear-gradient(90deg, rgba(159, 32, 239, .42), rgba(159, 32, 239, .22));
-      border-color: rgba(159, 32, 239, 1);
+      border-color: rgba(177, 161, 237, 1);
     }
 
-    /* Enviar (blackBtn) -> Boost */
     .blackBtn {
       background: var(--accent) !important;
       border-color: var(--accent) !important;
-      color: var(--text) !important;
+      color: #08110B !important;
       font-weight: 900 !important;
     }
 
@@ -438,7 +437,6 @@
       display: none !important;
     }
 
-    /* ===== Planner (Calendario) ===== */
     .payPlanner {
       display: grid;
       grid-template-columns: 1fr;
@@ -636,7 +634,7 @@
 
     .payItem.filled {
       border-color: rgba(159, 32, 239, .25);
-      background: rgba(159, 32, 239, .06);
+      background: rgba(177, 161, 237, .06);
     }
 
     .payTop {
@@ -688,7 +686,6 @@
       margin-top: 10px;
     }
 
-    /* ===== Modal ===== */
     .modalOverlay {
       position: fixed;
       inset: 0;
@@ -809,7 +806,6 @@
       flex-wrap: wrap;
     }
 
-    /* ===== Agreement ===== */
     .agreementHeader {
       display: flex;
       align-items: flex-start;
@@ -870,7 +866,7 @@
       align-items: center;
       justify-content: center;
       font-weight: 900;
-      color: #ffffff;
+      color: #08110B;
       background: rgba(159, 32, 239, .92);
       margin-top: 1px;
       flex: 0 0 auto;
@@ -964,7 +960,6 @@
       display: block;
     }
 
-    /* PDF template stays light for printing */
     #pdfAgreementTemplate {
       display: none;
       font-family: Arial, Helvetica, sans-serif;
@@ -1014,7 +1009,6 @@
 
       <div class="content">
 
-        <!-- STEP 1 -->
         <section class="step active" data-step="1">
           <div class="grid">
             <div class="field half">
@@ -1037,7 +1031,6 @@
           </div>
         </section>
 
-        <!-- STEP 2 -->
         <section class="step" data-step="2">
           <div class="grid">
             <div class="field twoThird">
@@ -1071,38 +1064,20 @@
           </div>
         </section>
 
-        <!-- ✅ STEP 3: Ticket elegido (Boost) -->
         <section class="step" data-step="3" id="stepTicket">
           <div class="grid">
-
             <div class="field">
-              <label for="ticketElegido">¿Qué ticket adquiriste?</label>
-              <select id="ticketElegido">
-  <option value="">Selecciona una opción</option>
-  <option value="Normal">Normal (FHS)</option>
-</select>
-              <div class="hint" id="ticketHint">
-                Calculamos tu fase automáticamente con la fecha de hoy.
-              </div>
-              <div class="error" id="ticketErr">Elige tu tipo de ticket para continuar.</div>
+              <label for="ticketTotalInput">El total de tu ticket es:</label>
+              <input id="ticketTotalInput" inputmode="decimal" placeholder="Aquí escribe el monto final de tu ticket" />
+              <div class="hint">Número (sin $). Se formatea automático y será la base para calcular tu pendiente total.</div>
+              <div class="error" id="ticketErr">Escribe un monto final válido, mayor a 0.</div>
             </div>
 
-            <div class="field half">
-              <label>Fase detectada</label>
-              <input id="faseAuto" type="text" disabled value="—" />
-              <div class="hint">Esto se calcula solo.</div>
-            </div>
-
-            <div class="field half">
-              <label>Ticket total (FHS)</label>
-              <input id="ticketTotal" type="text" disabled value="—" />
-              <div class="hint">Usaremos este monto para cálculos y “pendiente”.</div>
-            </div>
-
+            <input id="ticketTotalDisplay" type="hidden" value="" />
+            <input id="faseAuto" type="hidden" value="Abril 2026" />
           </div>
         </section>
 
-        <!-- STEP 4 -->
         <section class="step" data-step="4">
           <div class="grid">
             <div class="field">
@@ -1114,16 +1089,8 @@
           </div>
         </section>
 
-        <!-- STEP 5 -->
         <section class="step" data-step="5">
           <div class="grid">
-            <div class="field">
-              <label for="numPagos">¿Cuántos pagos vas a querer que sean?</label>
-              <input id="numPagos" type="number" min="1" max="50" step="1" placeholder="Ej. 3" inputmode="numeric" />
-              <div class="hint">Se habilita un calendario. Selecciona fecha (pop-up) y captura el monto.</div>
-              <div class="error" id="err_numPagos">Indica un número de pagos (1–50).</div>
-            </div>
-
             <div class="field">
               <div class="tag">
                 <span class="tagDot"></span>
@@ -1137,8 +1104,7 @@
             <div class="field">
               <div id="plannerEmpty" class="summaryBox">
                 <div class="tag"><span class="tagDot"></span><span>Plan de pagos</span></div>
-                <div class="hint">Primero escribe cuántos pagos serán (arriba). Luego selecciona fechas en el
-                  calendario.</div>
+                <div class="hint">Primero captura el total final de tu ticket y tu abono inicial. Después selecciona fechas en el calendario para ir agregando pagos.</div>
               </div>
 
               <div id="payPlanner" class="payPlanner hidden">
@@ -1172,7 +1138,7 @@
                   <div class="listTitle">
                     <div>
                       <div class="t">Tus pagos</div>
-                      <div class="s" id="payListStatus">0 / 0</div>
+                      <div class="s" id="payListStatus">0 pagos</div>
                     </div>
                     <div class="tag"><span class="tagDot"></span><span>Editar / borrar</span></div>
                   </div>
@@ -1211,7 +1177,6 @@
           </div>
         </section>
 
-        <!-- STEP 6 (Resumen) -->
         <section class="step" data-step="6">
           <div class="summaryBox">
             <div class="tag"><span class="tagDot"></span><span>Resumen final | Revisa que todos tus datos estén correctos
@@ -1226,7 +1191,6 @@
           </div>
         </section>
 
-        <!-- STEP 7 -->
         <section class="step" data-step="7" id="stepAgreement">
           <div class="agreementHeader">
             <div class="agreementHeaderLeft">
@@ -1261,7 +1225,6 @@
           </div>
         </section>
 
-        <!-- STEP 8 -->
         <section class="step" data-step="8">
           <div class="agreementHeader">
             <div class="agreementHeaderLeft">
@@ -1281,6 +1244,10 @@
               </div>
               <div class="checkItem">
                 <div class="checkBox">✓</div>
+                <div class="checkText">la fecha límite para notificar cualquier <b>cambio en mi participación</b> en este módulo es el <b>viernes 4 de Septiembre del 2026</b>. Posterior a esa fecha, no hay reembolsos del monto ya pagado.</div>
+              </div>
+              <div class="checkItem">
+                <div class="checkBox">✓</div>
                 <div class="checkText">mantendré las <b>fechas de pago acordadas</b> para conservar el precio especial;
                   de no hacerlo, el monto total se ajustará al precio público.</div>
               </div>
@@ -1293,7 +1260,6 @@
           </div>
         </section>
 
-        <!-- STEP 9 -->
         <section class="step" data-step="9">
           <div class="agreementHeader">
             <div class="agreementHeaderLeft">
@@ -1328,7 +1294,6 @@
           </div>
         </section>
 
-        <!-- STEP 10 (Firma) -->
         <section class="step" data-step="10">
           <div class="agreementHeader">
             <div class="agreementHeaderLeft">
@@ -1359,14 +1324,12 @@
               <div class="hint">Firma el acuerdo y presiona Enviar.</div>
             </div>
 
-            <!-- ✅ Hidden form post (fallback) -->
             <iframe name="hiddenFrame" id="hiddenFrame" style="display:none;"></iframe>
             <form id="postForm" style="display:none;" method="POST" target="hiddenFrame">
               <input type="hidden" name="payload" id="payloadField" />
             </form>
           </div>
 
-          <!-- ✅ PDF interno oculto -->
           <div id="pdfAgreementTemplate">
             <h2>ACUERDO DE<br />FINANCIAMIENTO</h2>
             <div class="sub">&gt; boost x ab | Abril 2026</div>
@@ -1382,6 +1345,7 @@
             <div class="sec">Estoy de acuerdo también con que</div>
             <div class="row">✓ no hay <b>reembolsos/cancelaciones/devoluciones</b> del apartado y/o pagos realizados.
             </div>
+            <div class="row">✓ la fecha límite para notificar cualquier <b>cambio en mi participación</b> en este módulo es el <b>viernes 4 de Septiembre del 2026</b>. Posterior a esa fecha, no hay reembolsos del monto ya pagado.</div>
             <div class="row">✓ mantendré las <b>fechas de pago acordadas</b> para conservar el precio especial; de no
               hacerlo, el monto total se ajustará al precio público.</div>
 
@@ -1401,7 +1365,6 @@
           </div>
         </section>
 
-        <!-- STEP 11 -->
         <section class="step" data-step="11">
           <div class="summaryBox">
             <div class="finalWrap">
@@ -1426,7 +1389,6 @@
     </div>
   </div>
 
-  <!-- ✅ Modal para capturar monto (fecha viene del click en calendario) -->
   <div class="modalOverlay" id="payModalOverlay" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="payModalTitle">
       <div class="modalHead">
@@ -1456,22 +1418,19 @@
 
   <script>
     function getEventoFromURL() {
-      const params = new URLSearchParams(window.location.search);
-      const ev = (params.get("evento") || "boost").trim().toLowerCase();
-      if (!["skills", "stage", "boost"].includes(ev)) return "boost";
-      return ev;
+      return "boost";
     }
 
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzuNTaLIi65EbNzM9V35HO6d8AsGKjMbpX7ZK1x3DuX_c0FBDl8gsv-T3Ui9xIbFb_GHw/exec";
 
-    let TICKET_TOTAL = 35000;
+    let TICKET_TOTAL = 0;
     const MAX_DATE = "2026-11-30";
     const REMAINING_TOL = 0.01;
 
     function getDynamicMaxAbono() {
       const total = Number(TICKET_TOTAL || 0);
       if (!Number.isFinite(total) || total <= 0) return 0;
-      return Math.max(0, total - 1000);
+      return total;
     }
 
     const MONTHS_ES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -1575,11 +1534,10 @@
     const telefono = document.getElementById("telefono");
     const abonoInicial = document.getElementById("abonoInicial");
     const abonoHint = document.getElementById("abonoHint");
-    const numPagos = document.getElementById("numPagos");
 
-    const ticketElegidoEl = document.getElementById("ticketElegido");
+    const ticketTotalInput = document.getElementById("ticketTotalInput");
+    const ticketTotalDisplay = document.getElementById("ticketTotalDisplay");
     const faseAutoEl = document.getElementById("faseAuto");
-    const ticketTotalEl = document.getElementById("ticketTotal");
     const ticketErrEl = document.getElementById("ticketErr");
 
     const err_nombres = document.getElementById("err_nombres");
@@ -1587,7 +1545,6 @@
     const err_email = document.getElementById("err_email");
     const err_telefono = document.getElementById("err_telefono");
     const err_abonoInicial = document.getElementById("err_abonoInicial");
-    const err_numPagos = document.getElementById("err_numPagos");
     const err_payments = document.getElementById("err_payments");
     const err_payments_list = document.getElementById("err_payments_list");
 
@@ -1641,7 +1598,6 @@
 
     let lockAfterSubmit = false;
 
-    let paymentsCount = 0;
     let payments = [];
     let viewYear = new Date().getFullYear();
     let viewMonth = new Date().getMonth();
@@ -1673,6 +1629,10 @@
         nextBtn.style.display = "none";
         return;
       }
+      if (currentStep === 5) {
+        const restante = Number(collectData().ticket.restante || 0);
+        nextBtn.disabled = !remainingIsZero(restante);
+      }
       if (currentStep === 6) {
         nextBtn.disabled = !!toAgreementBtn.disabled;
       }
@@ -1699,9 +1659,9 @@
       const focusMap = {
         1: nombres,
         2: email,
-        3: ticketElegidoEl,
+        3: ticketTotalInput,
         4: abonoInicial,
-        5: numPagos,
+        5: ticketTotalInput,
         10: signatureName
       };
       if (focusMap[currentStep]) focusMap[currentStep].focus();
@@ -1734,11 +1694,25 @@
       return okE && okT;
     }
 
-    function validateStep3() {
+    function validateTicketStep() {
+      const val = ticketTotalInput.value.trim();
+      const n = parseAmount(val);
+      const ok = Number.isFinite(n) && n > 0;
+
+      if (!ok) {
+        ticketErrEl && ticketErrEl.classList.add("show");
+        ticketTotalInput && ticketTotalInput.classList.add("badField");
+      } else {
+        ticketErrEl && ticketErrEl.classList.remove("show");
+        ticketTotalInput && ticketTotalInput.classList.remove("badField");
+      }
+      return ok;
+    }
+
+    function validateStep4() {
       const val = abonoInicial.value.trim();
       const n = val === "" ? 0 : parseAmount(val);
       const maxAbono = getDynamicMaxAbono();
-
       const ok = Number.isFinite(n) && n >= 0 && n <= maxAbono;
 
       err_abonoInicial.textContent = `Escribe un monto válido (0 a ${money(maxAbono)}).`;
@@ -1750,34 +1724,18 @@
       return ok;
     }
 
-    function validateTicketStep() {
-      const ok = ticketElegidoEl && ticketElegidoEl.value && ticketElegidoEl.value.trim() !== "";
-      if (!ok) {
-        ticketErrEl && ticketErrEl.classList.add("show");
-        ticketElegidoEl && ticketElegidoEl.classList.add("badField");
-      } else {
-        ticketErrEl && ticketErrEl.classList.remove("show");
-        ticketElegidoEl && ticketElegidoEl.classList.remove("badField");
-      }
-      return ok;
-    }
-
     function validatePlannerDetailed() {
       show(err_payments, false);
       err_payments_list.textContent = "";
 
       const errors = [];
 
-      if (!(Number.isInteger(paymentsCount) && paymentsCount >= 1 && paymentsCount <= 50)) {
-        errors.push("Cantidad de pagos inválida (1–50).");
+      if (!(Number.isFinite(TICKET_TOTAL) && TICKET_TOTAL > 0)) {
+        errors.push("El total del ticket es inválido.");
       }
 
-      if (payments.length !== paymentsCount) {
-        errors.push(`Faltan pagos por completar: llevas ${payments.length} de ${paymentsCount}.`);
-      }
-
-      const used = new Set();
       const sorted = [...payments].sort((a, b) => (a.fecha || "").localeCompare(b.fecha || ""));
+      const used = new Set();
 
       for (let i = 0; i < sorted.length; i++) {
         const p = sorted[i];
@@ -1811,6 +1769,14 @@
         }
       }
 
+      const data = collectData();
+      const restante = Number(data.ticket.restante || 0);
+      if (restante > REMAINING_TOL) {
+        errors.push(`Aún faltan ${money(restante)} para liquidar el ticket completo.`);
+      } else if (restante < -REMAINING_TOL) {
+        errors.push(`Tus pagos rebasan el total del ticket por ${money(Math.abs(restante))}.`);
+      }
+
       const ok = errors.length === 0;
       if (!ok) {
         err_payments_list.textContent = errors.join("\n");
@@ -1818,6 +1784,32 @@
       }
       return { ok, errors };
     }
+
+    ticketTotalInput.addEventListener("input", () => {
+      const caret = ticketTotalInput.selectionStart;
+      const before = ticketTotalInput.value;
+      ticketTotalInput.value = formatCurrencyInput(ticketTotalInput.value);
+      const delta = ticketTotalInput.value.length - before.length;
+      try { ticketTotalInput.setSelectionRange(caret + delta, caret + delta); } catch (e) { }
+
+      const total = parseAmount(ticketTotalInput.value);
+      if (Number.isFinite(total) && total > 0) {
+        TICKET_TOTAL = total;
+        ticketTotalDisplay.value = formatMXN(total);
+        ticketErrEl && ticketErrEl.classList.remove("show");
+        ticketTotalInput.classList.remove("badField");
+        enablePlannerUI(true);
+      } else {
+        TICKET_TOTAL = 0;
+        ticketTotalDisplay.value = "—";
+        enablePlannerUI(false);
+      }
+
+      refreshAbonoUI();
+      updateLiveTotals();
+      renderCalendar();
+      renderPayList();
+    });
 
     abonoInicial.addEventListener("input", () => {
       const caret = abonoInicial.selectionStart;
@@ -1828,6 +1820,8 @@
       show(err_abonoInicial, false);
       abonoInicial.classList.remove("badField");
       updateLiveTotals();
+      renderCalendar();
+      renderPayList();
     });
 
     telefono.addEventListener("input", () => {
@@ -1846,26 +1840,12 @@
     }
 
     function resetPlanner() {
-      paymentsCount = 0;
       payments = [];
       viewYear = new Date().getFullYear();
       viewMonth = new Date().getMonth();
       pendingDateISO = null;
       editingIndex = null;
-      enablePlannerUI(false);
-      renderPayList();
-      renderCalendar();
-      updateLiveTotals();
-    }
-
-    function setPaymentsCount(n) {
-      paymentsCount = n;
-      payments = [];
-      viewYear = new Date().getFullYear();
-      viewMonth = new Date().getMonth();
-      pendingDateISO = null;
-      editingIndex = null;
-      enablePlannerUI(true);
+      enablePlannerUI(TICKET_TOTAL > 0);
       renderPayList();
       renderCalendar();
       updateLiveTotals();
@@ -1903,33 +1883,34 @@
     function canPickDateForEdit(dateISO, index) {
       if (!isValidISODate(dateISO)) return false;
       if (!(dateISO >= MIN_DATE && dateISO <= MAX_DATE)) return false;
-      if (index === 0 && dateISO < FIRST_PAY_MIN_DATE) return false;
       if (usedDateSet(index).has(dateISO)) return false;
       return true;
     }
 
     function renderCalendar() {
-      if (paymentsCount <= 0) {
+      if (TICKET_TOTAL <= 0) {
         calDays.innerHTML = "";
         calMonthTitle.textContent = "—";
-        calSubTitle.textContent = "Escribe cuántos pagos serán.";
+        calSubTitle.textContent = "Primero captura el total de tu ticket.";
         plannerHint.textContent = "";
         return;
       }
 
       calMonthTitle.textContent = `${MONTHS_ES[viewMonth]} ${viewYear}`;
 
+      const data = collectData();
+      const restante = Number(data.ticket.restante || 0);
+      const planComplete = remainingIsZero(restante);
+
       if (editingIndex !== null) {
-        calSubTitle.textContent = `Editando Pago ${editingIndex + 1}: selecciona una nueva fecha.`;
-        plannerHint.textContent = "Modo edición: selecciona una fecha válida. No repetida, dentro del rango.";
+        calSubTitle.textContent = `Editando pago ${editingIndex + 1}: selecciona una nueva fecha.`;
+        plannerHint.textContent = "Modo edición: selecciona una fecha válida. No repetida y dentro del rango.";
+      } else if (planComplete) {
+        calSubTitle.textContent = "Plan completo ✅ Si necesitas ajustar algo, usa Editar o Borrar.";
+        plannerHint.textContent = "Ya llegaste al total del ticket. El calendario queda bloqueado hasta que edites o borres algún pago.";
       } else {
-        if (payments.length >= paymentsCount) {
-          calSubTitle.textContent = "Plan completo ✅ Si necesitas ajustar algo, usa Editar en el pago correspondiente.";
-          plannerHint.textContent = "El calendario queda bloqueado porque ya completaste todos los pagos.";
-        } else {
-          calSubTitle.textContent = `Selecciona una fecha para Pago ${payments.length + 1} de ${paymentsCount}`;
-          plannerHint.textContent = "Selecciona un día y captura el monto. No se permiten fechas repetidas ni fuera de orden.";
-        }
+        calSubTitle.textContent = `Selecciona una fecha para Pago ${payments.length + 1}`;
+        plannerHint.textContent = "Selecciona un día y captura el monto. No se permiten fechas repetidas ni fuera de orden.";
       }
 
       const firstDay = new Date(Date.UTC(viewYear, viewMonth, 1));
@@ -1949,7 +1930,6 @@
 
       for (let d = 1; d <= daysInMonth; d++) {
         const iso = toISO(viewYear, viewMonth, d);
-
         const el = document.createElement("div");
         el.className = "day";
         el.textContent = String(d);
@@ -1960,12 +1940,9 @@
         if (editingIndex !== null) {
           enabled = canPickDateForEdit(iso, editingIndex);
         } else {
-          if (payments.length >= paymentsCount) {
-            enabled = false;
-          } else {
-            enabled = canPickDateForAdd(iso);
-          }
+          enabled = !planComplete && canPickDateForAdd(iso);
         }
+
         if (!enabled) el.classList.add("disabled");
 
         el.addEventListener("click", () => {
@@ -1980,19 +1957,30 @@
 
     function renderPayList() {
       payList.innerHTML = "";
-      payListStatus.textContent = `${payments.length} / ${paymentsCount}`;
+      payListStatus.textContent = `${payments.length} pago${payments.length === 1 ? "" : "s"}`;
 
-      for (let i = 0; i < paymentsCount; i++) {
-        const p = payments[i];
+      if (!payments.length) {
         const item = document.createElement("div");
-        item.className = "payItem" + (p ? " filled" : "");
-        const title = `Pago #${i + 1}`;
-
-        if (p) {
-          item.innerHTML = `
+        item.className = "payItem";
+        item.innerHTML = `
           <div class="payTop">
             <div class="payMeta">
-              <div class="n">${title}</div>
+              <div class="n">Aún no agregas pagos</div>
+              <div class="v">Selecciona una fecha en el calendario para programar tu siguiente abono.</div>
+            </div>
+          </div>
+        `;
+        payList.appendChild(item);
+        return;
+      }
+
+      payments.forEach((p, i) => {
+        const item = document.createElement("div");
+        item.className = "payItem filled";
+        item.innerHTML = `
+          <div class="payTop">
+            <div class="payMeta">
+              <div class="n">Pago #${i + 1}</div>
               <div class="v">${isoToPrettyLong(p.fecha)} | ${money(p.monto)}</div>
             </div>
             <div class="payBtns">
@@ -2001,19 +1989,8 @@
             </div>
           </div>
         `;
-        } else {
-          item.innerHTML = `
-          <div class="payTop">
-            <div class="payMeta">
-              <div class="n">${title}</div>
-              <div class="v">Pendiente · Selecciona una fecha en el calendario</div>
-            </div>
-          </div>
-        `;
-        }
-
         payList.appendChild(item);
-      }
+      });
 
       payList.querySelectorAll("button[data-action='edit']").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -2126,6 +2103,21 @@
         return;
       }
 
+      const abonoVal = abonoInicial.value.trim();
+      const abono = abonoVal === "" ? 0 : (parseAmount(abonoVal) || 0);
+
+      let sumPagos = 0;
+      for (let i = 0; i < payments.length; i++) {
+        if (editingIndex !== null && i === editingIndex) continue;
+        sumPagos += Number(payments[i]?.monto || 0);
+      }
+
+      const pendienteDisponible = TICKET_TOTAL - (abono + sumPagos);
+      if (amt - pendienteDisponible > REMAINING_TOL) {
+        modalError(`Ese monto rebasa el pendiente disponible. Máximo permitido: ${money(Math.max(0, pendienteDisponible))}.`);
+        return;
+      }
+
       if (editingIndex !== null) {
         if (!canPickDateForEdit(pendingDateISO, editingIndex)) {
           modalError("Fecha no válida para este pago.");
@@ -2144,10 +2136,6 @@
         return;
       }
 
-      if (payments.length >= paymentsCount) {
-        modalError("Ya completaste el número de pagos.");
-        return;
-      }
       if (!canPickDateForAdd(pendingDateISO)) {
         modalError("Fecha no válida (rango/orden/repetición). Selecciona una fecha posterior al último pago.");
         return;
@@ -2170,35 +2158,20 @@
     payModalOverlay.addEventListener("click", (e) => { if (e.target === payModalOverlay) { editingIndex = null; closePayModal(); renderCalendar(); } });
 
     calPrevBtn.addEventListener("click", () => {
-      if (paymentsCount <= 0) return;
+      if (TICKET_TOTAL <= 0) return;
       viewMonth--;
       if (viewMonth < 0) { viewMonth = 11; viewYear--; }
       renderCalendar();
     });
 
     calNextBtn.addEventListener("click", () => {
-      if (paymentsCount <= 0) return;
+      if (TICKET_TOTAL <= 0) return;
       viewMonth++;
       if (viewMonth > 11) { viewMonth = 0; viewYear++; }
       renderCalendar();
     });
 
-    numPagos.addEventListener("input", () => {
-      const n = Number(numPagos.value);
-      show(err_numPagos, false);
-      show(err_payments, false);
-      err_payments_list.textContent = "";
-
-      if (Number.isInteger(n) && n >= 1 && n <= 50) {
-        setPaymentsCount(n);
-      } else {
-        resetPlanner();
-      }
-    });
-
     function collectData() {
-      const n = Number(numPagos.value);
-
       const abonoVal = abonoInicial.value.trim();
       const abono = abonoVal === "" ? 0 : (parseAmount(abonoVal) || 0);
 
@@ -2212,9 +2185,6 @@
       const totalPlan = pagos.reduce((acc, p) => acc + (p.monto || 0), 0);
       const totalPagado = abono + totalPlan;
       const restante = TICKET_TOTAL - totalPagado;
-
-      const ticketElegido = (window.__FORM?.ticket_elegido || (ticketElegidoEl?.value || "")).trim();
-      const faseAuto = (window.__FORM?.fase_auto || (faseAutoEl?.value || "")).trim();
 
       return {
         contacto: {
@@ -2230,8 +2200,8 @@
           nombre_firma: (signatureName.value || "").trim()
         },
         ticket: {
-          elegido: ticketElegido,
-          fase_auto: faseAuto,
+          elegido: "Monto libre",
+          fase_auto: "Abril 2026",
           total: TICKET_TOTAL,
           abono_inicial: abono,
           total_plan_pagos: totalPlan,
@@ -2239,7 +2209,7 @@
           restante: restante
         },
         plan_pagos: {
-          cantidad_pagos: n,
+          cantidad_pagos: pagos.length,
           pagos,
           total_programado: totalPlan
         },
@@ -2251,7 +2221,7 @@
         },
         meta: {
           created_at_iso: new Date().toISOString(),
-          source: "formulario_plan_pagos_calendar_modal_v1"
+          source: "formulario_boost_plan_pagos_calendar_modal_v1"
         }
       };
     }
@@ -2272,6 +2242,8 @@
           ? `Aún faltan ${money(restante)} para completar ${money(TICKET_TOTAL)}.`
           : `Vas con exceso de ${money(Math.abs(restante))}. Revisa montos.`;
       }
+
+      syncNextButtonRules();
     }
 
     function renderSummary(data) {
@@ -2286,10 +2258,9 @@
         { k: "Nombre completo (INE)", v: fullName || "-" },
         { k: "Correo", v: data.contacto.email || "-" },
         { k: "Teléfono", v: phone || "-" },
-        { k: "Ticket elegido", v: data.ticket.elegido || "-" },
-        { k: "Fase detectada", v: data.ticket.fase_auto || "-" },
+        { k: "Total final del ticket", v: money(data.ticket.total || 0) },
         { k: "Abono inicial", v: money(data.ticket.abono_inicial) },
-        { k: "Cantidad de pagos", v: String(data.plan_pagos.cantidad_pagos || 0) },
+        { k: "Cantidad de pagos programados", v: String(data.plan_pagos.cantidad_pagos || 0) },
         { k: "Total plan de pagos", v: money(data.ticket.total_plan_pagos) },
       ];
 
@@ -2426,18 +2397,13 @@ Restante pendiente: ${money(data.ticket.restante)}
       email.value = "";
       lada.value = "+52";
       telefono.value = "";
-      ticketElegidoEl.value = "";
-      faseAutoEl.value = "—";
-      ticketTotalEl.value = "—";
+      ticketTotalInput.value = "";
+      ticketTotalDisplay.value = "—";
+      faseAutoEl.value = "Abril 2026";
       abonoInicial.value = "";
-      numPagos.value = "";
       signatureName.value = "";
 
-      window.__FORM = window.__FORM || {};
-      window.__FORM.ticket_elegido = "";
-      window.__FORM.ticket_total = "";
-      window.__FORM.fase_auto = "";
-      TICKET_TOTAL = 35000;
+      TICKET_TOTAL = 0;
 
       resetPlanner();
 
@@ -2452,7 +2418,6 @@ Restante pendiente: ${money(data.ticket.restante)}
       show(err_telefono, false);
       show(ticketErrEl, false);
       show(err_abonoInicial, false);
-      show(err_numPagos, false);
       show(err_payments, false);
       err_payments_list.textContent = "";
 
@@ -2476,6 +2441,7 @@ Restante pendiente: ${money(data.ticket.restante)}
       lockAfterSubmit = false;
       sendingInProgress = false;
 
+      refreshAbonoUI();
       updateLiveTotals();
       setStep(1);
     }
@@ -2491,7 +2457,7 @@ Restante pendiente: ${money(data.ticket.restante)}
       if (currentStep === 1 && !validateStep1()) return;
       if (currentStep === 2 && !validateStep2()) return;
       if (currentStep === 3 && !validateTicketStep()) return;
-      if (currentStep === 4 && !validateStep3()) return;
+      if (currentStep === 4 && !validateStep4()) return;
 
       if (currentStep === 5) {
         const v = validatePlannerDetailed();
@@ -2559,7 +2525,7 @@ Restante pendiente: ${money(data.ticket.restante)}
       if (!v.ok) { setStep(5); return; }
 
       const data = collectData();
-      if (!(Number(data.ticket.abono_inicial) <= getDynamicMaxAbono())) { setStep(4); return; }
+      if (!validateStep4()) { setStep(4); return; }
       if (!remainingIsZero(data.ticket.restante)) {
         unhide(validationBox);
         validationBox.textContent = "El restante pendiente debe ser 0 para poder continuar. Revisa montos.";
@@ -2572,10 +2538,10 @@ Restante pendiente: ${money(data.ticket.restante)}
     sendBtn.addEventListener("click", async () => {
       if (sendingInProgress) return;
 
-      if (!validateStep1() || !validateStep2() || !validateTicketStep() || !validateStep3()) {
-        setStep(3);
-        return;
-      }
+      if (!validateStep1()) { setStep(1); return; }
+      if (!validateStep2()) { setStep(2); return; }
+      if (!validateTicketStep()) { setStep(3); return; }
+      if (!validateStep4()) { setStep(4); return; }
 
       const v = validatePlannerDetailed();
       if (!v.ok) {
@@ -2662,135 +2628,16 @@ Restante pendiente: ${money(data.ticket.restante)}
       setTimeout(() => setStep(11), 700);
     });
 
-const BOOST_2026 = {
-  phases: [
-    {
-      key: "F1",
-      label: "Fase 1",
-      start: { y: 2026, m: 1, d: 19 },
-      end: { y: 2026, m: 1, d: 31 },
-      fhs: {
-        "Normal": 25000
-      }
-    },
-    {
-      key: "F2",
-      label: "Fase 2",
-      start: { y: 2026, m: 2, d: 1 },
-      end: { y: 2026, m: 3, d: 8 },
-      fhs: {
-        "Normal": 35000
-      }
-    },
-    {
-      key: "F3",
-      label: "Fase 3",
-      start: { y: 2026, m: 3, d: 9 },
-      end: { y: 2026, m: 4, d: 24 },
-      fhs: {
-        "Normal": 35000
-      }
-    }
-  ]
-};
-
-    function _localDateAtYMD(y, m, d) {
-      return new Date(y, m - 1, d, 0, 0, 0, 0);
-    }
-
-    function _todayLocal() {
-      const now = new Date();
-      return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-    }
-
-    function _inRange(date, start, end) {
-      return date.getTime() >= start.getTime() && date.getTime() <= end.getTime();
-    }
-
-    function getBoostPhaseAuto(date = _todayLocal()) {
-      for (const ph of BOOST_2026.phases) {
-        const s = _localDateAtYMD(ph.start.y, ph.start.m, ph.start.d);
-        const e = _localDateAtYMD(ph.end.y, ph.end.m, ph.end.d);
-        if (_inRange(date, s, e)) return ph;
-      }
-      return null;
-    }
-
-    const BOOST_OUT_OF_RANGE_MODE = "fallback";
-
-    function calcBoostTicketTotal(ticketElegido, date = _todayLocal()) {
-      let ph = getBoostPhaseAuto(date);
-
-      if (!ph) {
-        if (BOOST_OUT_OF_RANGE_MODE === "block") return { phase: null, total: null };
-        ph = BOOST_2026.phases[BOOST_2026.phases.length - 1];
-      }
-
-      const total = ph.fhs[ticketElegido] ?? null;
-      return { phase: ph, total };
-    }
-
     function formatMXN(n) {
       if (typeof n !== "number") return "—";
       return n.toLocaleString("es-MX");
     }
 
     function boostInitTicketStep() {
-  if (!ticketElegidoEl || !faseAutoEl || !ticketTotalEl) return;
-
-  window.__FORM = window.__FORM || {};
-
-  function recompute() {
-    const choice = (ticketElegidoEl.value || "").trim();
-
-    if (!choice) {
-      faseAutoEl.value = "—";
-      ticketTotalEl.value = "—";
-      ticketErrEl && ticketErrEl.classList.remove("show");
-
-      window.__FORM.ticket_elegido = "";
-      window.__FORM.ticket_total = "";
-      window.__FORM.fase_auto = "";
-
-      TICKET_TOTAL = 35000;
-      refreshAbonoUI();
-      updateLiveTotals();
-      return;
+      enablePlannerUI(false);
+      ticketTotalDisplay.value = "—";
+      faseAutoEl.value = "Abril 2026";
     }
-
-    const { phase, total } = calcBoostTicketTotal(choice);
-
-    if (!phase || !total) {
-      faseAutoEl.value = "—";
-      ticketTotalEl.value = "—";
-      if (ticketErrEl) ticketErrEl.textContent = "No pudimos calcular tu ticket. Revisa tu selección.";
-      ticketErrEl && ticketErrEl.classList.add("show");
-
-      window.__FORM.ticket_elegido = choice;
-      window.__FORM.ticket_total = "";
-      window.__FORM.fase_auto = "";
-      return;
-    }
-
-    faseAutoEl.value = `${phase.label} (${phase.start.d}/${phase.start.m}–${phase.end.d}/${phase.end.m})`;
-    ticketTotalEl.value = formatMXN(total);
-
-    ticketErrEl && ticketErrEl.classList.remove("show");
-
-    window.__FORM.ticket_elegido = choice;
-    window.__FORM.ticket_total = total;
-    window.__FORM.fase_auto = phase.label;
-
-    TICKET_TOTAL = total;
-    refreshAbonoUI();
-    updateLiveTotals();
-    renderCalendar();
-    renderPayList();
-  }
-
-  ticketElegidoEl.addEventListener("change", recompute);
-  recompute();
-}
 
     resetPlanner();
     setStep(1);
